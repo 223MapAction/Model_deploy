@@ -1,0 +1,2 @@
+from .celery_task import perform_prediction, fetch_contextual_information
+from .celery_config import celery_app
