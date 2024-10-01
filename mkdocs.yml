@@ -1,0 +1,24 @@
+site_name: Map Action docs
+
+nav:
+  - Welcom: index.md
+  - Install and run: install-run.md
+  - System Arch: system-arch.md
+  - cnn service : cnn.md
+  - llm service : llm.md
+  - celery config and tasks : celery.md
+  - Pydantic model : models.md
+  - contrubition guideline: contribution-guideline.md
+
+
+theme: 
+  name: 'mkdocs'
+  logo: 'https://map-action.com/wp-content/uploads/2023/09/Logo-map-action.webp'
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+          python:
+            paths: [app]

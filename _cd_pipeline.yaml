@@ -1,0 +1,51 @@
+version: "3"
+
+services:
+  fastapi-app:
+    container_name: cvdeploy
+    build: .
+    ports:
+      - "8001:8001"
+    env_file:
+      - .cv_deploy.env
+    networks:
+      micro-services-network:
+        ipv4_address: 192.168.0.10
+    restart: always
+
+  redis:
+    container_name: redis-server
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    volumes:
+      - /redis_data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf  # Mount the custom redis.conf file
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]  # Use the custom configuration file
+    networks:
+      micro-services-network:
+        ipv4_address: 192.168.0.7
+
+  worker:
+    container_name: celery_workers
+    build:
+      context: .
+      dockerfile: Dockerfile.Celery
+    command: celery -A app.services.celery.celery_config.celery_app worker --loglevel=info
+    env_file:
+      - .cv_deploy.env
+    depends_on:
+      - redis
+      - fastapi-app
+    networks:
+      micro-services-network:
+        ipv4_address: 192.168.0.8
+    volumes:
+      - ~/celery_store1:/celery-data
+
+networks:
+  micro-services-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "192.168.0.0/24"

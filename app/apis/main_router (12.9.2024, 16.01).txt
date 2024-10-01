@@ -1,0 +1,209 @@
+import os
+import logging
+import requests
+import numpy as np
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi.responses import JSONResponse
+from ..services.websockets import ConnectionManager
+from ..services import predict, contextualize, chat_bot, get_response, perform_prediction, fetch_contextual_information, celery_app
+from ..models import ImageModel
+from ..database import database
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+
+manager = ConnectionManager()
+router = APIRouter()
+
+# Update the BASE_URL to match where the images are hosted
+BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads")
+
+def construct_image_url(image_name):
+    return f"{BASE_URL}/{image_name.split('/')[-1]}"
+
+async def fetch_image(image_url):
+    try:
+        response = requests.get(image_url)
+        response.raise_for_status()
+        return response.content
+    except requests.RequestException as e:
+        logging.error(f"Failed to fetch image from {image_url}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch image: {str(e)}")
+
+
+def sanitize_error_message(message: str, sensitive_structures: list) -> str:
+    sanitized_message = message
+    for structure in sensitive_structures:
+        sanitized_message = sanitized_message.replace(structure, structure)
+    return sanitized_message
+
+@router.get('/')
+def index():
+    return {'message': 'Map Action classification model'}
+
+@router.post('/image/predict')
+async def predict_incident_type(data: ImageModel):
+    try:
+        logging.info(f"Received request for image: {data.image_name} with sensitive structures: {data.sensitive_structures} and incident_id: {data.incident_id}")
+        
+        image_url = construct_image_url(data.image_name)
+        image = await fetch_image(image_url)
+
+        # Celery task is asynchronous but .get() is not awaited
+        prediction_task = perform_prediction.delay(image)
+        try:
+            prediction, probabilities = prediction_task.get(timeout=120)
+            logging.info(f"Prediction successful: {prediction} with probabilities: {probabilities}")
+            if isinstance(probabilities, np.ndarray):
+                probabilities = probabilities.tolist()
+        except Exception as e:
+            logging.error(f"Error during prediction task: {e}")
+            raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+
+        # Fetch context information using Celery
+        context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures)
+        try:
+            get_context, impact, piste_solution = context_task.get(timeout=120)
+            logging.info(f"Context fetching successful: {get_context}, {impact}, {piste_solution}")
+        except Exception as e:
+            logging.error(f"Error during context fetching task: {e}")
+            raise HTTPException(status_code=500, detail=f"Error during context fetching: {str(e)}")
+
+        if not all([data.incident_id, prediction, piste_solution, impact, get_context]):
+            raise HTTPException(status_code=400, detail="Missing required fields for database insertion.")
+
+        query = """
+        INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, impact_potentiel, context)
+        VALUES (:incident_id, :incident_type, :piste_solution, :impact_potentiel, :context);
+        """
+        values = {
+            "incident_id": data.incident_id,
+            "incident_type": prediction,
+            "piste_solution": piste_solution,
+            "impact_potentiel": impact,
+            "context": get_context
+        }
+
+        try:
+            await database.execute(query=query, values=values)
+            logging.info("Database insertion successful")
+        except Exception as e:
+            logging.error(f"Database error: {e}")
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+        return JSONResponse(content={
+            "prediction": prediction,
+            "probabilities": probabilities,
+            "context": get_context,
+            "in_depth": impact,
+            "piste_solution": piste_solution
+        })
+
+    except Exception as e:
+        logging.error(f"Unhandled exception: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@router.websocket("/ws/chat")
+async def chat_endpoint(websocket: WebSocket):
+    logging.info(f"WebSocket connection attempt from {websocket.client.host}")
+    origin = websocket.headers.get('origin')
+    logging.info(f"Received Origin: {origin}")
+    
+    allowed_origins = ["197.155.176.134","http://localhost:3000", "http://127.0.0.1", "http://57.153.185.160", None]
+
+    if origin not in allowed_origins:
+        logging.warning(f"Connection rejected from origin: {origin}")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    logging.info(f"Connection accepted from origin: {origin}")
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            message = data.get('message')
+            incident_id = data.get('incident_id')
+            session_id = data.get('session_id')
+
+            # Respond to the WebSocket message
+            response_message = {
+                "incident_id": incident_id,
+                "session_id": session_id,
+                "response": f"Chatbot response to message: {message}"
+            }
+            await websocket.send_json(response_message)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        logging.error(f"WebSocket error: {e}")
+        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+
+
+ 
+
+@router.websocket('/ws/image/predict')
+async def prediction_endpoint(websocket: WebSocket):
+    origin = websocket.headers.get('origin')
+    logging.info(f"Received Origin: {origin}")
+    allowed_origins = ["http://localhost:5432", "http://57.153.185.160", None]
+
+    if origin not in allowed_origins:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            image_path = data.get('image_name')
+            sensitive_structures = data.get('sensitive_structures')
+            incident_id = data.get('incident_id')
+
+            # Fetch image and perform prediction
+            image_url = construct_image_url(image_path)
+            image = await fetch_image(image_url)
+            prediction, probabilities = await predict(image)
+
+            # Use improved prompts for context, impact, and solution
+            get_context = await get_response(
+                f"Vous êtes un expert en environnement. Expliquez le contexte et l'importance de {prediction} au Mali en mettant en évidence les différents types de terrains et leurs caractéristiques spécifiques. Répondez en 3 phrases, moins de 40 mots."
+            )
+            impact = await get_response(
+                f"En tant qu'expert en environnement, décrivez les impacts potentiels de {prediction} sur les structures sensibles comme {sensitive_structures} au Mali. Mentionnez des exemples concrets. Répondez en 3 phrases, moins de 40 mots."
+            )
+            piste_solution = await get_response(
+                f"En tant qu'expert en gestion environnementale, proposez des solutions pratiques et durables pour gérer les impacts de {prediction} au Mali. Incluez des mesures préventives et correctives. Répondez en 3 phrases, moins de 40 mots."
+            )
+
+            # Insert the data into the database
+            query = """
+            INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, impact_potentiel, context)
+            VALUES (:incident_id, :incident_type, :piste_solution, :impact_potentiel, :context);
+            """
+            values = {
+                "incident_id": incident_id,
+                "incident_type": prediction,
+                "piste_solution": piste_solution,
+                "impact_potentiel": impact,
+                "context": get_context
+            }
+            await database.execute(query=query, values=values)
+
+            # Send the response back through the WebSocket
+            await websocket.send_json({
+                "prediction": prediction,
+                "probabilities": probabilities if isinstance(probabilities, list) else probabilities.tolist(),
+                "context": get_context,
+                "in_depth": impact,
+                "piste_solution": piste_solution
+            })
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        logging.error(f"WebSocket error: {e}")
+        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
+
+ 
