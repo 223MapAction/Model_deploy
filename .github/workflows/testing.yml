@@ -3,12 +3,14 @@
 name: Testing
 
 on:
-    push:
-        branches:
-            - main
+    workflow_run:
+        workflows: ["Deployment"]
+        types:
+            - completed
 
 jobs:
     test:
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         runs-on: self-hosted # Use your self-hosted runner
 
         steps:
