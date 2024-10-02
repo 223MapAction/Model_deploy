@@ -33,6 +33,7 @@ jobs:
                   echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
                   echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
                   echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
+                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
               shell: bash
 
             - name: Build Docker Image

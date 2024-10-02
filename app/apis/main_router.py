@@ -10,10 +10,7 @@ import json
 
 from ..services.websockets import ConnectionManager
 from ..services import (
-    predict,
-    contextualize,
     chat_response,
-    get_response,
     perform_prediction,
     fetch_contextual_information,
     celery_app,
