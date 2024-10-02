@@ -454,7 +454,7 @@ and then adapts the classifier part of the model to the specified number of clas
 
     <div class="doc doc-contents ">
 
-        <p>Performs image classification using the pretrained ResNet50 model.</p>
+        <p>Performs image classification using the updated ResNet50 model.</p>
 <p>This function processes an input image, applies the ResNet50 model, and returns the predicted category and
 probability distribution over all categories.</p>
 
@@ -511,15 +511,7 @@ probability distribution over all categories.</p>
 
             <details class="quote">
               <summary>Source code in <code>app/services/cnn/cnn.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
 <span class="normal">56</span>
@@ -541,9 +533,15 @@ probability distribution over all categories.</p>
 <span class="normal">72</span>
 <span class="normal">73</span>
 <span class="normal">74</span>
-<span class="normal">75</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Performs image classification using the pretrained ResNet50 model.</span>
+<span class="sd">    Performs image classification using the updated ResNet50 model.</span>
 
 <span class="sd">    This function processes an input image, applies the ResNet50 model, and returns the predicted category and</span>
 <span class="sd">    probability distribution over all categories.</span>
@@ -562,10 +560,8 @@ probability distribution over all categories.</p>
         <span class="c1"># Determine the predicted class index</span>
         <span class="n">predicted_class</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
-    <span class="c1"># Map the predicted class index to one of the six custom categories</span>
-    <span class="c1"># Note: This mapping is arbitrary since ResNet50 is trained on ImageNet classes.</span>
-    <span class="c1"># For meaningful predictions, consider fine-tuning the model on your specific dataset.</span>
-    <span class="n">predict_label</span> <span class="o">=</span> <span class="n">categories</span><span class="p">[</span><span class="n">predicted_class</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">categories</span><span class="p">)]</span>  <span class="c1"># Using modulo for mapping</span>
+    <span class="c1"># Map the predicted class index to the categories</span>
+    <span class="n">predict_label</span> <span class="o">=</span> <span class="n">categories</span><span class="p">[</span><span class="n">predicted_class</span><span class="p">]</span>
 
     <span class="c1"># Convert probabilities tensor to list for easier handling</span>
     <span class="n">probabilities</span> <span class="o">=</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
@@ -644,15 +640,7 @@ probability distribution over all categories.</p>
 
             <details class="quote">
               <summary>Source code in <code>app/services/cnn/cnn.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
-<span class="normal">24</span>
-<span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
 <span class="normal">32</span>
 <span class="normal">33</span>
 <span class="normal">34</span>
@@ -664,7 +652,15 @@ probability distribution over all categories.</p>
 <span class="normal">40</span>
 <span class="normal">41</span>
 <span class="normal">42</span>
-<span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">preprocess_image</span><span class="p">(</span><span class="n">image_bytes</span><span class="p">):</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">preprocess_image</span><span class="p">(</span><span class="n">image_bytes</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Preprocesses the input image for ResNet50.</span>
 
