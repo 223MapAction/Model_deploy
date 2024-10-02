@@ -37,15 +37,15 @@ jobs:
 
             - name: Build Containers
               run: |
-                  docker-compose -f _ci_pipeline.yaml up --build -d
+                  docker-compose -f _ci_pipeline.yml up --build -d
 
             - name: Run Tests
               run: |
-                  docker-compose -f _ci_pipeline.yaml run --rm testing
+                  docker-compose -f _ci_pipeline.yml run --rm testing
 
             - name: Copy Coverage Report
               run: |
-                  container_id=$(docker-compose -f _ci_pipeline.yaml ps -q testing)
+                  container_id=$(docker-compose -f _ci_pipeline.yml ps -q testing)
                   docker cp $container_id:/app/coverage/coverage.xml ./coverage.xml
 
             - name: Upload Coverage Reports to Codecov
