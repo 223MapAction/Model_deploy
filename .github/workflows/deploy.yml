@@ -25,6 +25,16 @@ jobs:
                   sudo apt-get update
                   sudo apt-get install -y docker-compose
 
+            - name: Create .cv_deploy.env
+              run: |
+                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
+                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
+                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
+                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
+                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
+                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
+              shell: bash
+
             - name: Build and Run Containers
               run: |
                   docker-compose -f _cd_pipeline.yaml up --build -d
