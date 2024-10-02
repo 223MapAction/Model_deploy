@@ -27,3 +27,4 @@ pytest-asyncio
 pytest-xdist
 redis
 python-dotenv==0.19.2
+chromadb
