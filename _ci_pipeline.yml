@@ -1,14 +1,21 @@
-version: '3'
+version: "3"
 
 services:
-
     testing:
-      build:
-        context: .
-        dockerfile: Dockerfile.CI
-      command: ["pytest", "-n", "auto", "--cov=.", "--cov-report=xml:/app/coverage/coverage.xml", "--cov-report=term-missing"]
-      env_file:
-        - ~/.cv_deploy.env
-      volumes:
-        - ~/model_path/documents:/app/documents
-        - ~/model_path/cv_model:/app/cv_model
+        build:
+            context: .
+            dockerfile: Dockerfile.CI
+        command:
+            [
+                "pytest",
+                "-n",
+                "auto",
+                "--cov=.",
+                "--cov-report=xml:/app/coverage/coverage.xml",
+                "--cov-report=term-missing",
+            ]
+        env_file:
+            - .cv_deploy.env
+        volumes:
+            - ~/model_path/documents:/app/documents
+            - ~/model_path/cv_model:/app/cv_model
