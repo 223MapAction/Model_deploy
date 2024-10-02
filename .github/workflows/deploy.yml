@@ -1,0 +1,30 @@
+# .github/workflows/deploy.yml
+
+name: Deployment
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build-and-deploy:
+        runs-on: self-hosted # Use your self-hosted runner
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v3
+              with:
+                  python-version: "3.10" # Specify your required Python version
+
+            - name: Install Docker Compose
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y docker-compose
+
+            - name: Build and Run Containers
+              run: |
+                  docker-compose -f _cd_pipeline.yaml up --build -d
