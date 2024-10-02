@@ -1,0 +1,47 @@
+# .github/workflows/testing.yml
+
+name: Testing
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    test:
+        runs-on: self-hosted # Use your self-hosted runner
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v3
+              with:
+                  python-version: "3.10" # Specify your required Python version
+
+            - name: Install Docker Compose
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y docker-compose
+
+            - name: Build Containers
+              run: |
+                  docker-compose -f _ci_pipeline.yml up --build -d
+
+            - name: Run Tests
+              run: |
+                  docker-compose -f _ci_pipeline.yml run --rm testing
+
+            - name: Copy Coverage Report
+              run: |
+                  container_id=$(docker-compose -f _ci_pipeline.yml ps -q testing)
+                  docker cp $container_id:/app/coverage/coverage.xml ./coverage.xml
+
+            - name: Upload Coverage Reports to Codecov
+              uses: codecov/codecov-action@v4 # Ensure this is the latest stable version
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  files: ./coverage.xml
+                  flags: unittests
+                  name: codecov-umbrella
