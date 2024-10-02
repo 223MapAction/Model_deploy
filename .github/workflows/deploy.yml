@@ -25,14 +25,6 @@ jobs:
                   sudo apt-get update
                   sudo apt-get install -y docker-compose
 
-            - name: Cache Docker layers
-              uses: actions/cache@v3
-              with:
-                  path: /var/lib/docker
-                  key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
-                  restore-keys: |
-                      ${{ runner.os }}-docker-
-
             - name: Create .cv_deploy.env
               run: |
                   echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
@@ -45,14 +37,12 @@ jobs:
 
             - name: Build Docker Image
               run: |
-                  docker-compose -f _cd_pipeline.yaml build --no-cache
-              # Note: Using --no-cache ensures the latest dependencies are installed
-              # Remove --no-cache if you want to leverage Docker's cache
+                  docker-compose -f _cd_pipeline.yaml build
+              # Removed --no-cache to leverage Docker's layer caching
 
             - name: Clean Up Orphan Containers
               run: |
                   docker-compose -f _cd_pipeline.yaml down --remove-orphans
-              # Ensures that any orphaned containers are removed
 
             - name: Deploy Containers
               run: |
@@ -61,4 +51,3 @@ jobs:
             - name: Clean Up Unused Docker Images and Containers
               run: |
                   docker system prune -af --volumes
-              # Removes unused Docker data to free up space
