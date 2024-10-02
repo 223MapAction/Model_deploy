@@ -202,7 +202,7 @@ async def chat_endpoint(websocket: WebSocket):
         "http://localhost:3000",
         "http://127.0.0.1",
         "http://57.153.185.160",
-        "https://app.map-action.com",  # Replace with your actual frontend domain
+        "https://app.map-action.com",  
         "http://app.map-action.com",
         None,
     ]
