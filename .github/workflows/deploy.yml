@@ -62,11 +62,3 @@ jobs:
               run: |
                   docker system prune -af --volumes
               # Removes unused Docker data to free up space
-
-            - name: Upload Coverage Reports to Codecov
-              uses: codecov/codecov-action@v4 # Ensure this is the latest stable version
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  files: ./coverage.xml
-                  flags: unittests
-                  name: codecov-umbrella
