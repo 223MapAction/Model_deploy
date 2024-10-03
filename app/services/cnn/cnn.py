@@ -4,7 +4,7 @@ import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 import io
-from python-dotenv import load_dotenv
+from dotenv import load_dotenv
 
 
 load_dotenv()
