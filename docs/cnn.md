@@ -1,6 +1,3 @@
-::: app.services.cnn.cnn_preprocess
-::: app.services.cnn.cnn_model
-
-<!-- ::: services.cnn.cnn -->
-
-::: app.services.cnn.cnn
+<!-- ::: services.cnn.cnn_preprocess
+::: services.cnn.cnn_model
+::: services.cnn.cnn -->
