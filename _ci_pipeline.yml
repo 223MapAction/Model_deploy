@@ -17,5 +17,5 @@ services:
         env_file:
             - .cv_deploy.env
         volumes:
-            - /model_path/documents:/app/documents
-            - /model_path/cv_model:/app/cv_model
+            - documents:/app/documents
+            - cv_model:/app/cv_model

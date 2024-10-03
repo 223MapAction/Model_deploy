@@ -1,22 +1,36 @@
+import os
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 import io
+from python-dotenv import load_dotenv
 
-# Define the list of categories as per main.py
+
+load_dotenv()
+# Define the list of categories as per your fine-tuned model
 categories = [
-    "Caniveau bouché",
-    "Déchets solides",
-    "Déchets solides dans les caniveaux",
-    "Pollution de l’eau (matière en suspension)",
-    "Pollution de l’eau (présence de déchets plastiques)",
-    "Sol aride"
+    "Caniveau obstrué",
+    "Déchet dans l'eau",
+    "Déchet solide",
+    "Déforestation",
+    "Pollution de l'eau",
+    "Sol dégradé",
+    "Sécheresse"
 ]
 
 # Initialize the ResNet50 model
-# Set pretrained=True to use ImageNet weights, or False if you prefer to train from scratch
-model = models.resnet50(pretrained=True)
+num_classes = len(categories)
+model = models.resnet50(pretrained=False)  # Do not load pretrained ImageNet weights
+model.fc = nn.Linear(model.fc.in_features, num_classes)  # Adjust the final layer
+
+# Load the fine-tuned model weights from MODEL_PATH
+MODEL_PATH = os.environ.get('MODEL_PATH')  # Ensure MODEL_PATH is set in your environment
+if MODEL_PATH is None:
+    raise ValueError("MODEL_PATH is not set in the environment variables.")
+
+# Load the state dictionary into the model
+model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
 model.eval()  # Set the model to evaluation mode
 
 # Define the image preprocessing pipeline
@@ -44,10 +58,7 @@ def preprocess_image(image_bytes):
 
 def predict(image):
     """
-    Performs image classification using the pretrained ResNet50 model.
-
-    This function processes an input image, applies the ResNet50 model, and returns the predicted category and
-    probability distribution over all categories.
+    Performs image classification using the fine-tuned ResNet50 model.
 
     Args:
         image (bytes): The image data in bytes format.
@@ -63,10 +74,8 @@ def predict(image):
         # Determine the predicted class index
         predicted_class = torch.argmax(probabilities, dim=0).item()
 
-    # Map the predicted class index to one of the six custom categories
-    # Note: This mapping is arbitrary since ResNet50 is trained on ImageNet classes.
-    # For meaningful predictions, consider fine-tuning the model on your specific dataset.
-    predict_label = categories[predicted_class % len(categories)]  # Using modulo for mapping
+    # Map the predicted class index to the corresponding category
+    predict_label = categories[predicted_class]
 
     # Convert probabilities tensor to list for easier handling
     probabilities = probabilities.cpu().tolist()
