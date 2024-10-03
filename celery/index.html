@@ -494,7 +494,7 @@ This function processes an image to predict its content and calculate the probab
 
     <span class="c1"># Proceed with fetching contextual information only if prediction is successful</span>
     <span class="k">if</span> <span class="n">prediction</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># Make sure it&#39;s not an error dict</span>
-        <span class="k">return</span> <span class="n">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fetch_contextual_information_sync</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to proceed due to prediction error: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Prediction failed, unable to fetch contextual information.&quot;</span><span class="p">}</span>
