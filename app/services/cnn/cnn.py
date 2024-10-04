@@ -1,33 +1,32 @@
 import os
 import torch
-import torch.nn as nn
 from ..cnn.cnn_preprocess import preprocess_image
 from ..cnn.cnn_model import m_a_model
 
 # Initialize the VGG16 model with batch-normalized weights for 7 classes
-model = m_a_model(7)
+num_classes = 7
+model = m_a_model(num_classes)
 
 # Load the state dict from a pre-trained model
 state_dict_path = os.environ.get('MODEL_PATH')
 
+if not state_dict_path:
+    raise ValueError("The MODEL_PATH environment variable is not set.")
+
 if not os.path.isfile(state_dict_path):
     raise FileNotFoundError(f"Model file not found at {state_dict_path}")
 
-loaded_state_dict = torch.load(state_dict_path)
+loaded_state_dict = torch.load(state_dict_path, map_location=torch.device('cpu'))
 
 # Adjust the model to ensure compatibility with the loaded state dict
 model_dict = model.state_dict()
+# Exclude the classifier's final layer parameters from the pretrained_dict
 pretrained_dict = {k: v for k, v in loaded_state_dict.items()
-                  if k in model_dict and 'classifier.6' not in k}  # Updated to exclude classifier.6
+                  if k in model_dict and not k.startswith('classifier.6')}
 
 # Update the model's state dictionary except the classifier's final layer
 model_dict.update(pretrained_dict)
 model.load_state_dict(model_dict)
-
-# Modify the classifier to match the number of classes (7 in this case)
-num_classes = 7
-# Use -1 to always target the last layer
-model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, num_classes)
 
 # List of categories for prediction
 categories = ["Caniveau obstrué", "Déchet dans l'eau", "Déchet solide",
@@ -56,7 +55,7 @@ def predict(image):
 
         predict_label_index = predicted_class.item()
         # Get the category name from the index
-        predict_label = categories[int(predict_label_index)]
+        predict_label = categories[predict_label_index]
 
         # Return the predicted category and probabilities
         return predict_label, probabilities.tolist()
