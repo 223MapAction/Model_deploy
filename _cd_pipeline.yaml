@@ -41,7 +41,7 @@ services:
             micro-services-network:
                 ipv4_address: 192.168.0.8
         volumes:
-            - /celery_store1:/celery-data
+            - ~/celery_store1:/celery-data
 
 networks:
     micro-services-network:
