@@ -1,4 +1,6 @@
 import os
+import time
+import logging
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
@@ -6,8 +8,12 @@ from PIL import Image
 import io
 from dotenv import load_dotenv
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
+
 # Define the list of categories as per your fine-tuned model
 categories = [
     "Caniveau obstrué",
@@ -30,8 +36,13 @@ if MODEL_PATH is None:
     raise ValueError("MODEL_PATH is not set in the environment variables.")
 
 # Load the state dictionary into the model
+MODEL_PATH = os.path.expanduser(MODEL_PATH)
+if not os.path.isfile(MODEL_PATH):
+    raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
+
 model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
 model.eval()  # Set the model to evaluation mode
+logger.info("Model loaded and set to evaluation mode.")
 
 # Define the image preprocessing pipeline
 def preprocess_image(image_bytes):
@@ -66,19 +77,41 @@ def predict(image):
     Returns:
         tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a list.
     """
+    start_time = time.time()
+    logger.info("Starting prediction.")
+
     model.eval()  # Ensure the model is in evaluation mode
+    logger.info("Model set to evaluation mode.")
+
+    # Preprocess the image
+    preprocess_start = time.time()
     input_data = preprocess_image(image)  # Preprocess the image
+    preprocess_end = time.time()
+    logger.info(f"Image preprocessed in {preprocess_end - preprocess_start:.4f} seconds.")
+
     with torch.no_grad():  # Disable gradient calculation
+        inference_start = time.time()
         output = model(input_data)  # Get the model output
+        inference_end = time.time()
+        logger.info(f"Model inference completed in {inference_end - inference_start:.4f} seconds.")
+
+        # Calculate probabilities
         probabilities = torch.nn.functional.softmax(output[0], dim=0)  # Calculate probabilities
+        logger.info("Probabilities calculated.")
+
         # Determine the predicted class index
         predicted_class = torch.argmax(probabilities, dim=0).item()
+        logger.info(f"Predicted class index: {predicted_class}")
 
     # Map the predicted class index to the corresponding category
     predict_label = categories[predicted_class]
+    logger.info(f"Predicted label: {predict_label}")
 
     # Convert probabilities tensor to list for easier handling
     probabilities = probabilities.cpu().tolist()
+
+    total_time = time.time() - start_time
+    logger.info(f"Total prediction time: {total_time:.4f} seconds.")
 
     # Return the predicted category and probabilities
     return predict_label, probabilities
