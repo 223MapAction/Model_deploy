@@ -1,5 +1,6 @@
 import torch
 from torchvision.models import vgg16_bn, VGG16_BN_Weights
+import torch.nn as nn
 
 def m_a_model(num_classes: int):
     """
@@ -19,13 +20,12 @@ def m_a_model(num_classes: int):
     model = vgg16_bn(weights=vgg16_bn_weights)
     
     # Freeze all parameters in the model
-    for params in model.parameters():
-        params.requires_grad = False
+    for param in model.parameters():
+        param.requires_grad = False
         
     # Modify the classifier to adapt to the number of classes
-    num_features = model.classifier[num_classes].in_features
-    features = list(model.classifier.children())[:-1]
-    features.extend([torch.nn.Linear(num_features, num_classes)])
-    model.classifier = torch.nn.Sequential(*features)
-
+    # Correctly access the last layer using negative indexing
+    num_features = model.classifier[-1].in_features  # Access the last layer
+    model.classifier[-1] = nn.Linear(num_features, num_classes)  # Replace the last layer
+    
     return model
