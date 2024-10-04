@@ -1,5 +1,6 @@
-# Dockerfile for Celery Worker
+# Dockerfile.Celery
 
+# Use an official Python runtime as a parent image
 FROM python:3.10.13-bookworm
 
 # Set working directory
@@ -9,19 +10,20 @@ WORKDIR /app
 COPY . /app
 
 # Environment variables to prevent Python from writing .pyc files and enable unbuffered stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install necessary system dependencies and upgrade pip
 RUN apt-get update && apt-get install -y \
     build-essential \
     && pip install --upgrade pip \
+    && pip install -r requirements.txt \
+    && pip install redis \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install required Python packages, including Redis client
-RUN pip install -r requirements.txt
-RUN pip install redis
+# Explicitly copy the cv_model directory to ensure the model file is present
+COPY cv_model/ /app/cv_model/
 
 # Create a non-root user and switch to it
 RUN useradd -ms /bin/bash celeryuser
