@@ -3,7 +3,10 @@ version: "3"
 services:
     fastapi-app:
         container_name: cvdeploy
-        build: .
+        build:
+            context: .
+        volumes:
+            - ~/cv_model:/app/cv_model
         ports:
             - "8001:8001"
         env_file:
