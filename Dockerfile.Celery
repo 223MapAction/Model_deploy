@@ -16,6 +16,9 @@ ENV PYTHONUNBUFFERED=1
 # Set PYTHONPATH to include /app
 ENV PYTHONPATH="/app:${PYTHONPATH}"
 
+# Set MODEL_PATH to point to ResNet50 model
+ENV MODEL_PATH="/app/cv_model/ResNet50_TCM1.pth"
+
 # Install necessary system dependencies and upgrade pip
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -25,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Explicitly copy the cv_model directory to ensure the model file is present
+# Ensure the model file is present
 COPY cv_model/ /app/cv_model/
 
 # Create a non-root user and switch to it
