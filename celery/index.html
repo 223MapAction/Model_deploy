@@ -278,12 +278,84 @@ This configuration is necessary for task queueing and result storage for distrib
 
     <div class="doc doc-contents ">
 
-        <p>Non-async version for environments where async handling is not required.
-Fetches contextual information, impact, and possible solutions in a tailored manner.</p>
+        <p>A Celery task that fetches contextual information based on the prediction and sensitive structures.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>prediction</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The predicted classification.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>sensitive_structures</code></td>
+            <td>
+                  <code>list</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A list of sensitive structures related to the prediction.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>tuple</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A tuple containing context, impact, and piste_solution.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">46</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
 <span class="normal">47</span>
 <span class="normal">48</span>
 <span class="normal">49</span>
@@ -303,17 +375,20 @@ Fetches contextual information, impact, and possible solutions in a tailored man
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+<span class="normal">66</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Non-async version for environments where async handling is not required.</span>
-<span class="sd">    Fetches contextual information, impact, and possible solutions in a tailored manner.</span>
+<span class="sd">    A Celery task that fetches contextual information based on the prediction and sensitive structures.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        prediction (str): The predicted classification.</span>
+<span class="sd">        sensitive_structures (list): A list of sensitive structures related to the prediction.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: A tuple containing context, impact, and piste_solution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># Improved prompts using contextual details</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting contextual information task.&quot;</span><span class="p">)</span>
         <span class="n">context_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Vous êtes un expert en environnement. Expliquez le contexte et l&#39;importance de </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2"> au Mali en mettant en évidence les différents types de terrains et leurs caractéristiques spécifiques.&quot;</span>
         <span class="n">impact_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;En tant qu&#39;expert en environnement, décrivez les impacts potentiels de </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2"> sur les structures sensibles comme </span><span class="si">{</span><span class="n">sensitive_structures</span><span class="si">}</span><span class="s2"> au Mali.&quot;</span>
         <span class="n">solution_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;En tant qu&#39;expert en gestion environnementale, proposez des solutions pratiques et durables pour gérer les impacts de </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2"> au Mali. Incluez des mesures préventives et correctives.&quot;</span>
@@ -323,7 +398,6 @@ Fetches contextual information, impact, and possible solutions in a tailored man
         <span class="n">impact</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span><span class="n">impact_prompt</span><span class="p">)</span>
         <span class="n">piste_solution</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span><span class="n">solution_prompt</span><span class="p">)</span>
 
-        <span class="c1"># Logging the fetched information</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Context: </span><span class="si">{</span><span class="n">get_context</span><span class="si">}</span><span class="s2">, Impact: </span><span class="si">{</span><span class="n">impact</span><span class="si">}</span><span class="s2">, Solution: </span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">get_context</span><span class="p">,</span> <span class="n">impact</span><span class="p">,</span> <span class="n">piste_solution</span>
 
@@ -403,7 +477,12 @@ This function processes an image to predict its content and calculate the probab
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">16</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
 <span class="normal">17</span>
 <span class="normal">18</span>
 <span class="normal">19</span>
@@ -423,11 +502,7 @@ This function processes an image to predict its content and calculate the probab
 <span class="normal">33</span>
 <span class="normal">34</span>
 <span class="normal">35</span>
-<span class="normal">36</span>
-<span class="normal">37</span>
-<span class="normal">38</span>
-<span class="normal">39</span>
-<span class="normal">40</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">perform_prediction</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Celery task that performs image prediction using a convolutional neural network.</span>
@@ -440,6 +515,7 @@ This function processes an image to predict its content and calculate the probab
 <span class="sd">        tuple: A tuple containing the predicted classification and a list of probabilities associated with each class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting prediction task.&quot;</span><span class="p">)</span>
         <span class="n">prediction</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="n">predict</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">, Probabilities: </span><span class="si">{</span><span class="n">probabilities</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -473,7 +549,13 @@ This function processes an image to predict its content and calculate the probab
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">74</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
 <span class="normal">75</span>
 <span class="normal">76</span>
 <span class="normal">77</span>
@@ -490,14 +572,20 @@ This function processes an image to predict its content and calculate the probab
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Chain the prediction task with the contextual information task.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">prediction</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="n">perform_prediction</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting chained task: run_prediction_and_context.&quot;</span><span class="p">)</span>
+        <span class="n">prediction</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="n">perform_prediction</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
-    <span class="c1"># Proceed with fetching contextual information only if prediction is successful</span>
-    <span class="k">if</span> <span class="n">prediction</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># Make sure it&#39;s not an error dict</span>
-        <span class="k">return</span> <span class="n">fetch_contextual_information_sync</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to proceed due to prediction error: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Prediction failed, unable to fetch contextual information.&quot;</span><span class="p">}</span>
+        <span class="c1"># Proceed with fetching contextual information only if prediction is successful</span>
+        <span class="k">if</span> <span class="n">prediction</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># Ensure it&#39;s not an error dict</span>
+            <span class="n">context_info</span> <span class="o">=</span> <span class="n">fetch_contextual_information</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">context_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to proceed due to prediction error: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Prediction failed, unable to fetch contextual information.&quot;</span><span class="p">}</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chained task failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
