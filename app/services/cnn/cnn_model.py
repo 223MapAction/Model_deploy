@@ -23,7 +23,7 @@ def m_a_model(num_classes: int):
         params.requires_grad = False
         
     # Modify the classifier to adapt to the number of classes
-    num_features = model.classifier[6].in_features
+    num_features = model.classifier[num_classes].in_features
     features = list(model.classifier.children())[:-1]
     features.extend([torch.nn.Linear(num_features, num_classes)])
     model.classifier = torch.nn.Sequential(*features)

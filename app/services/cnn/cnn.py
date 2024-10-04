@@ -1,134 +1,62 @@
 import os
-import time
-import logging
 import torch
 import torch.nn as nn
-from torchvision import models, transforms
-from PIL import Image
-import io
-from dotenv import load_dotenv
+from ..cnn.cnn_preprocess import preprocess_image
+from ..cnn.cnn_model import m_a_model
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Initialize the VGG16 model with batch-normalized weights for 7 classes
+model = m_a_model(7)
 
-load_dotenv()
+# Load the state dict from a pre-trained model
+state_dict_path = os.environ.get('MODEL_PATH')
 
-# Define the list of categories as per your fine-tuned model
-categories = [
-    "Caniveau obstrué",
-    "Déchet dans l'eau",
-    "Déchet solide",
-    "Déforestation",
-    "Pollution de l'eau",
-    "Sol dégradé",
-    "Sécheresse"
-]
+if not os.path.isfile(state_dict_path):
+    raise FileNotFoundError(f"Model file not found at {state_dict_path}")
 
-# Initialize the ResNet50 model
-num_classes = len(categories)
-model = models.resnet50(weights=None)  # Do not load pretrained ImageNet weights
-model.fc = nn.Linear(model.fc.in_features, num_classes)  # Adjust the final layer
+loaded_state_dict = torch.load(state_dict_path)
 
-# Load the fine-tuned model weights from MODEL_PATH
-MODEL_PATH = os.environ.get('MODEL_PATH')  # Ensure MODEL_PATH is set in your environment
-if MODEL_PATH is None:
-    raise ValueError("MODEL_PATH is not set in the environment variables.")
+# Adjust the model to ensure compatibility with the loaded state dict
+model_dict = model.state_dict()
+pretrained_dict = {k: v for k, v in loaded_state_dict.items(
+) if k in model_dict and 'classifier.7' not in k}
 
-# Expand user path and verify file existence
-MODEL_PATH = os.path.expanduser(MODEL_PATH)
-if not os.path.isfile(MODEL_PATH):
-    raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
+# Update the model's state dictionary except the classifier's final layer
+model_dict.update(pretrained_dict)
+model.load_state_dict(model_dict)
 
-# Load the state dictionary into the model
-logger.info("Loading model state dictionary.")
-model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model.to(device)
-model.eval()  # Set the model to evaluation mode
-logger.info("Model loaded and set to evaluation mode.")
+# Modify the classifier to match the number of classes (7 in this case)
+num_classes = 7
+model.classifier[7] = nn.Linear(model.classifier[7].in_features, num_classes)
 
-# Define the image preprocessing pipeline
-def preprocess_image(image_bytes):
+# List of categories for prediction
+categories = ["Caniveau bouché", "Déchets solides", "Déchets solides dans les caniveaux",
+              "Pollution de l’eau (matière en suspension)", "Pollution de l’eau (présence de déchets plastiques)", "Sol aride"]
+
+
+def predict(image):
     """
-    Preprocesses the input image for ResNet50.
+    Performs image classification using a pre-trained VGG16 model modified for six specific categories.
+    This function processes an input image, applies a pre-trained model, and returns the predicted category and
+    probability distribution over all categories.
 
     Args:
-        image_bytes (bytes): The image data in bytes format.
+        image (bytes): The image data in bytes format.
 
     Returns:
-        torch.Tensor: The preprocessed image tensor ready for model input.
+        tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a tensor.
     """
-    try:
-        logger.info("Starting image preprocessing.")
-        my_transforms = transforms.Compose([
-            transforms.Resize(256),                # Resize the shorter side to 256 pixels
-            transforms.CenterCrop(224),            # Center crop to 224x224 pixels as expected by ResNet50
-            transforms.ToTensor(),                 # Convert PIL Image to tensor
-            transforms.Normalize(                  # Normalize using ImageNet's mean and std
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]
-            ),
-        ])
-        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')  # Ensure image is in RGB format
-        logger.info("Image opened and converted to RGB.")
-        processed_image = my_transforms(image).unsqueeze(0).to(device)  # Add batch dimension and move to device
-        logger.info("Image transformed successfully.")
-        return processed_image
-    except Exception as e:
-        logger.error(f"Error during image preprocessing: {e}", exc_info=True)
-        raise
+    model.eval()  # Set the model to evaluation mode
+    input_data = preprocess_image(image)  # Preprocess the image
+    with torch.no_grad():  # Disable gradient calculation
+        output = model(input_data)  # Get the model output
+        probabilities = torch.nn.functional.softmax(
+            output[0], dim=0)  # Calculate probabilities
+        # Determine the predicted class
+        predicted_class = torch.argmax(probabilities, dim=0)
 
-def predict(image_bytes):
-    """
-    Performs image classification using the fine-tuned ResNet50 model.
-
-    Args:
-        image_bytes (bytes): The image data in bytes format.
-
-    Returns:
-        tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a list.
-    """
-    try:
-        start_time = time.time()
-        logger.info("Starting prediction.")
-
-        model.eval()  # Ensure the model is in evaluation mode
-        logger.info("Model set to evaluation mode.")
-
-        # Preprocess the image
-        preprocess_start = time.time()
-        input_data = preprocess_image(image_bytes)  # Preprocess the image
-        preprocess_end = time.time()
-        logger.info(f"Image preprocessed in {preprocess_end - preprocess_start:.4f} seconds.")
-
-        with torch.no_grad():  # Disable gradient calculation
-            inference_start = time.time()
-            logger.info("Starting model inference.")
-            output = model(input_data)  # Get the model output
-            inference_end = time.time()
-            logger.info(f"Model inference completed in {inference_end - inference_start:.4f} seconds.")
-
-            # Calculate probabilities
-            probabilities = torch.nn.functional.softmax(output[0], dim=0)  # Calculate probabilities
-            logger.info("Probabilities calculated.")
-
-            # Determine the predicted class index
-            predicted_class = torch.argmax(probabilities, dim=0).item()
-            logger.info(f"Predicted class index: {predicted_class}")
-
-        # Map the predicted class index to the corresponding category
-        predict_label = categories[predicted_class]
-        logger.info(f"Predicted label: {predict_label}")
-
-        # Convert probabilities tensor to list for easier handling
-        probabilities = probabilities.cpu().tolist()
-
-        total_time = time.time() - start_time
-        logger.info(f"Total prediction time: {total_time:.4f} seconds.")
+        predict_label_index = predicted_class.item()
+        # Get the category name from the index
+        predict_label = categories[int(predict_label_index)]
 
         # Return the predicted category and probabilities
-        return predict_label, probabilities
-    except Exception as e:
-        logger.error(f"Error during prediction: {e}", exc_info=True)
-        raise
+        return predict_label, probabilities.tolist()
