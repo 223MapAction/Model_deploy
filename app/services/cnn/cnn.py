@@ -17,8 +17,8 @@ loaded_state_dict = torch.load(state_dict_path)
 
 # Adjust the model to ensure compatibility with the loaded state dict
 model_dict = model.state_dict()
-pretrained_dict = {k: v for k, v in loaded_state_dict.items(
-) if k in model_dict and 'classifier.7' not in k}
+pretrained_dict = {k: v for k, v in loaded_state_dict.items()
+                  if k in model_dict and 'classifier.6' not in k}  # Updated to exclude classifier.6
 
 # Update the model's state dictionary except the classifier's final layer
 model_dict.update(pretrained_dict)
@@ -26,16 +26,16 @@ model.load_state_dict(model_dict)
 
 # Modify the classifier to match the number of classes (7 in this case)
 num_classes = 7
-model.classifier[7] = nn.Linear(model.classifier[7].in_features, num_classes)
+# Use -1 to always target the last layer
+model.classifier[-1] = nn.Linear(model.classifier[-1].in_features, num_classes)
 
 # List of categories for prediction
 categories = ["Caniveau obstrué", "Déchet dans l'eau", "Déchet solide",
               "Déforestation", "Pollution de l’eau", "Sécheresse", "Sol dégradé"]
 
-
 def predict(image):
     """
-    Performs image classification using a pre-trained VGG16 model modified for six specific categories.
+    Performs image classification using a pre-trained VGG16 model modified for seven specific categories.
     This function processes an input image, applies a pre-trained model, and returns the predicted category and
     probability distribution over all categories.
 
@@ -43,7 +43,7 @@ def predict(image):
         image (bytes): The image data in bytes format.
 
     Returns:
-        tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a tensor.
+        tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a list.
     """
     model.eval()  # Set the model to evaluation mode
     input_data = preprocess_image(image)  # Preprocess the image
