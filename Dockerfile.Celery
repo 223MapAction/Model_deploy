@@ -3,10 +3,10 @@
 # Use an official Python runtime as a parent image
 FROM python:3.10.13-bookworm
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy application files
+# Copy application files into the container
 COPY . /app
 
 # Environment variables to prevent Python from writing .pyc files and enable unbuffered stdout/stderr
@@ -28,11 +28,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Ensure the model file is present
-COPY cv_model/ /app/cv_model/
-
-# Create a non-root user and switch to it
+# Create a non-root user
 RUN useradd -ms /bin/bash celeryuser
+
+# Change ownership of /app and its subdirectories to celeryuser
+RUN chown -R celeryuser:celeryuser /app
+
+# Switch to celeryuser
 USER celeryuser
 
 # Set the default command to run the Celery worker
