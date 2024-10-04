@@ -1,5 +1,3 @@
-# services/cnn.py
-
 import os
 import time
 import logging
@@ -29,7 +27,7 @@ categories = [
 
 # Initialize the ResNet50 model
 num_classes = len(categories)
-model = models.resnet50(pretrained=False)  # Do not load pretrained ImageNet weights
+model = models.resnet50(weights=None)  # Do not load pretrained ImageNet weights
 model.fc = nn.Linear(model.fc.in_features, num_classes)  # Adjust the final layer
 
 # Load the fine-tuned model weights from MODEL_PATH
@@ -43,7 +41,10 @@ if not os.path.isfile(MODEL_PATH):
     raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
 
 # Load the state dictionary into the model
+logger.info("Loading model state dictionary.")
 model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model.to(device)
 model.eval()  # Set the model to evaluation mode
 logger.info("Model loaded and set to evaluation mode.")
 
@@ -71,19 +72,19 @@ def preprocess_image(image_bytes):
         ])
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')  # Ensure image is in RGB format
         logger.info("Image opened and converted to RGB.")
-        processed_image = my_transforms(image).unsqueeze(0)  # Add batch dimension
+        processed_image = my_transforms(image).unsqueeze(0).to(device)  # Add batch dimension and move to device
         logger.info("Image transformed successfully.")
         return processed_image
     except Exception as e:
         logger.error(f"Error during image preprocessing: {e}", exc_info=True)
         raise
 
-def predict(image):
+def predict(image_bytes):
     """
     Performs image classification using the fine-tuned ResNet50 model.
 
     Args:
-        image (bytes): The image data in bytes format.
+        image_bytes (bytes): The image data in bytes format.
 
     Returns:
         tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a list.
@@ -97,12 +98,13 @@ def predict(image):
 
         # Preprocess the image
         preprocess_start = time.time()
-        input_data = preprocess_image(image)  # Preprocess the image
+        input_data = preprocess_image(image_bytes)  # Preprocess the image
         preprocess_end = time.time()
         logger.info(f"Image preprocessed in {preprocess_end - preprocess_start:.4f} seconds.")
 
         with torch.no_grad():  # Disable gradient calculation
             inference_start = time.time()
+            logger.info("Starting model inference.")
             output = model(input_data)  # Get the model output
             inference_end = time.time()
             logger.info(f"Model inference completed in {inference_end - inference_start:.4f} seconds.")
