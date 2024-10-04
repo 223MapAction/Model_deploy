@@ -1,7 +1,14 @@
-from .celery_config import celery_app
-from ..cnn import predict  # Ensure these are adapted to work as standalone functions
-from ..llm import get_response
+# from .celery_config import celery_app
+# from ..cnn import predict  # Ensure these are adapted to work as standalone functions
+# from ..llm import get_response
+# import logging
+
+# Correct import in celery_task.py
+from app.services.celery.celery_config import celery_app
+from app.services.cnn import predict
+from app.services.llm import get_response
 import logging
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
