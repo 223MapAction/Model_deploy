@@ -1,61 +1,68 @@
+# app/services/cnn/cnn.py
+
+# app/services/cnn/cnn.py
+
 import os
 import torch
-from ..cnn.cnn_preprocess import preprocess_image
-from ..cnn.cnn_model import m_a_model
+from app.services.cnn.cnn_preprocess import preprocess_image
+from app.services.cnn.cnn_model import m_a_model
+import logging
 
-# Initialize the VGG16 model with batch-normalized weights for 7 classes
-num_classes = 7
-model = m_a_model(num_classes)
+# Rest of the code remains unchanged
 
-# Load the state dict from a pre-trained model
-state_dict_path = os.environ.get('MODEL_PATH')
+# Set up logging
+logger = logging.getLogger(__name__)
 
-if not state_dict_path:
-    raise ValueError("The MODEL_PATH environment variable is not set.")
+def load_model():
+    """
+    Loads the ResNet50 model with the specified state dictionary.
+    
+    Returns:
+        torch.nn.Module: The loaded ResNet50 model.
+    """
+    num_classes = 7
+    model = m_a_model(num_classes)
+    state_dict_path = os.environ.get('MODEL_PATH')
 
-if not os.path.isfile(state_dict_path):
-    raise FileNotFoundError(f"Model file not found at {state_dict_path}")
+    if not state_dict_path:
+        logger.error("MODEL_PATH is not set.")
+        raise ValueError("MODEL_PATH is not set.")
 
-loaded_state_dict = torch.load(state_dict_path, map_location=torch.device('cpu'))
+    if not os.path.isfile(state_dict_path):
+        logger.error(f"Model file not found at {state_dict_path}")
+        raise FileNotFoundError(f"Model file not found at {state_dict_path}")
 
-# Adjust the model to ensure compatibility with the loaded state dict
-model_dict = model.state_dict()
-# Exclude the classifier's final layer parameters from the pretrained_dict
-pretrained_dict = {k: v for k, v in loaded_state_dict.items()
-                  if k in model_dict and not k.startswith('classifier.6')}
+    loaded_state_dict = torch.load(state_dict_path, map_location=torch.device('cpu'))
+    try:
+        model.load_state_dict(loaded_state_dict)
+        logger.info("Model loaded successfully.")
+    except Exception as e:
+        logger.error(f"Model loading failed: {e}")
+        raise e
 
-# Update the model's state dictionary except the classifier's final layer
-model_dict.update(pretrained_dict)
-model.load_state_dict(model_dict)
+    return model
 
-# List of categories for prediction
+# Initialize the model once
+model = load_model()
+
 categories = ["Caniveau obstrué", "Déchet dans l'eau", "Déchet solide",
               "Déforestation", "Pollution de l’eau", "Sécheresse", "Sol dégradé"]
 
 def predict(image):
     """
-    Performs image classification using a pre-trained VGG16 model modified for seven specific categories.
-    This function processes an input image, applies a pre-trained model, and returns the predicted category and
-    probability distribution over all categories.
-
+    Performs image classification using a pre-loaded ResNet50 model.
+    
     Args:
         image (bytes): The image data in bytes format.
-
+    
     Returns:
-        tuple: A tuple containing the predicted category as a string and the probabilities of all categories as a list.
+        tuple: A tuple containing the predicted category and probabilities.
     """
-    model.eval()  # Set the model to evaluation mode
+    model.eval()  # Set model to evaluation mode
     input_data = preprocess_image(image)  # Preprocess the image
-    with torch.no_grad():  # Disable gradient calculation
-        output = model(input_data)  # Get the model output
-        probabilities = torch.nn.functional.softmax(
-            output[0], dim=0)  # Calculate probabilities
-        # Determine the predicted class
-        predicted_class = torch.argmax(probabilities, dim=0)
-
-        predict_label_index = predicted_class.item()
-        # Get the category name from the index
-        predict_label = categories[predict_label_index]
-
-        # Return the predicted category and probabilities
+    with torch.no_grad():  # Disable gradient computation
+        output = model(input_data)  # Forward pass
+        probabilities = torch.nn.functional.softmax(output[0], dim=0)  # Compute probabilities
+        predicted_class = torch.argmax(probabilities, dim=0).item()  # Get predicted class index
+        predict_label = categories[predicted_class]  # Get category name
         return predict_label, probabilities.tolist()
