@@ -249,7 +249,7 @@ async def chat_endpoint(websocket: WebSocket):
             else:
                 # Fetch context from the database based on incident_id (similar to before)
                 query = """
-                SELECT incident_type, context, impact_potentiel, piste_solution
+                SELECT incident_type, analysis, piste_solution
                 FROM "Mapapi_prediction"
                 WHERE incident_id = :incident_id;
                 """
