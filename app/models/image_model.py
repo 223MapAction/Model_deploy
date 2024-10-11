@@ -14,3 +14,4 @@ class ImageModel(BaseModel):
     image_name: str
     sensitive_structures: List[str]
     incident_id: str
+    zone: str

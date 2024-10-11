@@ -109,7 +109,7 @@ async def predict_incident_type(data: ImageModel):
     """
     try:
         logger.info(
-            f"Received request for image: {data.image_name} with sensitive structures: {data.sensitive_structures} and incident_id: {data.incident_id}"
+            f"Received request for image: {data.image_name} with sensitive structures: {data.sensitive_structures}, incident_id: {data.incident_id} in zone: {data.zone}"
         )
 
         image_url = construct_image_url(data.image_name)
@@ -127,7 +127,7 @@ async def predict_incident_type(data: ImageModel):
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
 
         # Fetch contextual information asynchronously using Celery
-        context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures)
+        context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures, data.zone)
         try:
             get_context, impact, piste_solution = context_task.get(timeout=120)
             logger.info(f"Context fetching successful: {get_context}, {impact}, {piste_solution}")
