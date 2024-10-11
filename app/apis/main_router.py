@@ -99,7 +99,7 @@ async def predict_incident_type(data: ImageModel):
     Predicts the type of incident based on the provided image and other data.
 
     Args:
-        data (ImageModel): The input data containing image name, sensitive structures, and incident ID.
+        data (ImageModel): The input data containing image name, sensitive structures, zone, and incident ID.
 
     Returns:
         JSONResponse: The prediction results including incident type, probabilities, context, impact, and solution.
@@ -129,27 +129,26 @@ async def predict_incident_type(data: ImageModel):
         # Fetch contextual information asynchronously using Celery
         context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures, data.zone)
         try:
-            get_context, impact, piste_solution = context_task.get(timeout=120)
-            logger.info(f"Context fetching successful: {get_context}, {impact}, {piste_solution}")
+            analysis, piste_solution = context_task.get(timeout=120)
+            logger.info(f"Context fetching successful: {analysis}, {piste_solution}")
         except Exception as e:
             logger.error(f"Error during context fetching task: {e}")
             raise HTTPException(status_code=500, detail=f"Error during context fetching: {str(e)}")
 
         # Validate all required fields are present
-        if not all([data.incident_id, prediction, piste_solution, impact, get_context]):
+        if not all([data.incident_id, prediction, piste_solution, analysis]):
             raise HTTPException(status_code=400, detail="Missing required fields for database insertion.")
 
         # Insert the prediction and context into the database
         query = """
-        INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, impact_potentiel, context)
-        VALUES (:incident_id, :incident_type, :piste_solution, :impact_potentiel, :context);
+        INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, analysis)
+        VALUES (:incident_id, :incident_type, :piste_solution, :analysis);
         """
         values = {
             "incident_id": data.incident_id,
             "incident_type": prediction,
             "piste_solution": piste_solution,
-            "impact_potentiel": impact,
-            "context": get_context,
+            "analysis": analysis,
         }
 
         try:
@@ -163,8 +162,7 @@ async def predict_incident_type(data: ImageModel):
             content={
                 "prediction": prediction,
                 "probabilities": probabilities,
-                "context": get_context,
-                "in_depth": impact,
+                "analysis": analysis,
                 "piste_solution": piste_solution,
             }
         )
