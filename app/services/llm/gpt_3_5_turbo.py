@@ -93,9 +93,7 @@ def chat_response(prompt: str, context: str = "", chat_history: list = []):
     Voici le contexte détaillé de l'incident actuel:
     Type d'incident: {context_obj['type_incident']}
     Contexte:
-    {context_obj['context']}
-    Impact potentiel:
-    {context_obj['impact_potentiel']}
+    {context_obj['analysis']}
     Pistes de solution:
     {context_obj['piste_solution']}
 
