@@ -36,34 +36,54 @@ def perform_prediction(image):
         return {"error": str(e)}, []
 
 @celery_app.task
-def fetch_contextual_information(prediction, sensitive_structures):
+def fetch_contextual_information(prediction, sensitive_structures, data):
     """
-    A Celery task that fetches contextual information based on the prediction and sensitive structures.
+    A Celery task that fetches contextual information based on the prediction, sensitive structures, and additional data.
 
     Args:
         prediction (str): The predicted classification.
         sensitive_structures (list): A list of sensitive structures related to the prediction.
+        data (object): An object containing additional context information.
 
     Returns:
-        tuple: A tuple containing context, impact, and piste_solution.
+        tuple: A tuple containing analysis and piste_solution.
     """
     try:
         logger.info("Starting contextual information task.")
-        context_prompt = f"Vous êtes un expert en environnement. Expliquez le contexte et l'importance de {prediction} au Mali en mettant en évidence les différents types de terrains et leurs caractéristiques spécifiques."
-        impact_prompt = f"En tant qu'expert en environnement, décrivez les impacts potentiels de {prediction} sur les structures sensibles comme {sensitive_structures} au Mali."
-        solution_prompt = f"En tant qu'expert en gestion environnementale, proposez des solutions pratiques et durables pour gérer les impacts de {prediction} au Mali. Incluez des mesures préventives et correctives."
+        system_message = f"""
+        Vous êtes un assistant AI spécialisé dans l'analyse des incidents environnementaux au Mali.
+        Voici le contexte détaillé de l'incident actuel:
+        - Type d'incident: {prediction}
+        - Contexte géographique: {data.zone}
+        - Infrastructures locales à risque: (à prendre dans) {sensitive_structures}
+        - Écosystèmes sensibles à proximité: (à prendre dans) {sensitive_structures}
+        - Impact potentiel sur les habitants: à analyser
+        
+        Analyse détaillée:
+        - Quelle est la nature du problème et ses conséquences immédiates ?
+        - Quels sont les risques pour les infrastructures locales (routes, hôpitaux, écoles) ?
+        - Quelles seraient les conséquences environnementales (pollution, contamination des eaux, perte de biodiversité) ?
+        - Quels acteurs locaux devraient être mobilisés pour résoudre ce problème ?
+        - Quels sont les impacts économiques et sociaux à long terme ?
+        """
+
+        solution_prompt = f"""
+        Pistes de solution:
+        - Recommandez des solutions **spécifiques** en tenant compte du type de terrain, des infrastructures à proximité et des écosystèmes sensibles.
+        - Proposez des mesures préventives et curatives pour éviter que le problème ne se reproduise.
+        - Suggérez des collaborations entre les autorités locales, les ONG, et les entreprises pour mettre en œuvre les solutions.
+        """
 
         # Fetching responses from the model
-        get_context = get_response(context_prompt)
-        impact = get_response(impact_prompt)
+        analysis = get_response(system_message)
         piste_solution = get_response(solution_prompt)
 
-        logger.info(f"Context: {get_context}, Impact: {impact}, Solution: {piste_solution}")
-        return get_context, impact, piste_solution
+        logger.info(f"Analysis: {analysis}, Solution: {piste_solution}")
+        return analysis, piste_solution
 
     except Exception as e:
         logger.error(f"Contextual information task failed: {str(e)}")
-        return {"error": str(e)}, None, None
+        return {"error": str(e)}, None
 
 @celery_app.task
 def run_prediction_and_context(image, sensitive_structures):
