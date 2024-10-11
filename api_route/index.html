@@ -224,7 +224,9 @@
 
             <details class="quote">
               <summary>Source code in <code>app/apis/main_router.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">185</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
 <span class="normal">186</span>
 <span class="normal">187</span>
 <span class="normal">188</span>
@@ -359,9 +361,7 @@
 <span class="normal">317</span>
 <span class="normal">318</span>
 <span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/ws/chat&quot;</span><span class="p">)</span>
+<span class="normal">320</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">websocket</span><span class="p">(</span><span class="s2">&quot;/ws/chat&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">chat_endpoint</span><span class="p">(</span><span class="n">websocket</span><span class="p">:</span> <span class="n">WebSocket</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    WebSocket endpoint for handling chat interactions and chat history deletion.</span>
@@ -831,7 +831,9 @@
 
             <details class="quote">
               <summary>Source code in <code>app/apis/main_router.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">353</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
 <span class="normal">354</span>
 <span class="normal">355</span>
 <span class="normal">356</span>
@@ -859,9 +861,7 @@
 <span class="normal">378</span>
 <span class="normal">379</span>
 <span class="normal">380</span>
-<span class="normal">381</span>
-<span class="normal">382</span>
-<span class="normal">383</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/MapApi/history/</span><span class="si">{chat_key}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="normal">381</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/MapApi/history/</span><span class="si">{chat_key}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">get_chat_history</span><span class="p">(</span><span class="n">chat_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Retrieves the chat history for a given chat_key.</span>
@@ -994,7 +994,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The input data containing image name, sensitive structures, and incident ID.</p>
+                <p>The input data containing image name, sensitive structures, zone, and incident ID.</p>
               </div>
             </td>
             <td>
@@ -1130,15 +1130,13 @@
 <span class="normal">172</span>
 <span class="normal">173</span>
 <span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/image/predict&quot;</span><span class="p">)</span>
+<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/image/predict&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span> <span class="nf">predict_incident_type</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">ImageModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Predicts the type of incident based on the provided image and other data.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        data (ImageModel): The input data containing image name, sensitive structures, and incident ID.</span>
+<span class="sd">        data (ImageModel): The input data containing image name, sensitive structures, zone, and incident ID.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        JSONResponse: The prediction results including incident type, probabilities, context, impact, and solution.</span>
@@ -1168,27 +1166,26 @@
         <span class="c1"># Fetch contextual information asynchronously using Celery</span>
         <span class="n">context_task</span> <span class="o">=</span> <span class="n">fetch_contextual_information</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">sensitive_structures</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">zone</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">get_context</span><span class="p">,</span> <span class="n">impact</span><span class="p">,</span> <span class="n">piste_solution</span> <span class="o">=</span> <span class="n">context_task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Context fetching successful: </span><span class="si">{</span><span class="n">get_context</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">impact</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">analysis</span><span class="p">,</span> <span class="n">piste_solution</span> <span class="o">=</span> <span class="n">context_task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Context fetching successful: </span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during context fetching task: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Error during context fetching: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Validate all required fields are present</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">data</span><span class="o">.</span><span class="n">incident_id</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">piste_solution</span><span class="p">,</span> <span class="n">impact</span><span class="p">,</span> <span class="n">get_context</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">data</span><span class="o">.</span><span class="n">incident_id</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">piste_solution</span><span class="p">,</span> <span class="n">analysis</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Missing required fields for database insertion.&quot;</span><span class="p">)</span>
 
         <span class="c1"># Insert the prediction and context into the database</span>
         <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        INSERT INTO &quot;Mapapi_prediction&quot; (incident_id, incident_type, piste_solution, impact_potentiel, context)</span>
-<span class="s2">        VALUES (:incident_id, :incident_type, :piste_solution, :impact_potentiel, :context);</span>
+<span class="s2">        INSERT INTO &quot;Mapapi_prediction&quot; (incident_id, incident_type, piste_solution, analysis)</span>
+<span class="s2">        VALUES (:incident_id, :incident_type, :piste_solution, :analysis);</span>
 <span class="s2">        &quot;&quot;&quot;</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;incident_id&quot;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">incident_id</span><span class="p">,</span>
             <span class="s2">&quot;incident_type&quot;</span><span class="p">:</span> <span class="n">prediction</span><span class="p">,</span>
             <span class="s2">&quot;piste_solution&quot;</span><span class="p">:</span> <span class="n">piste_solution</span><span class="p">,</span>
-            <span class="s2">&quot;impact_potentiel&quot;</span><span class="p">:</span> <span class="n">impact</span><span class="p">,</span>
-            <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="n">get_context</span><span class="p">,</span>
+            <span class="s2">&quot;analysis&quot;</span><span class="p">:</span> <span class="n">analysis</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -1202,8 +1199,7 @@
             <span class="n">content</span><span class="o">=</span><span class="p">{</span>
                 <span class="s2">&quot;prediction&quot;</span><span class="p">:</span> <span class="n">prediction</span><span class="p">,</span>
                 <span class="s2">&quot;probabilities&quot;</span><span class="p">:</span> <span class="n">probabilities</span><span class="p">,</span>
-                <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="n">get_context</span><span class="p">,</span>
-                <span class="s2">&quot;in_depth&quot;</span><span class="p">:</span> <span class="n">impact</span><span class="p">,</span>
+                <span class="s2">&quot;analysis&quot;</span><span class="p">:</span> <span class="n">analysis</span><span class="p">,</span>
                 <span class="s2">&quot;piste_solution&quot;</span><span class="p">:</span> <span class="n">piste_solution</span><span class="p">,</span>
             <span class="p">}</span>
         <span class="p">)</span>
@@ -1435,7 +1431,9 @@
 
             <details class="quote">
               <summary>Source code in <code>app/apis/main_router.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">325</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
 <span class="normal">326</span>
 <span class="normal">327</span>
 <span class="normal">328</span>
@@ -1458,9 +1456,7 @@
 <span class="normal">345</span>
 <span class="normal">346</span>
 <span class="normal">347</span>
-<span class="normal">348</span>
-<span class="normal">349</span>
-<span class="normal">350</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">save_chat_history</span><span class="p">(</span><span class="n">chat_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">question</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="normal">348</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">save_chat_history</span><span class="p">(</span><span class="n">chat_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">question</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">answer</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Saves a single chat interaction to the database.</span>
 
