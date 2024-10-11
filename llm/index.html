@@ -236,11 +236,22 @@ with context about the environmental incident.</p>
       </tbody>
     </table>
 
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="s1">&#39;{&quot;type_incident&quot;: &quot;Déforestation&quot;, &quot;analysis&quot;: &quot;La déforestation affecte la biodiversité locale.&quot;, &quot;piste_solution&quot;: &quot;Reforestation et éducation communautaire.&quot;}&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Quels sont les impacts de la déforestation dans cette zone ?&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+<span class="go">&#39;La déforestation affecte la biodiversité locale en réduisant les habitats naturels des espèces. Pour remédier à cela, la reforestation et l&#39;éducation communautaire sont des pistes de solution envisageables.&#39;</span>
+</code></pre></div>
+    <div class="highlight"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="s1">&#39;{&quot;type_incident&quot;: &quot;Pollution de l&#39;</span><span class="n">eau</span><span class="s2">&quot;, &quot;</span><span class="n">analysis</span><span class="s2">&quot;: &quot;</span><span class="n">Les</span> <span class="n">rejets</span> <span class="n">industriels</span> <span class="n">ont</span> <span class="n">contaminé</span> <span class="n">la</span> <span class="n">rivière</span><span class="o">.</span><span class="s2">&quot;, &quot;</span><span class="n">piste_solution</span><span class="s2">&quot;: &quot;</span><span class="n">Installation</span> <span class="n">de</span> <span class="n">stations</span> <span class="n">de</span> <span class="n">traitement</span> <span class="n">des</span> <span class="n">eaux</span><span class="o">.</span><span class="s2">&quot;}&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Comment pouvons-nous améliorer la qualité de l&#39;eau ?&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+<span class="go">&#39;Les rejets industriels ont contaminé la rivière. Pour améliorer la qualité de l&#39;eau, l&#39;installation de stations de traitement des eaux est recommandée.&#39;</span>
+</code></pre></div>
+
             <details class="quote">
               <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 76</span>
-<span class="normal"> 77</span>
-<span class="normal"> 78</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 78</span>
 <span class="normal"> 79</span>
 <span class="normal"> 80</span>
 <span class="normal"> 81</span>
@@ -287,7 +298,79 @@ with context about the environmental incident.</p>
 <span class="normal">122</span>
 <span class="normal">123</span>
 <span class="normal">124</span>
-<span class="normal">125</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">chat_history</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">chat_history</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Processes a user&#39;s prompt to generate the assistant&#39;s response using GPT-4o-mini,</span>
 <span class="sd">    with context about the environmental incident.</span>
@@ -299,36 +382,106 @@ with context about the environmental incident.</p>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        str: The assistant&#39;s response.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; context = &#39;{&quot;type_incident&quot;: &quot;Déforestation&quot;, &quot;analysis&quot;: &quot;La déforestation affecte la biodiversité locale.&quot;, &quot;piste_solution&quot;: &quot;Reforestation et éducation communautaire.&quot;}&#39;</span>
+<span class="sd">        &gt;&gt;&gt; prompt = &quot;Quels sont les impacts de la déforestation dans cette zone ?&quot;</span>
+<span class="sd">        &gt;&gt;&gt; chat_response(prompt, context)</span>
+<span class="sd">        &#39;La déforestation affecte la biodiversité locale en réduisant les habitats naturels des espèces. Pour remédier à cela, la reforestation et l&#39;éducation communautaire sont des pistes de solution envisageables.&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; context = &#39;{&quot;type_incident&quot;: &quot;Pollution de l&#39;eau&quot;, &quot;analysis&quot;: &quot;Les rejets industriels ont contaminé la rivière.&quot;, &quot;piste_solution&quot;: &quot;Installation de stations de traitement des eaux.&quot;}&#39;</span>
+<span class="sd">        &gt;&gt;&gt; prompt = &quot;Comment pouvons-nous améliorer la qualité de l&#39;eau ?&quot;</span>
+<span class="sd">        &gt;&gt;&gt; chat_response(prompt, context)</span>
+<span class="sd">        &#39;Les rejets industriels ont contaminé la rivière. Pour améliorer la qualité de l&#39;eau, l&#39;installation de stations de traitement des eaux est recommandée.&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1"># Parse the context JSON string to extract details about the incident</span>
     <span class="n">context_obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-    <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    Vous êtes un assistant AI spécialisé dans l&#39;analyse des incidents environnementaux au Mali.</span>
-<span class="s2">    Voici le contexte détaillé de l&#39;incident actuel:</span>
-<span class="s2">    Type d&#39;incident: </span><span class="si">{</span><span class="n">context_obj</span><span class="p">[</span><span class="s1">&#39;type_incident&#39;</span><span class="p">]</span><span class="si">}</span>
-<span class="s2">    Contexte:</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">context_obj</span><span class="p">[</span><span class="s1">&#39;analysis&#39;</span><span class="p">]</span><span class="si">}</span>
-<span class="s2">    Pistes de solution:</span>
-<span class="s2">    </span><span class="si">{</span><span class="n">context_obj</span><span class="p">[</span><span class="s1">&#39;piste_solution&#39;</span><span class="p">]</span><span class="si">}</span>
+    <span class="n">incident_type</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type_incident&#39;</span><span class="p">,</span> <span class="s1">&#39;Inconnu&#39;</span><span class="p">)</span>
+    <span class="n">analysis</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;Non spécifié&#39;</span><span class="p">)</span>
+    <span class="n">piste_solution</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;piste_solution&#39;</span><span class="p">,</span> <span class="s1">&#39;Non spécifié&#39;</span><span class="p">)</span>
 
-<span class="s2">    Votre tâche est de fournir des informations précises et pertinentes en français, basées sur ce contexte détaillé.</span>
-<span class="s2">    Adaptez vos réponses au contexte spécifique de l&#39;incident et utilisez ces informations pour enrichir vos explications.</span>
-<span class="s2">    Si on vous pose des questions sur des aspects non couverts par ce contexte, vous pouvez y répondre en vous basant sur vos connaissances générales,</span>
-<span class="s2">    mais précisez que ces informations ne font pas partie du rapport spécifique de cet incident.</span>
+    <span class="c1"># Create a system message to guide the assistant&#39;s behavior with clear instructions and context</span>
+    <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &lt;system&gt;</span>
+<span class="s2">        &lt;role&gt;assistant AI&lt;/role&gt;</span>
+<span class="s2">        &lt;task&gt;analyse des incidents environnementaux&lt;/task&gt;</span>
+<span class="s2">        &lt;location&gt;Mali&lt;/location&gt;</span>
+<span class="s2">        &lt;incident&gt;</span>
+<span class="s2">            &lt;type&gt;</span><span class="si">{</span><span class="n">incident_type</span><span class="si">}</span><span class="s2">&lt;/type&gt;</span>
+<span class="s2">            &lt;analysis&gt;</span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span><span class="s2">&lt;/analysis&gt;</span>
+<span class="s2">            &lt;solution_tracks&gt;</span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&lt;/solution_tracks&gt;</span>
+<span class="s2">        &lt;/incident&gt;</span>
+<span class="s2">        &lt;instructions&gt;</span>
+<span class="s2">            &lt;instruction&gt;Adaptez vos réponses au contexte spécifique de l&#39;incident.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Utilisez les informations de contexte pour enrichir vos explications.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Si la question dépasse le contexte fourni, mentionnez clairement que vous répondez de manière générale.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Priorisez les réponses concises et orientées sur la résolution du problème.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Ne déviez pas de la tâche principale et évitez les réponses non pertinentes.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;response_formatting&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Répondez de manière concise, avec une longueur de réponse idéale de 2 à 3 phrases.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Fournissez une réponse structurée : commencez par le problème principal, suivez avec la solution proposée.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Utilisez des mots simples et clairs, évitez le jargon technique inutile.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Donnez des informations essentielles en utilisant un langage direct et précis.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Si une recommandation est faite, assurez-vous qu&#39;elle est faisable et contextualisée.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;/response_formatting&gt;</span>
+<span class="s2">        &lt;/instructions&gt;</span>
+<span class="s2">        &lt;examples&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Quels sont les impacts de la déforestation dans cette zone ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;La déforestation affecte la biodiversité locale en réduisant les habitats naturels des espèces. Pour remédier à cela, la reforestation et l&#39;éducation communautaire sont des pistes de solution envisageables.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Comment pouvons-nous améliorer la qualité de l&#39;eau ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;Les rejets industriels ont contaminé la rivière. Pour améliorer la qualité de l&#39;eau, l&#39;installation de stations de traitement des eaux est recommandée.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Que peut-on faire pour limiter l&#39;érosion des sols dans cette région ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;L&#39;érosion des sols est exacerbée par la déforestation et les pratiques agricoles non durables. Pour limiter l&#39;érosion, il est recommandé de pratiquer l&#39;agroforesterie, de planter des haies pour protéger les sols, et de promouvoir des techniques agricoles conservatrices.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Quelles sont les conséquences de la pollution de l&#39;air sur la santé publique ici ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;La pollution de l&#39;air, principalement due aux émissions industrielles et à la combustion de biomasse, a des effets négatifs sur la santé publique, notamment des problèmes respiratoires et cardiovasculaires. Pour atténuer ces impacts, il est essentiel de réduire les sources d&#39;émissions et de promouvoir des énergies plus propres.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Comment réduire l&#39;impact de la pollution plastique sur l&#39;environnement local ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;La pollution plastique peut être réduite en mettant en place des systèmes de collecte et de recyclage des déchets, en sensibilisant la population à la réduction de l&#39;utilisation du plastique, et en favorisant des alternatives biodégradables.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Quelles mesures peuvent être prises pour protéger la faune menacée dans cette région ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;Pour protéger la faune menacée, il est crucial de créer des zones protégées, de lutter contre le braconnage, et de promouvoir des pratiques agricoles respectueuses de l&#39;environnement qui minimisent la destruction des habitats naturels.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Parlons de musique !&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;Je comprends que vous souhaitez parler de musique. Toutefois, ma tâche principale est d&#39;analyser les incidents environnementaux. Si vous avez des questions sur un incident environnemental, je serais ravi de vous aider.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Avez-vous vu le dernier film populaire ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;Je ne suis pas programmé pour discuter des films récents. Mon rôle est de vous assister dans l&#39;analyse des incidents environnementaux. Revenons à ce sujet, si vous le voulez bien.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Quels sont les meilleurs restaurants ici ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;Je me concentre actuellement sur l&#39;analyse des incidents environnementaux. Pour toute question relative aux incidents ou à des pistes de solution, je suis prêt à vous aider.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">        &lt;/examples&gt;</span>
+<span class="s2">    &lt;/system&gt;</span>
 <span class="s2">    &quot;&quot;&quot;</span>
 
-    <span class="n">messages</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">system_message</span><span class="p">}]</span> <span class="o">+</span> <span class="n">chat_history</span> <span class="o">+</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
+    <span class="c1"># Build the list of messages for the conversation with roles defined for each message</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">system_message</span><span class="p">},</span>
+    <span class="p">]</span> <span class="o">+</span> <span class="n">chat_history</span> <span class="o">+</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Get the assistant&#39;s response</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>  <span class="c1"># Make sure this model is available and correct</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>  <span class="c1"># Ensure the model is available and correctly specified</span>
             <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
-            <span class="n">temperature</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>  <span class="c1"># Reduce temperature for more focused and grounded responses</span>
             <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1080</span><span class="p">,</span>
-            <span class="n">top_p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">frequency_penalty</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">presence_penalty</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">top_p</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>  <span class="c1"># Encourage more reliable answers by modifying top_p</span>
+            <span class="n">frequency_penalty</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># Penalize repetition for more diverse outputs</span>
+            <span class="n">presence_penalty</span><span class="o">=</span><span class="mf">0.0</span>  <span class="c1"># Remove presence penalty to avoid deviation from the task</span>
         <span class="p">)</span>
 
         <span class="n">assistant_response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
@@ -336,7 +489,7 @@ with context about the environmental incident.</p>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;Sorry, I can&#39;t process your request right now.&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Désolé, je ne peux pas traiter votre demande pour le moment.&quot;</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
