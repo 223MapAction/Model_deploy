@@ -36,7 +36,7 @@ def perform_prediction(image):
         return {"error": str(e)}, []
 
 @celery_app.task
-def fetch_contextual_information(prediction, sensitive_structures, data):
+def fetch_contextual_information(prediction, sensitive_structures, zone):
     """
     A Celery task that fetches contextual information based on the prediction, sensitive structures, and additional data.
 
@@ -54,7 +54,7 @@ def fetch_contextual_information(prediction, sensitive_structures, data):
         Vous êtes un assistant AI spécialisé dans l'analyse des incidents environnementaux au Mali.
         Voici le contexte détaillé de l'incident actuel:
         - Type d'incident: {prediction}
-        - Contexte géographique: {data.zone}
+        - Contexte géographique: {zone}
         - Infrastructures locales à risque: (à prendre dans) {sensitive_structures}
         - Écosystèmes sensibles à proximité: (à prendre dans) {sensitive_structures}
         - Impact potentiel sur les habitants: à analyser
