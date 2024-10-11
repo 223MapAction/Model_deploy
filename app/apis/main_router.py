@@ -259,8 +259,7 @@ async def chat_endpoint(websocket: WebSocket):
                 if result:
                     context_obj = {
                         "type_incident": result["incident_type"],
-                        "context": result["context"],
-                        "impact_potentiel": result["impact_potentiel"],
+                        "analysis": result["analysis"],
                         "piste_solution": result["piste_solution"],
                     }
                     context = json.dumps(context_obj)
