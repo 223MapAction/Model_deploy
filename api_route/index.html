@@ -429,7 +429,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Fetch context from the database based on incident_id (similar to before)</span>
                 <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">                SELECT incident_type, context, impact_potentiel, piste_solution</span>
+<span class="s2">                SELECT incident_type, analysis, piste_solution</span>
 <span class="s2">                FROM &quot;Mapapi_prediction&quot;</span>
 <span class="s2">                WHERE incident_id = :incident_id;</span>
 <span class="s2">                &quot;&quot;&quot;</span>
