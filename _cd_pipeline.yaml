@@ -7,6 +7,7 @@ services:
             context: .
         volumes:
             - ~/cv_model:/app/cv_model
+            - ./app:/app/app # Ensure application code is mounted
         ports:
             - "8001:8001"
         env_file:
@@ -23,8 +24,8 @@ services:
             - "6379:6379"
         volumes:
             - /redis_data:/data
-            - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf # Mount the custom redis.conf file
-        command: ["redis-server", "/usr/local/etc/redis/redis.conf"] # Use the custom configuration file
+            - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+        command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
         networks:
             micro-services-network:
                 ipv4_address: 192.168.0.7
@@ -45,6 +46,8 @@ services:
                 ipv4_address: 192.168.0.8
         volumes:
             - ~/celery_store1:/celery-data
+            - ~/cv_model:/app/cv_model # Mount the cv_model directory
+            - ./app:/app/app # Ensure application code is mounted
 
 networks:
     micro-services-network:
