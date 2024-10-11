@@ -271,14 +271,14 @@ This configuration is necessary for task queueing and result storage for distrib
 
 
 <h2 id="services.celery.celery_task.fetch_contextual_information" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
 
 </h2>
 
 
     <div class="doc doc-contents ">
 
-        <p>A Celery task that fetches contextual information based on the prediction and sensitive structures.</p>
+        <p>A Celery task that fetches contextual information based on the prediction, sensitive structures, and additional data.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -320,6 +320,20 @@ This configuration is necessary for task queueing and result storage for distrib
                 <em>required</em>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td><code>data</code></td>
+            <td>
+                  <code>object</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An object containing additional context information.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -338,7 +352,7 @@ This configuration is necessary for task queueing and result storage for distrib
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A tuple containing context, impact, and piste_solution.</p>
+                <p>A tuple containing analysis and piste_solution.</p>
               </div>
             </td>
           </tr>
@@ -375,35 +389,75 @@ This configuration is necessary for task queueing and result storage for distrib
 <span class="normal">63</span>
 <span class="normal">64</span>
 <span class="normal">65</span>
-<span class="normal">66</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
-<span class="k">def</span> <span class="nf">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">):</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+<span class="k">def</span> <span class="nf">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A Celery task that fetches contextual information based on the prediction and sensitive structures.</span>
+<span class="sd">    A Celery task that fetches contextual information based on the prediction, sensitive structures, and additional data.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        prediction (str): The predicted classification.</span>
 <span class="sd">        sensitive_structures (list): A list of sensitive structures related to the prediction.</span>
+<span class="sd">        data (object): An object containing additional context information.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        tuple: A tuple containing context, impact, and piste_solution.</span>
+<span class="sd">        tuple: A tuple containing analysis and piste_solution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting contextual information task.&quot;</span><span class="p">)</span>
-        <span class="n">context_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Vous êtes un expert en environnement. Expliquez le contexte et l&#39;importance de </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2"> au Mali en mettant en évidence les différents types de terrains et leurs caractéristiques spécifiques.&quot;</span>
-        <span class="n">impact_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;En tant qu&#39;expert en environnement, décrivez les impacts potentiels de </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2"> sur les structures sensibles comme </span><span class="si">{</span><span class="n">sensitive_structures</span><span class="si">}</span><span class="s2"> au Mali.&quot;</span>
-        <span class="n">solution_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;En tant qu&#39;expert en gestion environnementale, proposez des solutions pratiques et durables pour gérer les impacts de </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2"> au Mali. Incluez des mesures préventives et correctives.&quot;</span>
+        <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Vous êtes un assistant AI spécialisé dans l&#39;analyse des incidents environnementaux au Mali.</span>
+<span class="s2">        Voici le contexte détaillé de l&#39;incident actuel:</span>
+<span class="s2">        - Type d&#39;incident: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span>
+<span class="s2">        - Contexte géographique: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">zone</span><span class="si">}</span>
+<span class="s2">        - Infrastructures locales à risque: (à prendre dans) </span><span class="si">{</span><span class="n">sensitive_structures</span><span class="si">}</span>
+<span class="s2">        - Écosystèmes sensibles à proximité: (à prendre dans) </span><span class="si">{</span><span class="n">sensitive_structures</span><span class="si">}</span>
+<span class="s2">        - Impact potentiel sur les habitants: à analyser</span>
+
+<span class="s2">        Analyse détaillée:</span>
+<span class="s2">        - Quelle est la nature du problème et ses conséquences immédiates ?</span>
+<span class="s2">        - Quels sont les risques pour les infrastructures locales (routes, hôpitaux, écoles) ?</span>
+<span class="s2">        - Quelles seraient les conséquences environnementales (pollution, contamination des eaux, perte de biodiversité) ?</span>
+<span class="s2">        - Quels acteurs locaux devraient être mobilisés pour résoudre ce problème ?</span>
+<span class="s2">        - Quels sont les impacts économiques et sociaux à long terme ?</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">solution_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Pistes de solution:</span>
+<span class="s2">        - Recommandez des solutions **spécifiques** en tenant compte du type de terrain, des infrastructures à proximité et des écosystèmes sensibles.</span>
+<span class="s2">        - Proposez des mesures préventives et curatives pour éviter que le problème ne se reproduise.</span>
+<span class="s2">        - Suggérez des collaborations entre les autorités locales, les ONG, et les entreprises pour mettre en œuvre les solutions.</span>
+<span class="s2">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Fetching responses from the model</span>
-        <span class="n">get_context</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span><span class="n">context_prompt</span><span class="p">)</span>
-        <span class="n">impact</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span><span class="n">impact_prompt</span><span class="p">)</span>
+        <span class="n">analysis</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span><span class="n">system_message</span><span class="p">)</span>
         <span class="n">piste_solution</span> <span class="o">=</span> <span class="n">get_response</span><span class="p">(</span><span class="n">solution_prompt</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Context: </span><span class="si">{</span><span class="n">get_context</span><span class="si">}</span><span class="s2">, Impact: </span><span class="si">{</span><span class="n">impact</span><span class="si">}</span><span class="s2">, Solution: </span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">get_context</span><span class="p">,</span> <span class="n">impact</span><span class="p">,</span> <span class="n">piste_solution</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Analysis: </span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span><span class="s2">, Solution: </span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">piste_solution</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Contextual information task failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)},</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)},</span> <span class="kc">None</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -549,25 +603,25 @@ This function processes an image to predict its content and calculate the probab
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">run_prediction_and_context</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Chain the prediction task with the contextual information task.</span>
