@@ -370,7 +370,14 @@ with context about the environmental incident.</p>
 <span class="normal">194</span>
 <span class="normal">195</span>
 <span class="normal">196</span>
-<span class="normal">197</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">chat_history</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">chat_history</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Processes a user&#39;s prompt to generate the assistant&#39;s response using GPT-4o-mini,</span>
 <span class="sd">    with context about the environmental incident.</span>
@@ -400,8 +407,9 @@ with context about the environmental incident.</p>
     <span class="n">incident_type</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type_incident&#39;</span><span class="p">,</span> <span class="s1">&#39;Inconnu&#39;</span><span class="p">)</span>
     <span class="n">analysis</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;analysis&#39;</span><span class="p">,</span> <span class="s1">&#39;Non spécifié&#39;</span><span class="p">)</span>
     <span class="n">piste_solution</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;piste_solution&#39;</span><span class="p">,</span> <span class="s1">&#39;Non spécifié&#39;</span><span class="p">)</span>
+    <span class="n">impact_summary</span> <span class="o">=</span> <span class="n">context_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;impact_summary&#39;</span><span class="p">,</span> <span class="s1">&#39;Non spécifié&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Create a system message to guide the assistant&#39;s behavior with clear instructions and context</span>
+    <span class="c1"># Update the system message to include the impact summary</span>
     <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">    &lt;system&gt;</span>
 <span class="s2">        &lt;role&gt;assistant AI&lt;/role&gt;</span>
@@ -411,10 +419,12 @@ with context about the environmental incident.</p>
 <span class="s2">            &lt;type&gt;</span><span class="si">{</span><span class="n">incident_type</span><span class="si">}</span><span class="s2">&lt;/type&gt;</span>
 <span class="s2">            &lt;analysis&gt;</span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span><span class="s2">&lt;/analysis&gt;</span>
 <span class="s2">            &lt;solution_tracks&gt;</span><span class="si">{</span><span class="n">piste_solution</span><span class="si">}</span><span class="s2">&lt;/solution_tracks&gt;</span>
+<span class="s2">            &lt;impact_summary&gt;</span><span class="si">{</span><span class="n">impact_summary</span><span class="si">}</span><span class="s2">&lt;/impact_summary&gt;</span>
 <span class="s2">        &lt;/incident&gt;</span>
 <span class="s2">        &lt;instructions&gt;</span>
 <span class="s2">            &lt;instruction&gt;Adaptez vos réponses au contexte spécifique de l&#39;incident.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Utilisez les informations de contexte pour enrichir vos explications.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Intégrez les données sur la zone d&#39;impact dans vos analyses lorsque c&#39;est pertinent.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Si la question dépasse le contexte fourni, mentionnez clairement que vous répondez de manière générale.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Priorisez les réponses concises et orientées sur la résolution du problème.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Ne déviez pas de la tâche principale et évitez les réponses non pertinentes.&lt;/instruction&gt;</span>
@@ -462,6 +472,10 @@ with context about the environmental incident.</p>
 <span class="s2">            &lt;example&gt;</span>
 <span class="s2">                &lt;prompt&gt;Quels sont les meilleurs restaurants ici ?&lt;/prompt&gt;</span>
 <span class="s2">                &lt;response&gt;Je me concentre actuellement sur l&#39;analyse des incidents environnementaux. Pour toute question relative aux incidents ou à des pistes de solution, je suis prêt à vous aider.&lt;/response&gt;</span>
+<span class="s2">            &lt;/example&gt;</span>
+<span class="s2">            &lt;example&gt;</span>
+<span class="s2">                &lt;prompt&gt;Quelle est l&#39;étendue de la zone touchée par cet incident ?&lt;/prompt&gt;</span>
+<span class="s2">                &lt;response&gt;L&#39;analyse des données satellitaires montre que la zone impactée par cet incident couvre environ </span><span class="si">{</span><span class="n">impact_area</span><span class="si">}</span><span class="s2"> kilomètres carrés. Cette information nous aide à mieux comprendre l&#39;ampleur du problème et à planifier des interventions appropriées.&lt;/response&gt;</span>
 <span class="s2">            &lt;/example&gt;</span>
 <span class="s2">        &lt;/examples&gt;</span>
 <span class="s2">    &lt;/system&gt;</span>
