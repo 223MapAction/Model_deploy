@@ -53,6 +53,14 @@ services:
             - ./sentinel_data:/app/sentinel_data
         user: "${UID}:${GID}"
 
+volumes:
+    sentinel_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${PWD}/sentinel_data
+
 networks:
     micro-services-network:
         driver: bridge
