@@ -19,11 +19,11 @@ def download_sentinel_data(area_of_interest, start_date, end_date, output_dir):
     :return: List of paths to downloaded files
     """
     # Sentinel API credentials
-    user = os.environ.get('COPERNICUS_USERNAME')
-    password = os.environ.get('COPERNICUS_PASSWORD')
+    user = os.environ.get('COPERNICUS_CLIENT_ID')
+    password = os.environ.get('COPERNICUS_CLIENT_SECRET')
 
     if not user or not password:
-        raise ValueError("Copernicus API credentials not found. Please set COPERNICUS_USERNAME and COPERNICUS_PASSWORD environment variables.")
+        raise ValueError("Copernicus API credentials not found. Please set COPERNICUS_CLIENT_ID and COPERNICUS_CLIENT_SECRET environment variables.")
 
     # Initialize the API with the correct endpoint
     api = SentinelAPI(user, password, 'https://apihub.copernicus.eu/apihub')
