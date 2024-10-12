@@ -1203,9 +1203,9 @@
         <span class="n">end_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="n">start_date</span> <span class="o">=</span> <span class="n">end_date</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
 
-        <span class="c1"># Convert datetime objects to string format</span>
-        <span class="n">start_date_str</span> <span class="o">=</span> <span class="n">start_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">end_date_str</span> <span class="o">=</span> <span class="n">end_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Convert datetime objects to string format without hyphens</span>
+        <span class="n">start_date_str</span> <span class="o">=</span> <span class="n">start_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">end_date_str</span> <span class="o">=</span> <span class="n">end_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Perform satellite data analysis with date range</span>
         <span class="n">impact_area</span> <span class="o">=</span> <span class="n">analyze_incident_zone</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">zone</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">start_date_str</span><span class="p">,</span> <span class="n">end_date_str</span><span class="p">)</span>
