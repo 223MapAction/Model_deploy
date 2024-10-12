@@ -7,7 +7,8 @@ services:
             context: .
         volumes:
             - ~/cv_model:/app/cv_model
-            - ./app:/app/app # Ensure application code is mounted
+            - ./app:/app/app
+            - ./sentinel_data:/app/sentinel_data
         ports:
             - "8001:8001"
         env_file:
@@ -16,6 +17,7 @@ services:
             micro-services-network:
                 ipv4_address: 192.168.0.10
         restart: always
+        user: "${UID}:${GID}"
 
     redis:
         container_name: redis-server
@@ -46,8 +48,10 @@ services:
                 ipv4_address: 192.168.0.8
         volumes:
             - ~/celery_store1:/celery-data
-            - ~/cv_model:/app/cv_model # Mount the cv_model directory
-            - ./app:/app/app # Ensure application code is mounted
+            - ~/cv_model:/app/cv_model
+            - ./app:/app/app
+            - ./sentinel_data:/app/sentinel_data
+        user: "${UID}:${GID}"
 
 networks:
     micro-services-network:
