@@ -14,7 +14,10 @@ from ..services import (
     perform_prediction,
     fetch_contextual_information,
     celery_app,
+    analyze_incident_zone
 )
+
+import numpy as np
 from ..models import ImageModel
 from ..database import database
 
@@ -135,6 +138,17 @@ async def predict_incident_type(data: ImageModel):
             logger.error(f"Error during context fetching task: {e}")
             raise HTTPException(status_code=500, detail=f"Error during context fetching: {str(e)}")
 
+        # Calculate start_date and end_date for a three-month span
+        from datetime import datetime, timedelta
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=90)
+
+        # Perform satellite data analysis with date range
+        impact_area = analyze_incident_zone(data.zone, prediction, start_date, end_date)
+        
+        # Add impact area information to the analysis
+        analysis += f"\n\nSatellite data analysis shows an impacted area of approximately {np.sum(impact_area)} square kilometers over the past three months."
+
         # Validate all required fields are present
         if not all([data.incident_id, prediction, piste_solution, analysis]):
             raise HTTPException(status_code=400, detail="Missing required fields for database insertion.")
@@ -164,6 +178,7 @@ async def predict_incident_type(data: ImageModel):
                 "probabilities": probabilities,
                 "analysis": analysis,
                 "piste_solution": piste_solution,
+                "impact_area": impact_area.tolist(),  # Convert numpy array to list for JSON serialization
             }
         )
 
