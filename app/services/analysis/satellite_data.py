@@ -1,9 +1,10 @@
-import snappy
-from snappy import ProductIO, GPF
 import os
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
 from datetime import datetime
 from dotenv import load_dotenv
+import rasterio
+import numpy as np
+from rasterio.warp import reproject, Resampling
 
 load_dotenv()
 
@@ -60,20 +61,38 @@ def download_sentinel_data(area_of_interest, start_date, end_date, output_dir):
 
 def preprocess_sentinel_data(input_file, output_file):
     """
-    Preprocess Sentinel data using SNAP.
+    Preprocess Sentinel data using rasterio instead of SNAP.
     """
-    # Read the source product
-    source_product = ProductIO.readProduct(input_file)
-    
-    # Define processing parameters
-    parameters = snappy.HashMap()
-    parameters.put('sourceBands', 'B2,B3,B4,B8')
-    parameters.put('resamplingType', 'Bilinear')
-    
-    # Apply preprocessing
-    result = GPF.createProduct("Resample", parameters, source_product)
-    
-    # Write the result
-    ProductIO.writeProduct(result, output_file, 'GeoTIFF')
+    with rasterio.open(input_file) as src:
+        # Read the required bands (assuming B2, B3, B4, B8 are indices 1, 2, 3, 7)
+        band_indices = [1, 2, 3, 7]
+        data = src.read(band_indices)
+        
+        # Get the metadata
+        profile = src.profile
+        
+        # Update the profile for the output
+        profile.update(
+            count=len(band_indices),
+            dtype=rasterio.float32,
+            nodata=None
+        )
+        
+        # Perform resampling to 10m resolution (assuming original resolution is 10m)
+        data_resampled = np.zeros((len(band_indices), src.height, src.width), dtype=np.float32)
+        for i, band in enumerate(data):
+            reproject(
+                band,
+                data_resampled[i],
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=src.transform,
+                dst_crs=src.crs,
+                resampling=Resampling.bilinear
+            )
+        
+        # Write the result
+        with rasterio.open(output_file, 'w', **profile) as dst:
+            dst.write(data_resampled)
     
     return output_file
