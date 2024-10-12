@@ -6,6 +6,7 @@ import logging
 from .satellite_data import preprocess_sentinel_data, download_sentinel_data
 from shapely.geometry import Point
 import geopandas as gpd
+import requests
 
 def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> np.ndarray:
     """
@@ -23,9 +24,13 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     # Convert incident_location to a GeoJSON file
     area_of_interest = create_geojson_from_location(incident_location, output_dir)
     
-    # Download and preprocess Sentinel data
-    raw_data_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
-    processed_data = preprocess_sentinel_data(raw_data_files, output_dir)
+    try:
+        # Download and preprocess Sentinel data
+        raw_data_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
+        processed_data = preprocess_sentinel_data(raw_data_files, output_dir)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Failed to download Sentinel data: {str(e)}")
+        raise ValueError("Unable to access Sentinel data. The data source may have changed. Please update the data retrieval method.")
     
     # Read the processed data
     with rasterio.open(processed_data) as src:

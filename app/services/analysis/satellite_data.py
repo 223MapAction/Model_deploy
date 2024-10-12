@@ -4,29 +4,29 @@ from datetime import datetime
 from dotenv import load_dotenv
 import rasterio
 import numpy as np
-from rasterio.warp import reproject, Resampling
 
+# Load environment variables
 load_dotenv()
 
 def download_sentinel_data(area_of_interest, start_date, end_date, output_dir):
     """
-    Download Sentinel data for the area of interest and time range using the Copernicus Open Access Hub API.
-    
+    Download Sentinel-2 data for the area of interest and time range using the Sentinel API.
+
     :param area_of_interest: Path to a GeoJSON file defining the area of interest
     :param start_date: Start date for the search (format: 'YYYYMMDD')
     :param end_date: End date for the search (format: 'YYYYMMDD')
     :param output_dir: Directory to save the downloaded data
     :return: List of paths to downloaded files
     """
-    # Copernicus Open Access Hub credentials
+    # Sentinel API credentials
     user = os.environ.get('COPERNICUS_USERNAME')
     password = os.environ.get('COPERNICUS_PASSWORD')
-    
-    if not user or not password:
-        raise ValueError("Copernicus Open Access Hub credentials not found. Please set COPERNICUS_USERNAME and COPERNICUS_PASSWORD environment variables.")
 
-    # Initialize the API
-    api = SentinelAPI(user, password, 'https://scihub.copernicus.eu/dhus')
+    if not user or not password:
+        raise ValueError("Copernicus API credentials not found. Please set COPERNICUS_USERNAME and COPERNICUS_PASSWORD environment variables.")
+
+    # Initialize the API with the correct endpoint
+    api = SentinelAPI(user, password, 'https://apihub.copernicus.eu/apihub')
 
     # Convert dates to datetime objects
     start_date = datetime.strptime(start_date, '%Y%m%d')
@@ -36,11 +36,13 @@ def download_sentinel_data(area_of_interest, start_date, end_date, output_dir):
     footprint = geojson_to_wkt(read_geojson(area_of_interest))
 
     # Search for Sentinel-2 products
-    products = api.query(footprint,
-                         date=(start_date, end_date),
-                         platformname='Sentinel-2',
-                         producttype='S2MSI2A',  # Level-2A products (surface reflectance)
-                         cloudcoverpercentage=(0, 30))  # Max 30% cloud cover
+    products = api.query(
+        footprint,
+        date=(start_date, end_date),
+        platformname='Sentinel-2',
+        processinglevel='Level-2A',  # Level-2A products (surface reflectance)
+        cloudcoverpercentage=(0, 30)  # Max 30% cloud cover
+    )
 
     if not products:
         print("No products found for the given criteria.")
@@ -51,48 +53,113 @@ def download_sentinel_data(area_of_interest, start_date, end_date, output_dir):
     for product_id, product_info in products.items():
         try:
             # Download the product
-            download_path = api.download(product_id, directory_path=output_dir)
-            downloaded_files.append(download_path)
-            print(f"Downloaded: {download_path}")
+            result = api.download(product_id, directory_path=output_dir)
+            downloaded_files.append(result['path'])
+            print(f"Downloaded: {result['path']}")
         except Exception as e:
             print(f"Error downloading product {product_id}: {str(e)}")
 
     return downloaded_files
 
-def preprocess_sentinel_data(input_file, output_file):
+def preprocess_sentinel_data(input_zip_file, output_file):
     """
-    Preprocess Sentinel data using rasterio instead of SNAP.
+    Preprocess Sentinel-2 Level-2A data using rasterio.
+
+    :param input_zip_file: Path to the downloaded Sentinel-2 zip file
+    :param output_file: Path to save the preprocessed output file
+    :return: Path to the preprocessed output file
     """
-    with rasterio.open(input_file) as src:
-        # Read the required bands (assuming B2, B3, B4, B8 are indices 1, 2, 3, 7)
-        band_indices = [1, 2, 3, 7]
-        data = src.read(band_indices)
-        
-        # Get the metadata
-        profile = src.profile
-        
-        # Update the profile for the output
+    import zipfile
+
+    # Bands of interest and their filenames
+    bands = {
+        'B02': None,  # Blue
+        'B03': None,  # Green
+        'B04': None,  # Red
+        'B08': None   # NIR
+    }
+
+    # Open the zip file
+    with zipfile.ZipFile(input_zip_file, 'r') as z:
+        # List all files in the zip
+        zip_list = z.namelist()
+
+        # Find the granule IDs
+        granule_ids = set()
+        for filename in zip_list:
+            if 'GRANULE/' in filename and filename.endswith('/'):
+                parts = filename.split('/')
+                granule_index = parts.index('GRANULE') + 1
+                granule_id = parts[granule_index]
+                granule_ids.add(granule_id)
+
+        if not granule_ids:
+            raise ValueError("No GRANULE folder found in the input file.")
+
+        # Use the first granule if multiple are found
+        granule_id = list(granule_ids)[0]
+
+        # Build the base path to the 10m bands
+        base_path = None
+        for filename in zip_list:
+            if f'GRANULE/{granule_id}/IMG_DATA/R10m/' in filename:
+                base_path = f'GRANULE/{granule_id}/IMG_DATA/R10m/'
+                break
+
+        if not base_path:
+            raise ValueError("No R10m folder found in the input file.")
+
+        # Find the JP2 files for the required bands
+        for band_name in bands.keys():
+            for filename in zip_list:
+                if filename.startswith(base_path) and filename.endswith(f'{band_name}_10m.jp2'):
+                    bands[band_name] = filename
+                    break
+
+        # Check if all bands were found
+        if None in bands.values():
+            missing_bands = [k for k, v in bands.items() if v is None]
+            raise ValueError(f"Not all required bands were found in the input file. Missing bands: {missing_bands}")
+
+        # Read the bands using rasterio
+        band_data = []
+        profile = None
+        for band_name, band_path in bands.items():
+            with rasterio.open(f'/vsizip/{input_zip_file}/{band_path}') as src:
+                band_data.append(src.read(1))
+                # Save profile for later use
+                if profile is None:
+                    profile = src.profile
+
+        # Stack bands into a single array
+        data_array = np.stack(band_data)
+
+        # Update profile
         profile.update(
-            count=len(band_indices),
+            count=len(band_data),
             dtype=rasterio.float32,
             nodata=None
         )
-        
-        # Perform resampling to 10m resolution (assuming original resolution is 10m)
-        data_resampled = np.zeros((len(band_indices), src.height, src.width), dtype=np.float32)
-        for i, band in enumerate(data):
-            reproject(
-                band,
-                data_resampled[i],
-                src_transform=src.transform,
-                src_crs=src.crs,
-                dst_transform=src.transform,
-                dst_crs=src.crs,
-                resampling=Resampling.bilinear
-            )
-        
+
         # Write the result
         with rasterio.open(output_file, 'w', **profile) as dst:
-            dst.write(data_resampled)
-    
+            dst.write(data_array.astype(rasterio.float32))
+
     return output_file
+
+# Example usage:
+if __name__ == "__main__":
+    # Define parameters
+    area_of_interest = 'path_to_your_geojson_file.geojson'  # Replace with your GeoJSON file path
+    start_date = '20230101'  # Start date in 'YYYYMMDD' format
+    end_date = '20231012'    # End date in 'YYYYMMDD' format
+    output_dir = 'path_to_output_directory'  # Replace with your desired output directory
+
+    # Download Sentinel-2 data
+    downloaded_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
+
+    # Preprocess the downloaded data
+    for input_file in downloaded_files:
+        output_file = os.path.join(output_dir, os.path.basename(input_file).replace('.zip', '_processed.tif'))
+        preprocess_sentinel_data(input_file, output_file)
+        print(f"Preprocessed file saved to: {output_file}")

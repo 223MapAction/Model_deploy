@@ -34,8 +34,8 @@ jobs:
                   echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
                   echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
                   echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "COPERNICUS_USERNAME=${{ secrets.COPERNICUS_USERNAME }}" >> .cv_deploy.env
-                  echo "COPERNICUS_PASSWORD=${{ secrets.COPERNICUS_PASSWORD }}" >> .cv_deploy.env
+                  echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}" >> .cv_deploy.env
+                  echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET}}" >> .cv_deploy.env
               shell: bash
 
             - name: Build Docker Image
