@@ -8,6 +8,7 @@ from shapely.geometry import Point
 import geopandas as gpd
 import requests
 import json
+from datetime import datetime
 
 def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> np.ndarray:
     """
@@ -21,6 +22,15 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     # Create output directory for Sentinel data
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'sentinel_data')
     os.makedirs(output_dir, exist_ok=True)
+    
+    # Check if the date range is valid and not in the future
+    current_date = datetime.now().strftime('%Y%m%d')
+    if end_date > current_date:
+        logging.warning(f"End date {end_date} is in the future. Using current date instead.")
+        end_date = current_date
+    if start_date > end_date:
+        logging.error(f"Invalid date range: start date {start_date} is after end date {end_date}")
+        raise ValueError(f"Invalid date range: start date {start_date} is after end date {end_date}")
     
     # Convert incident_location to a GeoJSON file
     try:
@@ -241,15 +251,24 @@ def analyze_soil_degradation(satellite_image):
 
 def create_geojson_from_location(location, output_dir):
     """
-    Create a GeoJSON file from a location string (assuming it's a point location).
-    
-    :param location: String representing a location (e.g., "Bambilor")
-    :param output_dir: Directory to save the GeoJSON file
-    :return: Path to the created GeoJSON file
+    Create a GeoJSON file from a location string using a geocoding service.
     """
-    # For simplicity, we're using a dummy coordinate. In a real-world scenario,
-    # you'd use a geocoding service to get the actual coordinates.
-    point = Point(0, 0)
+    # Use OpenStreetMap's Nominatim service for geocoding
+    geocode_url = f"https://nominatim.openstreetmap.org/search?q={location}&format=json&limit=1"
+    response = requests.get(geocode_url)
+    if response.status_code == 200:
+        data = response.json()
+        if data:
+            lat = float(data[0]['lat'])
+            lon = float(data[0]['lon'])
+            point = Point(lon, lat)
+        else:
+            logging.warning(f"Could not find coordinates for {location}. Using default coordinates.")
+            point = Point(0, 0)
+    else:
+        logging.warning(f"Geocoding service failed. Using default coordinates for {location}.")
+        point = Point(0, 0)
+
     gdf = gpd.GeoDataFrame({'name': [location]}, geometry=[point], crs="EPSG:4326")
     
     geojson_path = os.path.join(output_dir, f"{location}.geojson")
