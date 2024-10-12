@@ -72,12 +72,18 @@ def download_sentinel_data(area_of_interest_geojson, start_date, end_date, outpu
             raise ValueError("Invalid GeoJSON format. Cannot find 'geometry'.")
         
         # Calculate bounding box from geometry
-        coordinates = geometry['coordinates'][0]
-        lons, lats = zip(*coordinates)
-        bbox = [min(lons), min(lats), max(lons), max(lats)]
+        if geometry['type'] == 'Point':
+            lon, lat = geometry['coordinates']
+            bbox = [lon - 0.1, lat - 0.1, lon + 0.1, lat + 0.1]  # Create a small bounding box around the point
+        elif geometry['type'] == 'Polygon':
+            coordinates = geometry['coordinates'][0]
+            lons, lats = zip(*coordinates)
+            bbox = [min(lons), min(lats), max(lons), max(lats)]
+        else:
+            raise ValueError(f"Unsupported geometry type: {geometry['type']}")
     except Exception as e:
         logger.error(f"Error reading or parsing GeoJSON file: {e}")
-        return []
+        raise ValueError(f"Invalid GeoJSON file: {str(e)}")
 
     # Convert dates to ISO format
     start_date_iso = datetime.strptime(start_date, '%Y%m%d').isoformat() + 'Z'
