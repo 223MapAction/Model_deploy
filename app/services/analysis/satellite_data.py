@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 from dotenv import load_dotenv
 import json
+import numpy as np
 
 # Load environment variables
 load_dotenv()

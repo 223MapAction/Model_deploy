@@ -12,9 +12,13 @@ jobs:
         runs-on: self-hosted # Use your self-hosted runner
 
         steps:
-            - name: Set permissions for sentinel_data directory
+            - name: Check and set permissions for sentinel_data directory
               run: |
-                  sudo chown azureuser:azureuser /home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data
+                  if [ -d "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data" ]; then
+                    sudo chown azureuser:azureuser /home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data
+                  else
+                    echo "Directory does not exist. Skipping chown command."
+                  fi
 
             - name: Checkout Repository
               uses: actions/checkout@v3
@@ -45,7 +49,6 @@ jobs:
             - name: Build Docker Image
               run: |
                   docker-compose -f _cd_pipeline.yaml build
-              # Removed --no-cache to leverage Docker's layer caching
 
             - name: Clean Up Orphan Containers
               run: |
