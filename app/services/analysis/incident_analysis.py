@@ -27,10 +27,17 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     try:
         # Download and preprocess Sentinel data
         raw_data_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
-        processed_data = preprocess_sentinel_data(raw_data_files, output_dir)
+        processed_data_files = preprocess_sentinel_data(raw_data_files, output_dir)
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to download Sentinel data: {str(e)}")
         raise ValueError("Unable to access Sentinel data. The data source may have changed. Please update the data retrieval method.")
+    
+    if not processed_data_files:
+        logging.error("No processed data files available for analysis.")
+        raise ValueError("No data available for analysis after preprocessing.")
+
+    # For simplicity, we'll use the first processed file. In a real scenario, you might want to analyze all files or merge them.
+    processed_data = processed_data_files[0]
     
     # Read the processed data
     with rasterio.open(processed_data) as src:
