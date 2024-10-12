@@ -1,63 +1,103 @@
 import os
-from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
-from datetime import datetime
+import requests
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
-import rasterio
-import numpy as np
 
 # Load environment variables
 load_dotenv()
 
-def download_sentinel_data(area_of_interest, start_date, end_date, output_dir):
+def download_sentinel_data(area_of_interest_geojson, start_date, end_date, output_dir):
     """
-    Download Sentinel-2 data for the area of interest and time range using the Sentinel API.
+    Download Sentinel-2 data for the area of interest and time range using the Copernicus Data Space Ecosystem APIs.
 
-    :param area_of_interest: Path to a GeoJSON file defining the area of interest
+    :param area_of_interest_geojson: Path to a GeoJSON file defining the area of interest
     :param start_date: Start date for the search (format: 'YYYYMMDD')
     :param end_date: End date for the search (format: 'YYYYMMDD')
     :param output_dir: Directory to save the downloaded data
     :return: List of paths to downloaded files
     """
-    # Sentinel API credentials
-    user = os.environ.get('COPERNICUS_CLIENT_ID')
-    password = os.environ.get('COPERNICUS_CLIENT_SECRET')
+    # Client credentials
+    client_id = os.environ.get('COPERNICUS_CLIENT_ID')
+    client_secret = os.environ.get('COPERNICUS_CLIENT_SECRET')
 
-    if not user or not password:
+    if not client_id or not client_secret:
         raise ValueError("Copernicus API credentials not found. Please set COPERNICUS_CLIENT_ID and COPERNICUS_CLIENT_SECRET environment variables.")
 
-    # Initialize the API with the correct endpoint
-    api = SentinelAPI(user, password, 'https://apihub.copernicus.eu/apihub')
+    # Authenticate and get an access token
+    token_url = 'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token'
+    token_data = {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': client_secret
+    }
 
-    # Convert dates to datetime objects
-    start_date = datetime.strptime(start_date, '%Y%m%d')
-    end_date = datetime.strptime(end_date, '%Y%m%d')
+    try:
+        token_response = requests.post(token_url, data=token_data)
+        token_response.raise_for_status()
+        access_token = token_response.json()['access_token']
+    except Exception as e:
+        print(f"Error fetching access token: {e}")
+        return []
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
 
     # Read the area of interest from the GeoJSON file
-    footprint = geojson_to_wkt(read_geojson(area_of_interest))
+    with open(area_of_interest_geojson, 'r') as f:
+        area_of_interest = f.read()
 
-    # Search for Sentinel-2 products
-    products = api.query(
-        footprint,
-        date=(start_date, end_date),
-        platformname='Sentinel-2',
-        processinglevel='Level-2A',  # Level-2A products (surface reflectance)
-        cloudcoverpercentage=(0, 30)  # Max 30% cloud cover
-    )
+    # Convert dates to ISO format
+    start_date_iso = datetime.strptime(start_date, '%Y%m%d').isoformat() + 'Z'
+    end_date_iso = datetime.strptime(end_date, '%Y%m%d').isoformat() + 'Z'
 
-    if not products:
+    # STAC API search endpoint
+    search_url = 'https://catalogue.dataspace.copernicus.eu/stac/search'
+
+    # Search parameters
+    search_params = {
+        "datetime": f"{start_date_iso}/{end_date_iso}",
+        "collections": ["S2L2A"],
+        "limit": 10,
+        "intersects": area_of_interest,
+        "query": {
+            "eo:cloud_cover": {
+                "lt": 30
+            }
+        }
+    }
+
+    try:
+        response = requests.post(search_url, json=search_params, headers=headers)
+        response.raise_for_status()
+        search_results = response.json()
+    except Exception as e:
+        print(f"Error searching for products: {e}")
+        return []
+
+    if not search_results.get('features'):
         print("No products found for the given criteria.")
         return []
 
-    # Download all found products
+    # Download the products
     downloaded_files = []
-    for product_id, product_info in products.items():
+    for feature in search_results['features']:
+        product_id = feature['id']
+        download_url = feature['assets']['download']['href']
+
+        # Some products may require authentication even for download
         try:
-            # Download the product
-            result = api.download(product_id, directory_path=output_dir)
-            downloaded_files.append(result['path'])
-            print(f"Downloaded: {result['path']}")
+            # Stream download to avoid loading the entire file into memory
+            with requests.get(download_url, headers=headers, stream=True) as r:
+                r.raise_for_status()
+                output_file = os.path.join(output_dir, f"{product_id}.zip")
+                with open(output_file, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                downloaded_files.append(output_file)
+                print(f"Downloaded: {output_file}")
         except Exception as e:
-            print(f"Error downloading product {product_id}: {str(e)}")
+            print(f"Error downloading product {product_id}: {e}")
 
     return downloaded_files
 
@@ -69,6 +109,7 @@ def preprocess_sentinel_data(input_zip_file, output_file):
     :param output_file: Path to save the preprocessed output file
     :return: Path to the preprocessed output file
     """
+    import rasterio
     import zipfile
 
     # Bands of interest and their filenames
@@ -85,34 +126,15 @@ def preprocess_sentinel_data(input_zip_file, output_file):
         zip_list = z.namelist()
 
         # Find the granule IDs
-        granule_ids = set()
-        for filename in zip_list:
-            if 'GRANULE/' in filename and filename.endswith('/'):
-                parts = filename.split('/')
-                granule_index = parts.index('GRANULE') + 1
-                granule_id = parts[granule_index]
-                granule_ids.add(granule_id)
+        granule_paths = [name for name in zip_list if 'GRANULE' in name and name.endswith('.jp2')]
 
-        if not granule_ids:
-            raise ValueError("No GRANULE folder found in the input file.")
-
-        # Use the first granule if multiple are found
-        granule_id = list(granule_ids)[0]
-
-        # Build the base path to the 10m bands
-        base_path = None
-        for filename in zip_list:
-            if f'GRANULE/{granule_id}/IMG_DATA/R10m/' in filename:
-                base_path = f'GRANULE/{granule_id}/IMG_DATA/R10m/'
-                break
-
-        if not base_path:
-            raise ValueError("No R10m folder found in the input file.")
+        if not granule_paths:
+            raise ValueError("No GRANULE files found in the input file.")
 
         # Find the JP2 files for the required bands
         for band_name in bands.keys():
-            for filename in zip_list:
-                if filename.startswith(base_path) and filename.endswith(f'{band_name}_10m.jp2'):
+            for filename in granule_paths:
+                if f'_{band_name}_' in filename:
                     bands[band_name] = filename
                     break
 
