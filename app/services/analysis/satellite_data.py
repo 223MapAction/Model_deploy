@@ -111,3 +111,89 @@ def download_sentinel_data(area_of_interest_geojson, start_date, end_date, outpu
             print(f"Error downloading product {product_id}: {e}")
 
     return downloaded_files
+
+
+def preprocess_sentinel_data(input_zip_file, output_file):
+    """
+    Preprocess Sentinel-2 Level-2A data using rasterio.
+
+    :param input_zip_file: Path to the downloaded Sentinel-2 zip file
+    :param output_file: Path to save the preprocessed output file
+    :return: Path to the preprocessed output file
+    """
+    import rasterio
+    import zipfile
+
+    # Bands of interest and their filenames
+    bands = {
+        'B02': None,  # Blue
+        'B03': None,  # Green
+        'B04': None,  # Red
+        'B08': None   # NIR
+    }
+
+    # Open the zip file
+    with zipfile.ZipFile(input_zip_file, 'r') as z:
+        # List all files in the zip
+        zip_list = z.namelist()
+
+        # Find the granule IDs
+        granule_paths = [name for name in zip_list if 'GRANULE' in name and name.endswith('.jp2')]
+
+        if not granule_paths:
+            raise ValueError("No GRANULE files found in the input file.")
+
+        # Find the JP2 files for the required bands
+        for band_name in bands.keys():
+            for filename in granule_paths:
+                if f'_{band_name}_' in filename:
+                    bands[band_name] = filename
+                    break
+
+        # Check if all bands were found
+        if None in bands.values():
+            missing_bands = [k for k, v in bands.items() if v is None]
+            raise ValueError(f"Not all required bands were found in the input file. Missing bands: {missing_bands}")
+
+        # Read the bands using rasterio
+        band_data = []
+        profile = None
+        for band_name, band_path in bands.items():
+            with rasterio.open(f'/vsizip/{input_zip_file}/{band_path}') as src:
+                band_data.append(src.read(1))
+                # Save profile for later use
+                if profile is None:
+                    profile = src.profile
+
+        # Stack bands into a single array
+        data_array = np.stack(band_data)
+
+        # Update profile
+        profile.update(
+            count=len(band_data),
+            dtype=rasterio.float32,
+            nodata=None
+        )
+
+        # Write the result
+        with rasterio.open(output_file, 'w', **profile) as dst:
+            dst.write(data_array.astype(rasterio.float32))
+
+    return output_file
+
+# Example usage:
+if __name__ == "__main__":
+    # Define parameters
+    area_of_interest = 'path_to_your_geojson_file.geojson'  # Replace with your GeoJSON file path
+    start_date = '20230101'  # Start date in 'YYYYMMDD' format
+    end_date = '20231012'    # End date in 'YYYYMMDD' format
+    output_dir = 'path_to_output_directory'  # Replace with your desired output directory
+
+    # Download Sentinel-2 data
+    downloaded_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
+
+    # Preprocess the downloaded data
+    for input_file in downloaded_files:
+        output_file = os.path.join(output_dir, os.path.basename(input_file).replace('.zip', '_processed.tif'))
+        preprocess_sentinel_data(input_file, output_file)
+        print(f"Preprocessed file saved to: {output_file}")
