@@ -4,6 +4,8 @@ import numpy as np
 from scipy import ndimage
 import logging
 from .satellite_data import preprocess_sentinel_data, download_sentinel_data
+from shapely.geometry import Point
+import geopandas as gpd
 
 def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> np.ndarray:
     """
@@ -18,8 +20,11 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'sentinel_data')
     os.makedirs(output_dir, exist_ok=True)
     
+    # Convert incident_location to a GeoJSON file
+    area_of_interest = create_geojson_from_location(incident_location, output_dir)
+    
     # Download and preprocess Sentinel data
-    raw_data_files = download_sentinel_data(incident_location, start_date, end_date, output_dir)
+    raw_data_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
     processed_data = preprocess_sentinel_data(raw_data_files, output_dir)
     
     # Read the processed data
@@ -204,3 +209,21 @@ def analyze_soil_degradation(satellite_image):
     
     logging.info(f"Soil degradation analysis complete. Degraded area: {np.count_nonzero(degraded_soil_mask)} pixels")
     return degraded_soil_mask
+
+def create_geojson_from_location(location, output_dir):
+    """
+    Create a GeoJSON file from a location string (assuming it's a point location).
+    
+    :param location: String representing a location (e.g., "Bambilor")
+    :param output_dir: Directory to save the GeoJSON file
+    :return: Path to the created GeoJSON file
+    """
+    # For simplicity, we're using a dummy coordinate. In a real-world scenario,
+    # you'd use a geocoding service to get the actual coordinates.
+    point = Point(0, 0)
+    gdf = gpd.GeoDataFrame({'name': [location]}, geometry=[point], crs="EPSG:4326")
+    
+    geojson_path = os.path.join(output_dir, f"{location}.geojson")
+    gdf.to_file(geojson_path, driver='GeoJSON')
+    
+    return geojson_path

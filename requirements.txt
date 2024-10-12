@@ -32,3 +32,5 @@ sentinelsat==1.2.1
 python-snappy==0.7.3
 rasterio==1.4.1
 scipy==1.14.0
+shapely==2.0.6
+geopandas==1.0.1
