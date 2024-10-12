@@ -67,13 +67,16 @@ def download_sentinel_data(area_of_interest_geojson, start_date, end_date, outpu
     # Search parameters
     search_params = {
         "datetime": f"{start_date_iso}/{end_date_iso}",
-        "collections": ["sentinel-2-l2a"],  # Updated collection ID
+        "collections": ["sentinel-2-l2a"],
         "limit": 10,
         "intersects": area_of_interest,
-        "query": {
-            "eo:cloud_cover": {
-                "lt": 30
-            }
+        "filter-lang": "cql2-json",
+        "filter": {
+            "op": "<=",
+            "args": [
+                {"property": "eo:cloud_cover"},
+                30
+            ]
         }
     }
 
