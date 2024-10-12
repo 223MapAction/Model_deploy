@@ -147,9 +147,9 @@ async def predict_incident_type(data: ImageModel):
         end_date = datetime.now()
         start_date = end_date - timedelta(days=90)
 
-        # Convert datetime objects to string format
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        end_date_str = end_date.strftime("%Y-%m-%d")
+        # Convert datetime objects to string format without hyphens
+        start_date_str = start_date.strftime("%Y%m%d")
+        end_date_str = end_date.strftime("%Y%m%d")
 
         # Perform satellite data analysis with date range
         impact_area = analyze_incident_zone(data.zone, prediction, start_date_str, end_date_str)
