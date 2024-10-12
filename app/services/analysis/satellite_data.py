@@ -74,7 +74,8 @@ def download_sentinel_data(area_of_interest_geojson, start_date, end_date, outpu
         # Calculate bounding box from geometry
         if geometry['type'] == 'Point':
             lon, lat = geometry['coordinates']
-            bbox = [lon - 0.1, lat - 0.1, lon + 0.1, lat + 0.1]  # Create a small bounding box around the point
+            delta = 0.1  # Increase this value to create a larger bounding box
+            bbox = [lon - delta, lat - delta, lon + delta, lat + delta]
         elif geometry['type'] == 'Polygon':
             coordinates = geometry['coordinates'][0]
             lons, lats = zip(*coordinates)
@@ -108,10 +109,15 @@ def download_sentinel_data(area_of_interest_geojson, start_date, end_date, outpu
         "filter-lang": "cql2-json"
     }
 
+    # Add more logging
+    logger.info(f"Searching for Sentinel data with parameters: bbox={bbox}, start_date={start_date_iso}, end_date={end_date_iso}")
+    logger.info(f"Search parameters: {json.dumps(search_params, indent=2)}")
+
     try:
         response = oauth.post(search_url, json=search_params)
         response.raise_for_status()
         search_results = response.json()
+        logger.info(f"Search results: {json.dumps(search_results, indent=2)}")
     except Exception as e:
         logger.error(f"Error searching for products: {e}")
         logger.error(f"Response status code: {response.status_code}")
