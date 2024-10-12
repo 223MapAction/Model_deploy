@@ -1,6 +1,8 @@
+import os
 import rasterio
 import numpy as np
 from scipy import ndimage
+import logging
 from .satellite_data import preprocess_sentinel_data, download_sentinel_data
 
 def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> np.ndarray:
@@ -10,14 +12,22 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     Returns:
     np.ndarray: A boolean mask where True values indicate the impact area.
     """
+    logging.info(f"Analyzing incident zone for {incident_type} at {incident_location}")
+    
+    # Create output directory for Sentinel data
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'sentinel_data')
+    os.makedirs(output_dir, exist_ok=True)
+    
     # Download and preprocess Sentinel data
-    raw_data = download_sentinel_data(incident_location, start_date, end_date, 'raw_sentinel.tif')
-    processed_data = preprocess_sentinel_data(raw_data, 'processed_sentinel.tif')
+    raw_data_files = download_sentinel_data(incident_location, start_date, end_date, output_dir)
+    processed_data = preprocess_sentinel_data(raw_data_files, output_dir)
     
     # Read the processed data
     with rasterio.open(processed_data) as src:
         satellite_image = src.read()
-        
+    
+    logging.info(f"Satellite image shape: {satellite_image.shape}")
+    
     # Perform analysis based on incident type
     if incident_type == 'Caniveau obstrué':
         impact_area = analyze_blocked_drain(satellite_image)
@@ -34,8 +44,10 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     elif incident_type == 'Sol dégradé':
         impact_area = analyze_soil_degradation(satellite_image)
     else:
+        logging.error(f"Unsupported incident type: {incident_type}")
         raise ValueError(f"Unsupported incident type: {incident_type}")
     
+    logging.info(f"Impact area shape: {impact_area.shape}, non-zero elements: {np.count_nonzero(impact_area)}")
     return impact_area
 
 def analyze_flood_extent(satellite_image):
@@ -66,6 +78,7 @@ def analyze_blocked_drain(satellite_image):
     """
     Analyze blocked drains using satellite imagery.
     """
+    logging.info("Analyzing blocked drains")
     # Use NDWI to identify water bodies
     green_band = satellite_image[1]
     nir_band = satellite_image[3]
@@ -79,6 +92,7 @@ def analyze_blocked_drain(satellite_image):
     mask_size = sizes < 100  # Adjust threshold as needed
     blocked_drain_mask = mask_size[labeled_water - 1]
     
+    logging.info(f"Blocked drain analysis complete. Found {np.count_nonzero(blocked_drain_mask)} potential blockages")
     return blocked_drain_mask
 
 def analyze_water_waste(satellite_image):
@@ -174,6 +188,7 @@ def analyze_soil_degradation(satellite_image):
     """
     Analyze soil degradation using satellite imagery.
     """
+    logging.info("Analyzing soil degradation")
     # Use a combination of NDVI and soil-adjusted vegetation index (SAVI)
     red_band = satellite_image[2]
     nir_band = satellite_image[3]
@@ -187,4 +202,5 @@ def analyze_soil_degradation(satellite_image):
     # Identify areas with low vegetation and potentially degraded soil
     degraded_soil_mask = (ndvi < 0.2) & (savi < 0.3)  # Adjust thresholds as needed
     
+    logging.info(f"Soil degradation analysis complete. Degraded area: {np.count_nonzero(degraded_soil_mask)} pixels")
     return degraded_soil_mask
