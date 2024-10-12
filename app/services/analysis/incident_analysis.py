@@ -7,6 +7,7 @@ from .satellite_data import preprocess_sentinel_data, download_sentinel_data
 from shapely.geometry import Point
 import geopandas as gpd
 import requests
+import json
 
 def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> np.ndarray:
     """
@@ -237,5 +238,19 @@ def create_geojson_from_location(location, output_dir):
     
     geojson_path = os.path.join(output_dir, f"{location}.geojson")
     gdf.to_file(geojson_path, driver='GeoJSON')
+    
+    # Verify the created GeoJSON file
+    try:
+        with open(geojson_path, 'r') as f:
+            geojson_data = json.load(f)
+        if 'features' not in geojson_data or not geojson_data['features']:
+            raise ValueError("Invalid GeoJSON: No features found")
+        if 'geometry' not in geojson_data['features'][0]:
+            raise ValueError("Invalid GeoJSON: No geometry found in feature")
+        if geojson_data['features'][0]['geometry']['type'] != 'Point':
+            raise ValueError("Invalid GeoJSON: Geometry is not a Point")
+    except Exception as e:
+        logging.error(f"Error creating GeoJSON file: {str(e)}")
+        raise
     
     return geojson_path
