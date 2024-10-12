@@ -11,7 +11,7 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     np.ndarray: A boolean mask where True values indicate the impact area.
     """
     # Download and preprocess Sentinel data
-    raw_data = download_sentinel_data(incident_location, start_date, end_date)
+    raw_data = download_sentinel_data(incident_location, start_date, end_date, 'raw_sentinel.tif')
     processed_data = preprocess_sentinel_data(raw_data, 'processed_sentinel.tif')
     
     # Read the processed data
