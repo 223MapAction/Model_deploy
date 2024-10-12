@@ -321,13 +321,13 @@ This configuration is necessary for task queueing and result storage for distrib
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>data</code></td>
+            <td><code>zone</code></td>
             <td>
-                  <code>object</code>
+                  <code>str</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>An object containing additional context information.</p>
+                <p>The geographic zone related to the prediction.</p>
               </div>
             </td>
             <td>
@@ -361,55 +361,104 @@ This configuration is necessary for task queueing and result storage for distrib
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
-<span class="normal">39</span>
-<span class="normal">40</span>
-<span class="normal">41</span>
-<span class="normal">42</span>
-<span class="normal">43</span>
-<span class="normal">44</span>
-<span class="normal">45</span>
-<span class="normal">46</span>
-<span class="normal">47</span>
-<span class="normal">48</span>
-<span class="normal">49</span>
-<span class="normal">50</span>
-<span class="normal">51</span>
-<span class="normal">52</span>
-<span class="normal">53</span>
-<span class="normal">54</span>
-<span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
-<span class="normal">65</span>
-<span class="normal">66</span>
-<span class="normal">67</span>
-<span class="normal">68</span>
-<span class="normal">69</span>
-<span class="normal">70</span>
-<span class="normal">71</span>
-<span class="normal">72</span>
-<span class="normal">73</span>
-<span class="normal">74</span>
-<span class="normal">75</span>
-<span class="normal">76</span>
-<span class="normal">77</span>
-<span class="normal">78</span>
-<span class="normal">79</span>
-<span class="normal">80</span>
-<span class="normal">81</span>
-<span class="normal">82</span>
-<span class="normal">83</span>
-<span class="normal">84</span>
-<span class="normal">85</span>
-<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">,</span> <span class="n">zone</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Celery task that fetches contextual information based on the prediction, sensitive structures, and additional data.</span>
@@ -417,7 +466,7 @@ This configuration is necessary for task queueing and result storage for distrib
 <span class="sd">    Args:</span>
 <span class="sd">        prediction (str): The predicted classification.</span>
 <span class="sd">        sensitive_structures (list): A list of sensitive structures related to the prediction.</span>
-<span class="sd">        data (object): An object containing additional context information.</span>
+<span class="sd">        zone (str): The geographic zone related to the prediction.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        tuple: A tuple containing analysis and piste_solution.</span>
@@ -425,27 +474,76 @@ This configuration is necessary for task queueing and result storage for distrib
     <span class="k">try</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting contextual information task.&quot;</span><span class="p">)</span>
         <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        Vous êtes un assistant AI spécialisé dans l&#39;analyse des incidents environnementaux au Mali.</span>
-<span class="s2">        Voici le contexte détaillé de l&#39;incident actuel:</span>
-<span class="s2">        - Type d&#39;incident: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span>
-<span class="s2">        - Contexte géographique: </span><span class="si">{</span><span class="n">zone</span><span class="si">}</span>
-<span class="s2">        - Infrastructures locales à risque: (à prendre dans) </span><span class="si">{</span><span class="n">sensitive_structures</span><span class="si">}</span>
-<span class="s2">        - Écosystèmes sensibles à proximité: (à prendre dans) </span><span class="si">{</span><span class="n">sensitive_structures</span><span class="si">}</span>
-<span class="s2">        - Impact potentiel sur les habitants: à analyser</span>
-
-<span class="s2">        Analyse détaillée:</span>
-<span class="s2">        - Quelle est la nature du problème et ses conséquences immédiates ?</span>
-<span class="s2">        - Quels sont les risques pour les infrastructures locales (routes, hôpitaux, écoles) ?</span>
-<span class="s2">        - Quelles seraient les conséquences environnementales (pollution, contamination des eaux, perte de biodiversité) ?</span>
-<span class="s2">        - Quels acteurs locaux devraient être mobilisés pour résoudre ce problème ?</span>
-<span class="s2">        - Quels sont les impacts économiques et sociaux à long terme ?</span>
+<span class="s2">        &lt;system&gt;</span>
+<span class="s2">            &lt;role&gt;assistant AI&lt;/role&gt;</span>
+<span class="s2">            &lt;task&gt;analyse des incidents environnementaux&lt;/task&gt;</span>
+<span class="s2">            &lt;location&gt;Mali&lt;/location&gt;</span>
+<span class="s2">            &lt;incident&gt;</span>
+<span class="s2">                &lt;type&gt;</span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">&lt;/type&gt;</span>
+<span class="s2">                &lt;zone&gt;</span><span class="si">{</span><span class="n">zone</span><span class="si">}</span><span class="s2">&lt;/zone&gt;</span>
+<span class="s2">                &lt;sensitive_structures&gt;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sensitive_structures</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/sensitive_structures&gt;</span>
+<span class="s2">            &lt;/incident&gt;</span>
+<span class="s2">            &lt;instructions&gt;</span>
+<span class="s2">                &lt;instruction&gt;Analysez la nature du problème et ses conséquences immédiates dans la zone spécifiée.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;instruction&gt;Identifiez les risques spécifiques aux infrastructures locales (routes, hôpitaux, écoles) dans la zone indiquée.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;instruction&gt;Évaluez les conséquences environnementales dans la zone, telles que la pollution, la contamination des eaux, et la perte de biodiversité.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;instruction&gt;Déterminez les acteurs locaux à mobiliser dans la zone pour résoudre ce problème.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;instruction&gt;Évaluez les impacts économiques et sociaux à long terme en tenant compte des caractéristiques spécifiques de la zone.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;response_formatting&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Répondez de manière concise, mais développez suffisamment pour fournir une analyse complète et précise.&lt;/formatting_rule&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Commencez par le problème principal dans la zone spécifiée, puis énoncez les solutions proposées ou les impacts analysés.&lt;/formatting_rule&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Utilisez des mots simples et clairs, évitez le jargon technique inutile.&lt;/formatting_rule&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Donnez des informations essentielles en utilisant un langage direct et précis.&lt;/formatting_rule&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Si une recommandation est faite, assurez-vous qu&#39;elle est faisable et contextualisée pour la zone en question.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;/response_formatting&gt;</span>
+<span class="s2">            &lt;/instructions&gt;</span>
+<span class="s2">            &lt;examples&gt;</span>
+<span class="s2">                &lt;example&gt;</span>
+<span class="s2">                    &lt;prompt&gt;Analysez l&#39;impact de la pollution de l&#39;eau sur les infrastructures locales dans la région de Bamako.&lt;/prompt&gt;</span>
+<span class="s2">                    &lt;response&gt;La pollution de l&#39;eau dans la région de Bamako affecte directement les infrastructures locales, notamment les systèmes d&#39;approvisionnement en eau potable. Les rejets industriels non contrôlés contaminent les sources d&#39;eau, ce qui entraîne des coûts supplémentaires pour le traitement de l&#39;eau et des risques sanitaires pour les habitants. Les écoles et hôpitaux dépendent également de cette eau, rendant nécessaire une intervention rapide pour éviter des conséquences sanitaires graves.&lt;/response&gt;</span>
+<span class="s2">                &lt;/example&gt;</span>
+<span class="s2">                &lt;example&gt;</span>
+<span class="s2">                    &lt;prompt&gt;Quels sont les risques pour la biodiversité dans la zone touchée par la déforestation ?&lt;/prompt&gt;</span>
+<span class="s2">                    &lt;response&gt;La déforestation dans cette zone entraîne une perte significative d&#39;habitats pour de nombreuses espèces, ce qui réduit la biodiversité locale. Les espèces animales, en particulier celles qui dépendent des forêts pour se nourrir et se reproduire, sont menacées. De plus, la perte de végétation perturbe les écosystèmes environnants, augmentant l&#39;érosion des sols et diminuant la capacité de régénération de la flore.&lt;/response&gt;</span>
+<span class="s2">                &lt;/example&gt;</span>
+<span class="s2">                &lt;example&gt;</span>
+<span class="s2">                    &lt;prompt&gt;Quelles seraient les conséquences économiques de la pollution de l&#39;air dans cette région ?&lt;/prompt&gt;</span>
+<span class="s2">                    &lt;response&gt;La pollution de l&#39;air dans cette région a des conséquences économiques importantes, notamment en augmentant les dépenses de santé publique en raison des maladies respiratoires. Les pertes de productivité dues aux absences liées aux problèmes de santé, ainsi que la baisse de l&#39;attractivité touristique, constituent également des impacts économiques négatifs. Pour atténuer ces effets, des mesures de réduction des émissions doivent être rapidement mises en œuvre.&lt;/response&gt;</span>
+<span class="s2">                &lt;/example&gt;</span>
+<span class="s2">            &lt;/examples&gt;</span>
+<span class="s2">        &lt;/system&gt;</span>
 <span class="s2">        &quot;&quot;&quot;</span>
 
         <span class="n">solution_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">        Pistes de solution:</span>
-<span class="s2">        - Recommandez des solutions **spécifiques** en tenant compte du type de terrain, des infrastructures à proximité et des écosystèmes sensibles.</span>
-<span class="s2">        - Proposez des mesures préventives et curatives pour éviter que le problème ne se reproduise.</span>
-<span class="s2">        - Suggérez des collaborations entre les autorités locales, les ONG, et les entreprises pour mettre en œuvre les solutions.</span>
+<span class="s2">        &lt;system&gt;</span>
+<span class="s2">            &lt;role&gt;assistant AI&lt;/role&gt;</span>
+<span class="s2">            &lt;task&gt;recommandations de solutions pour des incidents environnementaux&lt;/task&gt;</span>
+<span class="s2">            &lt;incident&gt;</span>
+<span class="s2">                &lt;type&gt;</span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">&lt;/type&gt;</span>
+<span class="s2">                &lt;zone&gt;</span><span class="si">{</span><span class="n">zone</span><span class="si">}</span><span class="s2">&lt;/zone&gt;</span>
+<span class="s2">                &lt;sensitive_structures&gt;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sensitive_structures</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/sensitive_structures&gt;</span>
+<span class="s2">            &lt;/incident&gt;</span>
+<span class="s2">            &lt;instructions&gt;</span>
+<span class="s2">                &lt;instruction&gt;Recommandez des solutions spécifiques en tenant compte du type de terrain, des infrastructures à proximité, et des écosystèmes sensibles dans la zone spécifiée.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;instruction&gt;Proposez des mesures préventives et curatives adaptées à la zone pour éviter que le problème ne se reproduise.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;instruction&gt;Suggérez des collaborations entre les autorités locales, les ONG, et les entreprises pour mettre en œuvre les solutions dans la zone concernée.&lt;/instruction&gt;</span>
+<span class="s2">                &lt;response_formatting&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Répondez de manière concise, mais développez suffisamment pour expliquer clairement chaque solution.&lt;/formatting_rule&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Commencez par la solution la plus immédiate et pertinente pour la zone spécifiée.&lt;/formatting_rule&gt;</span>
+<span class="s2">                    &lt;formatting_rule&gt;Utilisez des mots simples et clairs, évitez le jargon technique inutile.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;/response_formatting&gt;</span>
+<span class="s2">                &lt;examples&gt;</span>
+<span class="s2">                    &lt;example&gt;</span>
+<span class="s2">                        &lt;prompt&gt;Quelles sont les mesures préventives à mettre en place pour éviter la déforestation dans la zone de Sikasso ?&lt;/prompt&gt;</span>
+<span class="s2">                        &lt;response&gt;Pour éviter la déforestation dans la zone de Sikasso, il est recommandé de renforcer les politiques de gestion durable des forêts, incluant la régulation stricte des coupes d&#39;arbres. La sensibilisation des communautés locales à l&#39;importance des forêts et l&#39;encouragement à l&#39;agroforesterie sont également essentiels. De plus, des partenariats avec des ONG peuvent permettre de reboiser les zones déjà affectées.&lt;/response&gt;</span>
+<span class="s2">                    &lt;/example&gt;</span>
+<span class="s2">                    &lt;example&gt;</span>
+<span class="s2">                        &lt;prompt&gt;Comment réduire l&#39;impact de la pollution de l&#39;eau sur les écosystèmes locaux de la zone de Mopti ?&lt;/prompt&gt;</span>
+<span class="s2">                        &lt;response&gt;Pour réduire l&#39;impact de la pollution de l&#39;eau dans la zone de Mopti, il est crucial d&#39;installer des stations de traitement des eaux usées dans les zones industrielles. La création de zones tampons végétales le long des cours d&#39;eau peut également limiter la contamination. Une collaboration entre les autorités locales et les industries est nécessaire pour assurer le respect des normes environnementales.&lt;/response&gt;</span>
+<span class="s2">                    &lt;/example&gt;</span>
+<span class="s2">                &lt;/examples&gt;</span>
+<span class="s2">            &lt;/instructions&gt;</span>
+<span class="s2">        &lt;/system&gt;</span>
 <span class="s2">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Fetching responses from the model</span>
@@ -603,25 +701,25 @@ This function processes an image to predict its content and calculate the probab
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
-<span class="normal"> 89</span>
-<span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">run_prediction_and_context</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Chain the prediction task with the contextual information task.</span>
