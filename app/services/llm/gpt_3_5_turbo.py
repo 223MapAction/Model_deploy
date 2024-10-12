@@ -75,7 +75,7 @@ def get_response(prompt: str):
 
 import json
 
-def chat_response(prompt: str, context: str = "", chat_history: list = []):
+def chat_response(prompt: str, context: str = "", chat_history: list = [], impact_area: str = "Non spécifié"):
     """
     Processes a user's prompt to generate the assistant's response using GPT-4o-mini,
     with context about the environmental incident.
@@ -84,6 +84,7 @@ def chat_response(prompt: str, context: str = "", chat_history: list = []):
         prompt (str): The user's message to which the assistant should respond.
         context (str): A JSON string containing context about the incident.
         chat_history (list): The existing chat history for this session.
+        impact_area (str): The area impacted by the incident.
 
     Returns:
         str: The assistant's response.

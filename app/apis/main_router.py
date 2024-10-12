@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, st
 from fastapi.responses import JSONResponse
 from typing import Dict, List
 import json
+import asyncio
 
 from ..services.websockets import ConnectionManager
 from ..services import (
@@ -31,6 +32,9 @@ router = APIRouter()
 
 # Update the BASE_URL to match where the images are hosted
 BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads")
+
+# Add this near the top of the file, with other global variables
+impact_area_storage = {}
 
 
 def construct_image_url(image_name: str) -> str:
@@ -146,6 +150,12 @@ async def predict_incident_type(data: ImageModel):
         # Perform satellite data analysis with date range
         impact_area = analyze_incident_zone(data.zone, prediction, start_date, end_date)
         
+        # Store the impact_area in memory
+        impact_area_storage[data.incident_id] = impact_area.tolist()
+
+        # Set an expiration for the stored impact_area (e.g., 1 hour)
+        asyncio.create_task(expire_impact_area(data.incident_id, 3600))
+
         # Add impact area information to the analysis
         analysis += f"\n\nSatellite data analysis shows an impacted area of approximately {np.sum(impact_area)} square kilometers over the past three months."
 
@@ -262,7 +272,7 @@ async def chat_endpoint(websocket: WebSocket):
                     logger.error(f"Error deleting chat history: {e}")
                     await websocket.send_json({"error": "Error deleting chat history."})
             else:
-                # Fetch context from the database based on incident_id (similar to before)
+                # Fetch context from the database based on incident_id
                 query = """
                 SELECT incident_type, analysis, piste_solution
                 FROM "Mapapi_prediction"
@@ -278,6 +288,9 @@ async def chat_endpoint(websocket: WebSocket):
                         "piste_solution": result["piste_solution"],
                     }
                     context = json.dumps(context_obj)
+                    
+                    # Retrieve impact_area from in-memory storage
+                    impact_area = impact_area_storage.get(incident_id, None)
                 else:
                     logger.error(f"No context found for incident_id: {incident_id}")
                     await websocket.send_json({"error": "No context found for the given incident_id"})
@@ -308,7 +321,7 @@ async def chat_endpoint(websocket: WebSocket):
                 chat_histories[chat_key].append({"role": "user", "content": question})
 
                 # Get response from chat bot
-                chatbot_response = chat_response(question, context, chat_histories[chat_key])
+                chatbot_response = chat_response(question, context, chat_histories[chat_key], impact_area)
 
                 # Append assistant's response to history
                 chat_histories[chat_key].append({"role": "assistant", "content": chatbot_response})
@@ -393,3 +406,8 @@ async def get_chat_history(chat_key: str):
     except Exception as e:
         logger.error(f"Error fetching chat history: {e}")
         raise HTTPException(status_code=500, detail="Error fetching chat history")
+
+
+async def expire_impact_area(incident_id: str, delay: int):
+    await asyncio.sleep(delay)
+    impact_area_storage.pop(incident_id, None)
