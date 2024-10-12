@@ -24,14 +24,25 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     
     # Convert incident_location to a GeoJSON file
     area_of_interest = create_geojson_from_location(incident_location, output_dir)
+    logging.info(f"Created GeoJSON file: {area_of_interest}")
     
     try:
         # Download and preprocess Sentinel data
         raw_data_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
+        logging.info(f"Downloaded {len(raw_data_files)} raw data files")
+        
+        if not raw_data_files:
+            logging.error("No raw data files were downloaded")
+            raise ValueError("No Sentinel data available for the specified criteria")
+        
         processed_data_files = preprocess_sentinel_data(raw_data_files, output_dir)
+        logging.info(f"Preprocessed {len(processed_data_files)} data files")
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to download Sentinel data: {str(e)}")
         raise ValueError("Unable to access Sentinel data. The data source may have changed. Please update the data retrieval method.")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred during data download or preprocessing: {str(e)}")
+        raise
     
     if not processed_data_files:
         logging.error("No processed data files available for analysis.")
