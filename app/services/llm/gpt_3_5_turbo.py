@@ -105,8 +105,9 @@ def chat_response(prompt: str, context: str = "", chat_history: list = []):
     incident_type = context_obj.get('type_incident', 'Inconnu')
     analysis = context_obj.get('analysis', 'Non spécifié')
     piste_solution = context_obj.get('piste_solution', 'Non spécifié')
+    impact_summary = context_obj.get('impact_summary', 'Non spécifié')
 
-    # Create a system message to guide the assistant's behavior with clear instructions and context
+    # Update the system message to include the impact summary
     system_message = f"""
     <system>
         <role>assistant AI</role>
@@ -116,10 +117,12 @@ def chat_response(prompt: str, context: str = "", chat_history: list = []):
             <type>{incident_type}</type>
             <analysis>{analysis}</analysis>
             <solution_tracks>{piste_solution}</solution_tracks>
+            <impact_summary>{impact_summary}</impact_summary>
         </incident>
         <instructions>
             <instruction>Adaptez vos réponses au contexte spécifique de l'incident.</instruction>
             <instruction>Utilisez les informations de contexte pour enrichir vos explications.</instruction>
+            <instruction>Intégrez les données sur la zone d'impact dans vos analyses lorsque c'est pertinent.</instruction>
             <instruction>Si la question dépasse le contexte fourni, mentionnez clairement que vous répondez de manière générale.</instruction>
             <instruction>Priorisez les réponses concises et orientées sur la résolution du problème.</instruction>
             <instruction>Ne déviez pas de la tâche principale et évitez les réponses non pertinentes.</instruction>
@@ -167,6 +170,10 @@ def chat_response(prompt: str, context: str = "", chat_history: list = []):
             <example>
                 <prompt>Quels sont les meilleurs restaurants ici ?</prompt>
                 <response>Je me concentre actuellement sur l'analyse des incidents environnementaux. Pour toute question relative aux incidents ou à des pistes de solution, je suis prêt à vous aider.</response>
+            </example>
+            <example>
+                <prompt>Quelle est l'étendue de la zone touchée par cet incident ?</prompt>
+                <response>L'analyse des données satellitaires montre que la zone impactée par cet incident couvre environ {impact_area} kilomètres carrés. Cette information nous aide à mieux comprendre l'ampleur du problème et à planifier des interventions appropriées.</response>
             </example>
         </examples>
     </system>
