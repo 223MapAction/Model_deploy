@@ -31,3 +31,4 @@ chromadb
 sentinelsat==1.2.1
 python-snappy==0.7.3
 rasterio==1.4.1
+scipy==1.14.0
