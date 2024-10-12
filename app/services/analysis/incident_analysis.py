@@ -23,8 +23,12 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     os.makedirs(output_dir, exist_ok=True)
     
     # Convert incident_location to a GeoJSON file
-    area_of_interest = create_geojson_from_location(incident_location, output_dir)
-    logging.info(f"Created GeoJSON file: {area_of_interest}")
+    try:
+        area_of_interest = create_geojson_from_location(incident_location, output_dir)
+        logging.info(f"Created GeoJSON file: {area_of_interest}")
+    except Exception as e:
+        logging.error(f"Failed to create GeoJSON file: {str(e)}")
+        raise ValueError(f"Unable to process location '{incident_location}': {str(e)}")
     
     try:
         # Download and preprocess Sentinel data
@@ -33,51 +37,52 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
         
         if not raw_data_files:
             logging.error("No raw data files were downloaded")
-            raise ValueError("No Sentinel data available for the specified criteria")
+            raise ValueError(f"No Sentinel data available for {incident_location} between {start_date} and {end_date}")
         
         processed_data_files = preprocess_sentinel_data(raw_data_files, output_dir)
         logging.info(f"Preprocessed {len(processed_data_files)} data files")
+        
+        if not processed_data_files:
+            logging.error("No processed data files available for analysis.")
+            raise ValueError("No data available for analysis after preprocessing.")
+        
+        # For simplicity, we'll use the first processed file. In a real scenario, you might want to analyze all files or merge them.
+        processed_data = processed_data_files[0]
+        
+        # Read the processed data
+        with rasterio.open(processed_data) as src:
+            satellite_image = src.read()
+        
+        logging.info(f"Satellite image shape: {satellite_image.shape}")
+        
+        # Perform analysis based on incident type
+        if incident_type == 'Caniveau obstrué':
+            impact_area = analyze_blocked_drain(satellite_image)
+        elif incident_type == 'Déchet dans l\'eau':
+            impact_area = analyze_water_waste(satellite_image)
+        elif incident_type == 'Déchet solide':
+            impact_area = analyze_solid_waste(satellite_image)
+        elif incident_type == 'Déforestation':
+            impact_area = analyze_deforestation(satellite_image)
+        elif incident_type == 'Pollution de l\'eau':
+            impact_area = analyze_water_pollution(satellite_image)
+        elif incident_type == 'Sécheresse':
+            impact_area = analyze_drought(satellite_image)
+        elif incident_type == 'Sol dégradé':
+            impact_area = analyze_soil_degradation(satellite_image)
+        else:
+            logging.error(f"Unsupported incident type: {incident_type}")
+            raise ValueError(f"Unsupported incident type: {incident_type}")
+        
+        logging.info(f"Impact area shape: {impact_area.shape}, non-zero elements: {np.count_nonzero(impact_area)}")
+        return impact_area
+    
     except requests.exceptions.RequestException as e:
         logging.error(f"Failed to download Sentinel data: {str(e)}")
-        raise ValueError("Unable to access Sentinel data. The data source may have changed. Please update the data retrieval method.")
+        raise ValueError(f"Unable to access Sentinel data for {incident_location}: {str(e)}")
     except Exception as e:
         logging.error(f"An unexpected error occurred during data download or preprocessing: {str(e)}")
-        raise
-    
-    if not processed_data_files:
-        logging.error("No processed data files available for analysis.")
-        raise ValueError("No data available for analysis after preprocessing.")
-
-    # For simplicity, we'll use the first processed file. In a real scenario, you might want to analyze all files or merge them.
-    processed_data = processed_data_files[0]
-    
-    # Read the processed data
-    with rasterio.open(processed_data) as src:
-        satellite_image = src.read()
-    
-    logging.info(f"Satellite image shape: {satellite_image.shape}")
-    
-    # Perform analysis based on incident type
-    if incident_type == 'Caniveau obstrué':
-        impact_area = analyze_blocked_drain(satellite_image)
-    elif incident_type == 'Déchet dans l\'eau':
-        impact_area = analyze_water_waste(satellite_image)
-    elif incident_type == 'Déchet solide':
-        impact_area = analyze_solid_waste(satellite_image)
-    elif incident_type == 'Déforestation':
-        impact_area = analyze_deforestation(satellite_image)
-    elif incident_type == 'Pollution de l\'eau':
-        impact_area = analyze_water_pollution(satellite_image)
-    elif incident_type == 'Sécheresse':
-        impact_area = analyze_drought(satellite_image)
-    elif incident_type == 'Sol dégradé':
-        impact_area = analyze_soil_degradation(satellite_image)
-    else:
-        logging.error(f"Unsupported incident type: {incident_type}")
-        raise ValueError(f"Unsupported incident type: {incident_type}")
-    
-    logging.info(f"Impact area shape: {impact_area.shape}, non-zero elements: {np.count_nonzero(impact_area)}")
-    return impact_area
+        raise ValueError(f"Error processing incident at {incident_location}: {str(e)}")
 
 def analyze_flood_extent(satellite_image):
     """

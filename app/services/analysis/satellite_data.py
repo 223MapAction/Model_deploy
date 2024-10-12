@@ -96,12 +96,12 @@ def download_sentinel_data(area_of_interest_geojson, start_date, end_date, outpu
     search_params = {
         "bbox": bbox,
         "datetime": f"{start_date_iso}/{end_date_iso}",
-        "collections": ["SENTINEL-2"],  # Changed from "sentinel-2-l2a" to "SENTINEL-2"
+        "collections": ["SENTINEL-2"],
         "limit": 10,
         "filter": {
             "op": "<",
             "args": [
-                {"property": "eo:cloud_cover"},
+                {"property": "cloudCover"},  # Changed from "eo:cloud_cover" to "cloudCover"
                 30
             ]
         },
