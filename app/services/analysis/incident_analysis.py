@@ -14,6 +14,8 @@ import locale
 import matplotlib.dates as mdates
 from io import BytesIO
 import base64
+from app.services.llm.gpt_3_5_turbo import generate_satellite_analysis
+from celery import shared_task
 
 
 # Set up logging
@@ -25,6 +27,11 @@ try:
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
 except locale.Error:
     pass
+
+@shared_task
+def analyze_incident_zone_task(lat, lon, incident_location, incident_type, start_date, end_date):
+    result = analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date)
+    return result
 
 def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date) -> dict:
     """
@@ -52,8 +59,8 @@ def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date
     ndvi_heatmap = generate_ndvi_heatmap(ndvi_data)
     landcover_plot = generate_landcover_plot(landcover_data)
 
-    # Prepare textual analysis
-    textual_analysis = generate_textual_analysis(ndvi_data, ndwi_data, landcover_data, incident_type)
+    # Generate textual analysis using the new LLM function
+    textual_analysis = generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_type)
 
     # Prepare return dictionary
     result = {
@@ -230,73 +237,6 @@ def generate_landcover_plot(landcover_data):
     plt.close()
 
     return img_str
-
-def generate_textual_analysis(ndvi_data, ndwi_data, landcover_data, incident_type):
-    """
-    Generate textual analysis based on the satellite data and incident type.
-    """
-    analysis = f"Analyse de l'incident de type '{incident_type}':\n\n"
-
-    # NDVI analysis
-    avg_ndvi = ndvi_data['NDVI'].mean()
-    ndvi_trend = 'augmentation' if ndvi_data['NDVI'].iloc[-1] > ndvi_data['NDVI'].iloc[0] else 'diminution'
-    analysis += f"L'indice de végétation (NDVI) moyen est de {avg_ndvi:.2f}, avec une tendance à la {ndvi_trend} sur la période analysée. "
-    analysis += "Cela indique une santé de la végétation "
-    if avg_ndvi > 0.5:
-        analysis += "généralement bonne.\n"
-    elif avg_ndvi > 0.3:
-        analysis += "modérée.\n"
-    else:
-        analysis += "potentiellement faible ou une zone avec peu de végétation.\n"
-
-    # NDWI analysis
-    avg_ndwi = ndwi_data['NDWI'].mean()
-    ndwi_trend = 'augmentation' if ndwi_data['NDWI'].iloc[-1] > ndwi_data['NDWI'].iloc[0] else 'diminution'
-    analysis += f"\nL'indice d'eau (NDWI) moyen est de {avg_ndwi:.2f}, avec une tendance à la {ndwi_trend}. "
-    analysis += "Cela suggère "
-    if avg_ndwi > 0:
-        analysis += "la présence significative d'eau dans la zone.\n"
-    else:
-        analysis += "une zone relativement sèche ou avec peu d'eau de surface.\n"
-
-    # Land cover analysis
-    dominant_cover = max(landcover_data, key=landcover_data.get)
-    analysis += f"\nLa couverture terrestre dominante dans la zone est '{dominant_cover}', "
-    analysis += f"représentant {landcover_data[dominant_cover]/sum(landcover_data.values())*100:.1f}% de la surface analysée.\n"
-
-    # Incident-specific analysis
-    if incident_type == 'Déforestation':
-        analysis += "\nEn ce qui concerne la déforestation, "
-        if 'Couverture arborée' in landcover_data:
-            tree_cover_percent = landcover_data['Couverture arborée'] / sum(landcover_data.values()) * 100
-            analysis += f"la zone présente actuellement {tree_cover_percent:.1f}% de couverture arborée. "
-            if ndvi_trend == 'diminution':
-                analysis += "La tendance à la baisse du NDVI pourrait indiquer une perte récente de végétation, "
-                analysis += "potentiellement liée à des activités de déforestation."
-            else:
-                analysis += "Malgré la préoccupation de déforestation, le NDVI ne montre pas de tendance à la baisse, "
-                analysis += "ce qui pourrait suggérer que la déforestation n'est pas active ou est compensée par la croissance ailleurs."
-        else:
-            analysis += "la zone ne semble pas avoir une couverture forestière significative actuellement. "
-            analysis += "Cela pourrait indiquer une déforestation passée ou une zone naturellement non boisée."
-
-    elif incident_type == 'Pollution de l\'eau':
-        analysis += "\nConcernant la pollution de l'eau, "
-        if avg_ndwi > 0:
-            analysis += "la présence d'eau est confirmée par l'indice NDWI positif. "
-            if ndwi_trend == 'diminution':
-                analysis += "La tendance à la baisse du NDWI pourrait indiquer une réduction des surfaces d'eau, "
-                analysis += "potentiellement liée à la pollution ou à d'autres facteurs environnementaux."
-            else:
-                analysis += "Le NDWI stable ou en augmentation suggère que la quantité d'eau de surface n'a pas diminué. "
-                analysis += "Cependant, cela n'exclut pas la possibilité de pollution, qui nécessiterait des analyses in situ pour être confirmée."
-        else:
-            analysis += "l'indice NDWI faible suggère peu d'eau de surface dans la zone. "
-            analysis += "La pollution de l'eau pourrait concerner des sources d'eau souterraines ou des cours d'eau temporaires non détectés par l'analyse satellite."
-
-    # Add more incident-specific analyses as needed
-
-    return analysis
 
 def create_geojson_from_location(location, output_dir):
     """
