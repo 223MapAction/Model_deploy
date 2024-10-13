@@ -8,6 +8,8 @@ from fastapi.responses import JSONResponse
 from typing import Dict, List
 import json
 import asyncio
+from datetime import datetime, timedelta
+import ee
 
 from ..services.websockets import ConnectionManager
 from ..services import (
@@ -36,6 +38,23 @@ BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads"
 # Add this near the top of the file, with other global variables
 impact_area_storage = {}
 
+def initialize_earth_engine():
+    """
+    Initialize Earth Engine with service account credentials.
+    """
+    try:
+        credentials = ee.ServiceAccountCredentials(
+            email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
+            key_file=os.environ['GEE_SERVICE_ACCOUNT_KEY_FILE']
+        )
+        ee.Initialize(credentials)
+        logger.info("Earth Engine initialized successfully.")
+    except Exception as e:
+        logger.error(f"Failed to initialize Earth Engine: {str(e)}")
+        raise
+
+# Call the initialize function at the beginning of the script
+initialize_earth_engine()
 
 def construct_image_url(image_name: str) -> str:
     """
@@ -142,26 +161,26 @@ async def predict_incident_type(data: ImageModel):
             logger.error(f"Error during context fetching task: {e}")
             raise HTTPException(status_code=500, detail=f"Error during context fetching: {str(e)}")
 
-        # Calculate start_date and end_date for a three-month span
-        from datetime import datetime, timedelta
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=360)
+        # Perform satellite data analysis
+        start_date = (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
+        end_date = datetime.now().strftime("%Y%m%d")
+        satellite_analysis = analyze_incident_zone(data.zone, prediction, start_date, end_date)
 
-        # Convert datetime objects to string format without hyphens
-        start_date_str = start_date.strftime("%Y%m%d")
-        end_date_str = end_date.strftime("%Y%m%d")
+        # Add satellite analysis to the existing analysis
+        analysis += "\n\n" + satellite_analysis['textual_analysis']
 
-        # Perform satellite data analysis with date range
-        impact_area = analyze_incident_zone(data.zone, prediction, start_date_str, end_date_str)
-        
-        # Store the impact_area in memory
-        impact_area_storage[data.incident_id] = impact_area.tolist()
-
-        # Set an expiration for the stored impact_area (e.g., 1 hour)
-        asyncio.create_task(expire_impact_area(data.incident_id, 3600))
-
-        # Add impact area information to the analysis
-        analysis += f"\n\nSatellite data analysis shows an impacted area of approximately {np.sum(impact_area)} square kilometers over the past three months."
+        # Prepare the response
+        response = {
+            "prediction": prediction,
+            "probabilities": probabilities,
+            "analysis": analysis,
+            "piste_solution": piste_solution,
+            "satellite_data": {
+                "ndvi_ndwi_plot": satellite_analysis['ndvi_ndwi_plot'],
+                "ndvi_heatmap": satellite_analysis['ndvi_heatmap'],
+                "landcover_plot": satellite_analysis['landcover_plot'],
+            }
+        }
 
         # Validate all required fields are present
         if not all([data.incident_id, prediction, piste_solution, analysis]):
@@ -186,15 +205,7 @@ async def predict_incident_type(data: ImageModel):
             logger.error(f"Database error: {e}")
             raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-        return JSONResponse(
-            content={
-                "prediction": prediction,
-                "probabilities": probabilities,
-                "analysis": analysis,
-                "piste_solution": piste_solution,
-                "impact_area": impact_area.tolist(),  # Convert numpy array to list for JSON serialization
-            }
-        )
+        return JSONResponse(content=response)
 
     except HTTPException as http_exc:
         # Re-raise HTTPExceptions to be handled by the global exception handler
