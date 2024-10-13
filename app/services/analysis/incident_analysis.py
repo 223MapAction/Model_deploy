@@ -26,7 +26,7 @@ try:
 except locale.Error:
     pass
 
-def analyze_incident_zone(lat, lon,incident_location, incident_type, start_date, end_date) -> dict:
+def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date) -> dict:
     """
     Analyze the incident zone using satellite data.
 
@@ -34,7 +34,6 @@ def analyze_incident_zone(lat, lon,incident_location, incident_type, start_date,
     dict: A dictionary containing analysis results and plot data.
     """
     logging.info(f"Analyzing incident zone for {incident_type} at {incident_location}")
-    
     
     # Create Earth Engine point and buffered area
     point = ee.Geometry.Point([lon, lat])
@@ -117,7 +116,7 @@ def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
     df_ndvi = pd.DataFrame({'Date': dates, 'NDVI': ndvi_values, 'NDWI': ndwi_values})
     df_ndvi['Date'] = pd.to_datetime(df_ndvi['Date'])
 
-    return df_ndvi[['Date', 'NDVI']], df_ndvi[['Date', 'NDWI']], ndvi_mean, ndwi_mean
+    return df_ndvi[['Date', 'NDVI']], df_ndvi[['Date', 'NDWI']]
 
 def analyze_land_cover(buffered_point):
     """
