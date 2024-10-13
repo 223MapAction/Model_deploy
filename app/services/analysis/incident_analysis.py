@@ -26,7 +26,7 @@ try:
 except locale.Error:
     pass
 
-def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> dict:
+def analyze_incident_zone(lat, lon,incident_location, incident_type, start_date, end_date) -> dict:
     """
     Analyze the incident zone using satellite data.
 
@@ -35,8 +35,6 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
     """
     logging.info(f"Analyzing incident zone for {incident_type} at {incident_location}")
     
-    # Convert incident_location to coordinates (you may need to implement this function)
-    lat, lon = get_coordinates_from_location(incident_location)
     
     # Create Earth Engine point and buffered area
     point = ee.Geometry.Point([lon, lat])
@@ -73,21 +71,14 @@ def analyze_incident_zone(incident_location, incident_type, start_date, end_date
 
     return result
 
-def get_coordinates_from_location(location):
-    """
-    Convert a location string to coordinates.
-    You may need to implement this using a geocoding service.
-    """
-    # Placeholder implementation
-    return 0, 0  # Replace with actual implementation
 
 def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
     """
-    Analyze NDVI and NDWI for the given point and date range.
+    Analyze NDVI and NDWI for the given point and buffered area over the specified date range.
     """
     # Load Sentinel-2 data
     s2_collection = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
-                     .filterBounds(point)
+                     .filterBounds(buffered_point)
                      .filterDate(start_date, end_date)
                      .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', 20)))
 
@@ -101,9 +92,22 @@ def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
     ndvi_collection = s2_collection.map(get_ndvi)
     ndwi_collection = s2_collection.map(get_ndwi)
 
-    # Get time series data
+    # Get time series data for the point
     ndvi_timeseries = ndvi_collection.getRegion(point, scale=10).getInfo()
     ndwi_timeseries = ndwi_collection.getRegion(point, scale=10).getInfo()
+
+    # Get mean values for the buffered area
+    ndvi_mean = ndvi_collection.mean().reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=buffered_point,
+        scale=10
+    ).getInfo()['NDVI']
+
+    ndwi_mean = ndwi_collection.mean().reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=buffered_point,
+        scale=10
+    ).getInfo()['NDWI']
 
     # Prepare dataframes
     dates = [ee.Date(feature[3]).format('YYYY-MM-dd').getInfo() for feature in ndvi_timeseries[1:]]
@@ -113,7 +117,7 @@ def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
     df_ndvi = pd.DataFrame({'Date': dates, 'NDVI': ndvi_values, 'NDWI': ndwi_values})
     df_ndvi['Date'] = pd.to_datetime(df_ndvi['Date'])
 
-    return df_ndvi[['Date', 'NDVI']], df_ndvi[['Date', 'NDWI']]
+    return df_ndvi[['Date', 'NDVI']], df_ndvi[['Date', 'NDWI']], ndvi_mean, ndwi_mean
 
 def analyze_land_cover(buffered_point):
     """
