@@ -3,10 +3,21 @@
 from app.services.celery.celery_config import celery_app
 from app.services.cnn import predict
 from app.services.llm import get_response
+from app.services.analysis import analyze_vegetation_and_water, analyze_land_cover, generate_ndvi_ndwi_plot, generate_ndvi_heatmap, generate_landcover_plot
+from app.services.llm import generate_satellite_analysis
+import ee
 import logging
+import locale
+from datetime import datetime, timedelta
 
 # Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# Try to set locale to French
+try:
+    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+except locale.Error:
+    pass
 
 @celery_app.task
 def perform_prediction(image):
@@ -133,6 +144,54 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
     except Exception as e:
         logger.error(f"Contextual information task failed: {str(e)}")
         return {"error": str(e)}, None
+
+
+
+@celery_app.task
+def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date) -> dict:
+    """
+    Analyze the incident zone using satellite data.
+
+    Returns:
+    dict: A dictionary containing analysis results and plot data.
+    """
+    logging.info(f"Analyzing incident zone for {incident_type} at {incident_location}")
+    
+    # Create Earth Engine point and buffered area
+    point = ee.Geometry.Point([lon, lat])
+    buffered_point = point.buffer(500)  # 500-meter buffer
+
+    # Convert dates to datetime objects
+    start_date = datetime.strptime(start_date, '%Y%m%d')
+    end_date = datetime.strptime(end_date, '%Y%m%d')
+
+    # Perform satellite data analysis
+    ndvi_data, ndwi_data = analyze_vegetation_and_water(point, buffered_point, start_date, end_date)
+    landcover_data = analyze_land_cover(buffered_point)
+
+    # Generate plots
+    ndvi_ndwi_plot = generate_ndvi_ndwi_plot(ndvi_data, ndwi_data)
+    ndvi_heatmap = generate_ndvi_heatmap(ndvi_data)
+    landcover_plot = generate_landcover_plot(landcover_data)
+
+    # Generate textual analysis using the new LLM function
+    textual_analysis = generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_type)
+
+    # Prepare return dictionary
+    result = {
+        'textual_analysis': textual_analysis,
+        'ndvi_ndwi_plot': ndvi_ndwi_plot,
+        'ndvi_heatmap': ndvi_heatmap,
+        'landcover_plot': landcover_plot,
+        'raw_data': {
+            'ndvi': ndvi_data.to_dict(),
+            'ndwi': ndwi_data.to_dict(),
+            'landcover': landcover_data
+        }
+    }
+
+    return result
+
 
 @celery_app.task
 def run_prediction_and_context(image, sensitive_structures):
