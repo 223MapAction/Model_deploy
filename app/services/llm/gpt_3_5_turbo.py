@@ -204,3 +204,86 @@ def chat_response(prompt: str, context: str = "", chat_history: list = [], impac
         print(f"An error occurred: {e}")
         return "Désolé, je ne peux pas traiter votre demande pour le moment."
 
+def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_type):
+    """
+    Generate a detailed analysis of satellite data for environmental incidents using LLM.
+
+    Args:
+        ndvi_data (pd.DataFrame): DataFrame containing NDVI data
+        ndwi_data (pd.DataFrame): DataFrame containing NDWI data
+        landcover_data (dict): Dictionary containing land cover data
+        incident_type (str): Type of environmental incident
+
+    Returns:
+        str: Detailed analysis of the satellite data
+    """
+    # Prepare the context
+    context = {
+        "type_incident": incident_type,
+        "ndvi_mean": ndvi_data['NDVI'].mean(),
+        "ndvi_trend": 'augmentation' if ndvi_data['NDVI'].iloc[-1] > ndvi_data['NDVI'].iloc[0] else 'diminution',
+        "ndwi_mean": ndwi_data['NDWI'].mean(),
+        "ndwi_trend": 'augmentation' if ndwi_data['NDWI'].iloc[-1] > ndwi_data['NDWI'].iloc[0] else 'diminution',
+        "dominant_cover": max(landcover_data, key=landcover_data.get),
+        "dominant_cover_percentage": landcover_data[max(landcover_data, key=landcover_data.get)] / sum(landcover_data.values()) * 100
+    }
+
+    system_message = f"""
+    <system>
+        <role>assistant AI spécialisé en analyse environnementale</role>
+        <task>analyse des données satellitaires pour incidents environnementaux</task>
+        <incident>
+            <type>{context['type_incident']}</type>
+            <ndvi_data>
+                <mean>{context['ndvi_mean']:.2f}</mean>
+                <trend>{context['ndvi_trend']}</trend>
+            </ndvi_data>
+            <ndwi_data>
+                <mean>{context['ndwi_mean']:.2f}</mean>
+                <trend>{context['ndwi_trend']}</trend>
+            </ndwi_data>
+            <landcover>
+                <dominant>{context['dominant_cover']}</dominant>
+                <percentage>{context['dominant_cover_percentage']:.1f}%</percentage>
+            </landcover>
+        </incident>
+        <instructions>
+            <instruction>Analysez les données satellitaires fournies pour l'incident environnemental spécifié.</instruction>
+            <instruction>Interprétez les tendances NDVI et NDWI en relation avec le type d'incident.</instruction>
+            <instruction>Expliquez l'importance de la couverture terrestre dominante dans le contexte de l'incident.</instruction>
+            <instruction>Fournissez des insights sur les implications potentielles pour l'environnement local.</instruction>
+            <instruction>Suggérez des pistes de solution ou des recommandations basées sur l'analyse.</instruction>
+        </instructions>
+        <response_formatting>
+            <formatting_rule>Structurez la réponse en paragraphes courts et concis.</formatting_rule>
+            <formatting_rule>Utilisez un langage clair et accessible, en expliquant brièvement les termes techniques.</formatting_rule>
+            <formatting_rule>Concentrez-vous sur les informations les plus pertinentes pour le type d'incident.</formatting_rule>
+            <formatting_rule>Concluez avec une recommandation ou une perspective d'action.</formatting_rule>
+        </response_formatting>
+    </system>
+    """
+
+    user_prompt = f"Analysez les données satellitaires pour l'incident de type '{incident_type}' et fournissez un rapport détaillé."
+
+    messages = [
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1500,
+            top_p=0.9,
+            frequency_penalty=0.3,
+            presence_penalty=0.0
+        )
+
+        analysis = response.choices[0].message.content
+        return analysis
+
+    except Exception as e:
+        print(f"An error occurred while generating satellite data analysis: {e}")
+        return "Désolé, une erreur s'est produite lors de l'analyse des données satellitaires."
