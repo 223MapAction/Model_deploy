@@ -110,6 +110,11 @@
               </ul>
             </li>
             
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="nav-link">generate_satellite_analysis</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
             <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.get_assistant_response" class="nav-link">get_assistant_response</a>
               <ul class="nav flex-column">
               </ul>
@@ -605,6 +610,293 @@ with context about the environmental incident.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;role&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">generate_satellite_analysis</span><span class="p">(</span><span class="n">ndvi_data</span><span class="p">,</span> <span class="n">ndwi_data</span><span class="p">,</span> <span class="n">landcover_data</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Generate a detailed analysis of satellite data for environmental incidents using LLM.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>ndvi_data</code>
+            </td>
+            <td>
+                  <code>DataFrame</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame containing NDVI data</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>ndwi_data</code>
+            </td>
+            <td>
+                  <code>DataFrame</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame containing NDWI data</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>landcover_data</code>
+            </td>
+            <td>
+                  <code>dict</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dictionary containing land cover data</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>incident_type</code>
+            </td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Type of environmental incident</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Detailed analysis of the satellite data</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_satellite_analysis</span><span class="p">(</span><span class="n">ndvi_data</span><span class="p">,</span> <span class="n">ndwi_data</span><span class="p">,</span> <span class="n">landcover_data</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a detailed analysis of satellite data for environmental incidents using LLM.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ndvi_data (pd.DataFrame): DataFrame containing NDVI data</span>
+<span class="sd">        ndwi_data (pd.DataFrame): DataFrame containing NDWI data</span>
+<span class="sd">        landcover_data (dict): Dictionary containing land cover data</span>
+<span class="sd">        incident_type (str): Type of environmental incident</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Detailed analysis of the satellite data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Prepare the context</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;type_incident&quot;</span><span class="p">:</span> <span class="n">incident_type</span><span class="p">,</span>
+        <span class="s2">&quot;ndvi_mean&quot;</span><span class="p">:</span> <span class="n">ndvi_data</span><span class="p">[</span><span class="s1">&#39;NDVI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+        <span class="s2">&quot;ndvi_trend&quot;</span><span class="p">:</span> <span class="s1">&#39;augmentation&#39;</span> <span class="k">if</span> <span class="n">ndvi_data</span><span class="p">[</span><span class="s1">&#39;NDVI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ndvi_data</span><span class="p">[</span><span class="s1">&#39;NDVI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;diminution&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;ndwi_mean&quot;</span><span class="p">:</span> <span class="n">ndwi_data</span><span class="p">[</span><span class="s1">&#39;NDWI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+        <span class="s2">&quot;ndwi_trend&quot;</span><span class="p">:</span> <span class="s1">&#39;augmentation&#39;</span> <span class="k">if</span> <span class="n">ndwi_data</span><span class="p">[</span><span class="s1">&#39;NDWI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ndwi_data</span><span class="p">[</span><span class="s1">&#39;NDWI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;diminution&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;dominant_cover&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">landcover_data</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">landcover_data</span><span class="o">.</span><span class="n">get</span><span class="p">),</span>
+        <span class="s2">&quot;dominant_cover_percentage&quot;</span><span class="p">:</span> <span class="n">landcover_data</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">landcover_data</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">landcover_data</span><span class="o">.</span><span class="n">get</span><span class="p">)]</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">landcover_data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="p">}</span>
+
+    <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &lt;system&gt;</span>
+<span class="s2">        &lt;role&gt;assistant AI spécialisé en analyse environnementale&lt;/role&gt;</span>
+<span class="s2">        &lt;task&gt;analyse des données satellitaires pour incidents environnementaux&lt;/task&gt;</span>
+<span class="s2">        &lt;incident&gt;</span>
+<span class="s2">            &lt;type&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;type_incident&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;/type&gt;</span>
+<span class="s2">            &lt;ndvi_data&gt;</span>
+<span class="s2">                &lt;mean&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;ndvi_mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&lt;/mean&gt;</span>
+<span class="s2">                &lt;trend&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;ndvi_trend&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;/trend&gt;</span>
+<span class="s2">            &lt;/ndvi_data&gt;</span>
+<span class="s2">            &lt;ndwi_data&gt;</span>
+<span class="s2">                &lt;mean&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;ndwi_mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&lt;/mean&gt;</span>
+<span class="s2">                &lt;trend&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;ndwi_trend&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;/trend&gt;</span>
+<span class="s2">            &lt;/ndwi_data&gt;</span>
+<span class="s2">            &lt;landcover&gt;</span>
+<span class="s2">                &lt;dominant&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;dominant_cover&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;/dominant&gt;</span>
+<span class="s2">                &lt;percentage&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;dominant_cover_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&lt;/percentage&gt;</span>
+<span class="s2">            &lt;/landcover&gt;</span>
+<span class="s2">        &lt;/incident&gt;</span>
+<span class="s2">        &lt;instructions&gt;</span>
+<span class="s2">            &lt;instruction&gt;Analysez les données satellitaires fournies pour l&#39;incident environnemental spécifié.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Interprétez les tendances NDVI et NDWI en relation avec le type d&#39;incident.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Expliquez l&#39;importance de la couverture terrestre dominante dans le contexte de l&#39;incident.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Fournissez des insights sur les implications potentielles pour l&#39;environnement local.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Suggérez des pistes de solution ou des recommandations basées sur l&#39;analyse.&lt;/instruction&gt;</span>
+<span class="s2">        &lt;/instructions&gt;</span>
+<span class="s2">        &lt;response_formatting&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Structurez la réponse en paragraphes courts et concis.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez un langage clair et accessible, en expliquant brièvement les termes techniques.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Concentrez-vous sur les informations les plus pertinentes pour le type d&#39;incident.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Concluez avec une recommandation ou une perspective d&#39;action.&lt;/formatting_rule&gt;</span>
+<span class="s2">        &lt;/response_formatting&gt;</span>
+<span class="s2">    &lt;/system&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+    <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Analysez les données satellitaires pour l&#39;incident de type &#39;</span><span class="si">{</span><span class="n">incident_type</span><span class="si">}</span><span class="s2">&#39; et fournissez un rapport détaillé.&quot;</span>
+
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">system_message</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">user_prompt</span><span class="p">}</span>
+    <span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+            <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span>
+            <span class="n">top_p</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+            <span class="n">frequency_penalty</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+            <span class="n">presence_penalty</span><span class="o">=</span><span class="mf">0.0</span>
+        <span class="p">)</span>
+
+        <span class="n">analysis</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+        <span class="k">return</span> <span class="n">analysis</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred while generating satellite data analysis: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Désolé, une erreur s&#39;est produite lors de l&#39;analyse des données satellitaires.&quot;</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
