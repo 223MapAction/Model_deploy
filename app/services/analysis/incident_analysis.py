@@ -1,253 +1,299 @@
 import os
-import rasterio
 import numpy as np
-from scipy import ndimage
 import logging
-from .satellite_data import preprocess_sentinel_data, download_sentinel_data
 from shapely.geometry import Point
 import geopandas as gpd
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import ee
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import locale
+import matplotlib.dates as mdates
+from io import BytesIO
+import base64
 
-def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> np.ndarray:
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Try to set locale to French
+try:
+    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+except locale.Error:
+    pass
+
+def analyze_incident_zone(incident_location, incident_type, start_date, end_date) -> dict:
     """
     Analyze the incident zone using satellite data.
 
     Returns:
-    np.ndarray: A boolean mask where True values indicate the impact area.
+    dict: A dictionary containing analysis results and plot data.
     """
     logging.info(f"Analyzing incident zone for {incident_type} at {incident_location}")
     
-    # Create output directory for Sentinel data
-    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'sentinel_data')
-    os.makedirs(output_dir, exist_ok=True)
+    # Convert incident_location to coordinates (you may need to implement this function)
+    lat, lon = get_coordinates_from_location(incident_location)
     
-    # Check if the date range is valid and not in the future
-    current_date = datetime.now().strftime('%Y%m%d')
-    if end_date > current_date:
-        logging.warning(f"End date {end_date} is in the future. Using current date instead.")
-        end_date = current_date
-    if start_date > end_date:
-        logging.error(f"Invalid date range: start date {start_date} is after end date {end_date}")
-        raise ValueError(f"Invalid date range: start date {start_date} is after end date {end_date}")
-    
-    # Convert incident_location to a GeoJSON file
-    try:
-        area_of_interest = create_geojson_from_location(incident_location, output_dir)
-        logging.info(f"Created GeoJSON file: {area_of_interest}")
-    except Exception as e:
-        logging.error(f"Failed to create GeoJSON file: {str(e)}")
-        raise ValueError(f"Unable to process location '{incident_location}': {str(e)}")
-    
-    try:
-        # Download and preprocess Sentinel data
-        raw_data_files = download_sentinel_data(area_of_interest, start_date, end_date, output_dir)
-        logging.info(f"Downloaded {len(raw_data_files)} raw data files")
-        
-        if not raw_data_files:
-            logging.error("No raw data files were downloaded")
-            raise ValueError(f"No Sentinel data available for {incident_location} between {start_date} and {end_date}")
-        
-        processed_data_files = preprocess_sentinel_data(raw_data_files, output_dir)
-        logging.info(f"Preprocessed {len(processed_data_files)} data files")
-        
-        if not processed_data_files:
-            logging.error("No processed data files available for analysis.")
-            raise ValueError("No data available for analysis after preprocessing.")
-        
-        # For simplicity, we'll use the first processed file. In a real scenario, you might want to analyze all files or merge them.
-        processed_data = processed_data_files[0]
-        
-        # Read the processed data
-        with rasterio.open(processed_data) as src:
-            satellite_image = src.read()
-        
-        logging.info(f"Satellite image shape: {satellite_image.shape}")
-        
-        # Perform analysis based on incident type
-        if incident_type == 'Caniveau obstrué':
-            impact_area = analyze_blocked_drain(satellite_image)
-        elif incident_type == 'Déchet dans l\'eau':
-            impact_area = analyze_water_waste(satellite_image)
-        elif incident_type == 'Déchet solide':
-            impact_area = analyze_solid_waste(satellite_image)
-        elif incident_type == 'Déforestation':
-            impact_area = analyze_deforestation(satellite_image)
-        elif incident_type == 'Pollution de l\'eau':
-            impact_area = analyze_water_pollution(satellite_image)
-        elif incident_type == 'Sécheresse':
-            impact_area = analyze_drought(satellite_image)
-        elif incident_type == 'Sol dégradé':
-            impact_area = analyze_soil_degradation(satellite_image)
+    # Create Earth Engine point and buffered area
+    point = ee.Geometry.Point([lon, lat])
+    buffered_point = point.buffer(500)  # 500-meter buffer
+
+    # Convert dates to datetime objects
+    start_date = datetime.strptime(start_date, '%Y%m%d')
+    end_date = datetime.strptime(end_date, '%Y%m%d')
+
+    # Perform satellite data analysis
+    ndvi_data, ndwi_data = analyze_vegetation_and_water(point, buffered_point, start_date, end_date)
+    landcover_data = analyze_land_cover(buffered_point)
+
+    # Generate plots
+    ndvi_ndwi_plot = generate_ndvi_ndwi_plot(ndvi_data, ndwi_data)
+    ndvi_heatmap = generate_ndvi_heatmap(ndvi_data)
+    landcover_plot = generate_landcover_plot(landcover_data)
+
+    # Prepare textual analysis
+    textual_analysis = generate_textual_analysis(ndvi_data, ndwi_data, landcover_data, incident_type)
+
+    # Prepare return dictionary
+    result = {
+        'textual_analysis': textual_analysis,
+        'ndvi_ndwi_plot': ndvi_ndwi_plot,
+        'ndvi_heatmap': ndvi_heatmap,
+        'landcover_plot': landcover_plot,
+        'raw_data': {
+            'ndvi': ndvi_data.to_dict(),
+            'ndwi': ndwi_data.to_dict(),
+            'landcover': landcover_data
+        }
+    }
+
+    return result
+
+def get_coordinates_from_location(location):
+    """
+    Convert a location string to coordinates.
+    You may need to implement this using a geocoding service.
+    """
+    # Placeholder implementation
+    return 0, 0  # Replace with actual implementation
+
+def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
+    """
+    Analyze NDVI and NDWI for the given point and date range.
+    """
+    # Load Sentinel-2 data
+    s2_collection = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+                     .filterBounds(point)
+                     .filterDate(start_date, end_date)
+                     .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', 20)))
+
+    # Calculate NDVI and NDWI
+    def get_ndvi(image):
+        return image.normalizedDifference(['B8', 'B4']).rename('NDVI').copyProperties(image, ['system:time_start'])
+
+    def get_ndwi(image):
+        return image.normalizedDifference(['B3', 'B8']).rename('NDWI').copyProperties(image, ['system:time_start'])
+
+    ndvi_collection = s2_collection.map(get_ndvi)
+    ndwi_collection = s2_collection.map(get_ndwi)
+
+    # Get time series data
+    ndvi_timeseries = ndvi_collection.getRegion(point, scale=10).getInfo()
+    ndwi_timeseries = ndwi_collection.getRegion(point, scale=10).getInfo()
+
+    # Prepare dataframes
+    dates = [ee.Date(feature[3]).format('YYYY-MM-dd').getInfo() for feature in ndvi_timeseries[1:]]
+    ndvi_values = [feature[4] for feature in ndvi_timeseries[1:]]
+    ndwi_values = [feature[4] for feature in ndwi_timeseries[1:]]
+
+    df_ndvi = pd.DataFrame({'Date': dates, 'NDVI': ndvi_values, 'NDWI': ndwi_values})
+    df_ndvi['Date'] = pd.to_datetime(df_ndvi['Date'])
+
+    return df_ndvi[['Date', 'NDVI']], df_ndvi[['Date', 'NDWI']]
+
+def analyze_land_cover(buffered_point):
+    """
+    Analyze land cover for the given buffered area.
+    """
+    landcover = ee.Image('ESA/WorldCover/v200/2021').select('Map')
+    sampled_data = landcover.sample(
+        region=buffered_point,
+        scale=10,
+        projection='EPSG:4326',
+        numPixels=1000
+    ).aggregate_histogram('Map').getInfo()
+
+    land_cover_types = {
+        10: 'Couverture arborée', 20: 'Arbustes', 30: 'Prairies', 40: 'Terres cultivées',
+        50: 'Zones bâties', 60: 'Végétation clairsemée/nue', 70: 'Neige/Glace',
+        80: 'Plans d\'eau permanents', 90: 'Zones humides herbacées',
+        95: 'Mangroves', 100: 'Mousses/Lichens'
+    }
+
+    landcover_data = {land_cover_types.get(int(k), 'Inconnu'): v for k, v in sampled_data.items()}
+    return landcover_data
+
+def generate_ndvi_ndwi_plot(ndvi_data, ndwi_data):
+    """
+    Generate a plot of NDVI and NDWI time series.
+    """
+    plt.figure(figsize=(12, 6))
+    plt.plot(ndvi_data['Date'], ndvi_data['NDVI'], label='NDVI (végétation)', color='green', marker='o')
+    plt.plot(ndwi_data['Date'], ndwi_data['NDWI'], label='NDWI (eau)', color='blue', marker='o')
+
+    locator = mdates.MonthLocator(interval=3)
+    formatter = mdates.DateFormatter('%b %Y')
+    plt.gca().xaxis.set_major_locator(locator)
+    plt.gca().xaxis.set_major_formatter(formatter)
+
+    plt.xticks(rotation=45, ha='right')
+    plt.xlabel('Date')
+    plt.ylabel('Valeur de l\'indice')
+    plt.title('Séries temporelles du NDVI et du NDWI\nNDVI : Indice de végétation, NDWI : Indice d\'humidité')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format='png')
+    img_buffer.seek(0)
+    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    plt.close()
+
+    return img_str
+
+def generate_ndvi_heatmap(ndvi_data):
+    """
+    Generate a heatmap of NDVI values.
+    """
+    ndvi_data['NumMois'] = ndvi_data['Date'].dt.month
+    mois_abbr_francais = {
+        1: 'Janv', 2: 'Févr', 3: 'Mars', 4: 'Avril', 5: 'Mai', 6: 'Juin',
+        7: 'Juil', 8: 'Août', 9: 'Sept', 10: 'Oct', 11: 'Nov', 12: 'Déc'
+    }
+    ndvi_data['Mois'] = ndvi_data['NumMois'].map(mois_abbr_francais)
+    ndvi_data['Jour'] = ndvi_data['Date'].dt.day
+
+    heatmap_data = ndvi_data.pivot_table(index='Jour', columns='Mois', values='NDVI', aggfunc='mean')
+
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(heatmap_data, cmap='YlGn', annot=False, cbar=True)
+    plt.title('Carte thermique du NDVI (12 derniers mois)\nLe NDVI mesure la santé de la végétation')
+    plt.xlabel('Mois')
+    plt.ylabel('Jour du mois')
+    plt.tight_layout()
+
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format='png')
+    img_buffer.seek(0)
+    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    plt.close()
+
+    return img_str
+
+def generate_landcover_plot(landcover_data):
+    """
+    Generate a pie chart of land cover distribution.
+    """
+    plt.figure(figsize=(8, 8))
+    wedges, texts, autotexts = plt.pie(
+        landcover_data.values(),
+        labels=None,
+        autopct='%1.1f%%',
+        startangle=140,
+        textprops={'fontsize': 10}
+    )
+    plt.title('Distribution de la couverture terrestre (zone tampon)\nRépartition des types de surfaces')
+
+    plt.legend(
+        wedges,
+        landcover_data.keys(),
+        title="Types de couverture terrestre",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        fontsize=10
+    )
+
+    plt.tight_layout()
+
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format='png')
+    img_buffer.seek(0)
+    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    plt.close()
+
+    return img_str
+
+def generate_textual_analysis(ndvi_data, ndwi_data, landcover_data, incident_type):
+    """
+    Generate textual analysis based on the satellite data and incident type.
+    """
+    analysis = f"Analyse de l'incident de type '{incident_type}':\n\n"
+
+    # NDVI analysis
+    avg_ndvi = ndvi_data['NDVI'].mean()
+    ndvi_trend = 'augmentation' if ndvi_data['NDVI'].iloc[-1] > ndvi_data['NDVI'].iloc[0] else 'diminution'
+    analysis += f"L'indice de végétation (NDVI) moyen est de {avg_ndvi:.2f}, avec une tendance à la {ndvi_trend} sur la période analysée. "
+    analysis += "Cela indique une santé de la végétation "
+    if avg_ndvi > 0.5:
+        analysis += "généralement bonne.\n"
+    elif avg_ndvi > 0.3:
+        analysis += "modérée.\n"
+    else:
+        analysis += "potentiellement faible ou une zone avec peu de végétation.\n"
+
+    # NDWI analysis
+    avg_ndwi = ndwi_data['NDWI'].mean()
+    ndwi_trend = 'augmentation' if ndwi_data['NDWI'].iloc[-1] > ndwi_data['NDWI'].iloc[0] else 'diminution'
+    analysis += f"\nL'indice d'eau (NDWI) moyen est de {avg_ndwi:.2f}, avec une tendance à la {ndwi_trend}. "
+    analysis += "Cela suggère "
+    if avg_ndwi > 0:
+        analysis += "la présence significative d'eau dans la zone.\n"
+    else:
+        analysis += "une zone relativement sèche ou avec peu d'eau de surface.\n"
+
+    # Land cover analysis
+    dominant_cover = max(landcover_data, key=landcover_data.get)
+    analysis += f"\nLa couverture terrestre dominante dans la zone est '{dominant_cover}', "
+    analysis += f"représentant {landcover_data[dominant_cover]/sum(landcover_data.values())*100:.1f}% de la surface analysée.\n"
+
+    # Incident-specific analysis
+    if incident_type == 'Déforestation':
+        analysis += "\nEn ce qui concerne la déforestation, "
+        if 'Couverture arborée' in landcover_data:
+            tree_cover_percent = landcover_data['Couverture arborée'] / sum(landcover_data.values()) * 100
+            analysis += f"la zone présente actuellement {tree_cover_percent:.1f}% de couverture arborée. "
+            if ndvi_trend == 'diminution':
+                analysis += "La tendance à la baisse du NDVI pourrait indiquer une perte récente de végétation, "
+                analysis += "potentiellement liée à des activités de déforestation."
+            else:
+                analysis += "Malgré la préoccupation de déforestation, le NDVI ne montre pas de tendance à la baisse, "
+                analysis += "ce qui pourrait suggérer que la déforestation n'est pas active ou est compensée par la croissance ailleurs."
         else:
-            logging.error(f"Unsupported incident type: {incident_type}")
-            raise ValueError(f"Unsupported incident type: {incident_type}")
-        
-        logging.info(f"Impact area shape: {impact_area.shape}, non-zero elements: {np.count_nonzero(impact_area)}")
-        return impact_area
-    
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to download Sentinel data: {str(e)}")
-        raise ValueError(f"Unable to access Sentinel data for {incident_location}: {str(e)}")
-    except Exception as e:
-        logging.error(f"An unexpected error occurred during data download or preprocessing: {str(e)}")
-        raise ValueError(f"Error processing incident at {incident_location}: {str(e)}")
+            analysis += "la zone ne semble pas avoir une couverture forestière significative actuellement. "
+            analysis += "Cela pourrait indiquer une déforestation passée ou une zone naturellement non boisée."
 
-def analyze_flood_extent(satellite_image):
-    """
-    Analyze flood extent using NDWI (Normalized Difference Water Index).
-    """
-    green_band = satellite_image[1]
-    nir_band = satellite_image[3]
-    
-    ndwi = (green_band - nir_band) / (green_band + nir_band)
-    flood_mask = ndwi > 0.3  # Adjust threshold as needed
-    
-    return flood_mask
+    elif incident_type == 'Pollution de l\'eau':
+        analysis += "\nConcernant la pollution de l'eau, "
+        if avg_ndwi > 0:
+            analysis += "la présence d'eau est confirmée par l'indice NDWI positif. "
+            if ndwi_trend == 'diminution':
+                analysis += "La tendance à la baisse du NDWI pourrait indiquer une réduction des surfaces d'eau, "
+                analysis += "potentiellement liée à la pollution ou à d'autres facteurs environnementaux."
+            else:
+                analysis += "Le NDWI stable ou en augmentation suggère que la quantité d'eau de surface n'a pas diminué. "
+                analysis += "Cependant, cela n'exclut pas la possibilité de pollution, qui nécessiterait des analyses in situ pour être confirmée."
+        else:
+            analysis += "l'indice NDWI faible suggère peu d'eau de surface dans la zone. "
+            analysis += "La pollution de l'eau pourrait concerner des sources d'eau souterraines ou des cours d'eau temporaires non détectés par l'analyse satellite."
 
-def analyze_burn_area(satellite_image):
-    """
-    Analyze burn area using NBR (Normalized Burn Ratio).
-    """
-    nir_band = satellite_image[3]
-    swir_band = satellite_image[4]  # Assuming band 5 is SWIR
-    
-    nbr = (nir_band - swir_band) / (nir_band + swir_band)
-    burn_mask = nbr < -0.2  # Adjust threshold as needed
-    
-    return burn_mask
+    # Add more incident-specific analyses as needed
 
-def analyze_blocked_drain(satellite_image):
-    """
-    Analyze blocked drains using satellite imagery.
-    """
-    logging.info("Analyzing blocked drains")
-    # Use NDWI to identify water bodies
-    green_band = satellite_image[1]
-    nir_band = satellite_image[3]
-    
-    ndwi = (green_band - nir_band) / (green_band + nir_band)
-    water_mask = ndwi > 0.2
-    
-    # Look for unusual patterns in water bodies that might indicate blockages
-    labeled_water, num_features = ndimage.label(water_mask)
-    sizes = ndimage.sum(water_mask, labeled_water, range(1, num_features + 1))
-    mask_size = sizes < 100  # Adjust threshold as needed
-    blocked_drain_mask = mask_size[labeled_water - 1]
-    
-    logging.info(f"Blocked drain analysis complete. Found {np.count_nonzero(blocked_drain_mask)} potential blockages")
-    return blocked_drain_mask
-
-def analyze_water_waste(satellite_image):
-    """
-    Analyze waste in water using satellite imagery.
-    """
-    # Use a combination of NDWI and turbidity analysis
-    green_band = satellite_image[1]
-    red_band = satellite_image[2]
-    nir_band = satellite_image[3]
-    
-    ndwi = (green_band - nir_band) / (green_band + nir_band)
-    water_mask = ndwi > 0.2
-    
-    # Calculate turbidity (simplified)
-    turbidity = red_band / green_band
-    high_turbidity = turbidity > 1.5  # Adjust threshold as needed
-    
-    waste_in_water_mask = water_mask & high_turbidity
-    return waste_in_water_mask
-
-def analyze_solid_waste(satellite_image):
-    """
-    Analyze solid waste using satellite imagery.
-    """
-    # Use spectral indices to identify areas with abnormal reflectance
-    red_band = satellite_image[2]
-    nir_band = satellite_image[3]
-    swir_band = satellite_image[4]
-    
-    ndvi = (nir_band - red_band) / (nir_band + red_band)
-    nbr = (nir_band - swir_band) / (nir_band + swir_band)
-    
-    potential_waste_mask = (ndvi < 0.1) & (nbr < 0)  # Adjust thresholds as needed
-    return potential_waste_mask
-
-def analyze_deforestation(satellite_image):
-    """
-    Analyze deforestation using satellite imagery.
-    """
-    # Use NDVI to identify vegetation loss
-    red_band = satellite_image[2]
-    nir_band = satellite_image[3]
-    
-    ndvi = (nir_band - red_band) / (nir_band + red_band)
-    vegetation_mask = ndvi > 0.4
-    
-    # Compare with historical NDVI data (assuming we have access to it)
-    historical_ndvi = 0.6  # This should be calculated from historical data
-    deforestation_mask = (historical_ndvi - ndvi) > 0.2  # Adjust threshold as needed
-    
-    return deforestation_mask
-
-def analyze_water_pollution(satellite_image):
-    """
-    Analyze water pollution using satellite imagery.
-    """
-    # Use a combination of NDWI and color analysis
-    blue_band = satellite_image[0]
-    green_band = satellite_image[1]
-    red_band = satellite_image[2]
-    nir_band = satellite_image[3]
-    
-    ndwi = (green_band - nir_band) / (green_band + nir_band)
-    water_mask = ndwi > 0.2
-    
-    # Analyze water color (simplified)
-    blue_green_ratio = blue_band / green_band
-    polluted_water_mask = (blue_green_ratio < 0.8) & water_mask  # Adjust threshold as needed
-    
-    return polluted_water_mask
-
-def analyze_drought(satellite_image):
-    """
-    Analyze drought conditions using satellite imagery.
-    """
-    # Use NDVI and land surface temperature (if available)
-    red_band = satellite_image[2]
-    nir_band = satellite_image[3]
-    
-    ndvi = (nir_band - red_band) / (nir_band + red_band)
-    drought_mask = ndvi < 0.2  # Adjust threshold as needed
-    
-    # If thermal band is available, incorporate land surface temperature
-    if len(satellite_image) > 5:
-        thermal_band = satellite_image[5]
-        high_temp_mask = thermal_band > 40  # Adjust threshold as needed (in Celsius)
-        drought_mask = drought_mask & high_temp_mask
-    
-    return drought_mask
-
-def analyze_soil_degradation(satellite_image):
-    """
-    Analyze soil degradation using satellite imagery.
-    """
-    logging.info("Analyzing soil degradation")
-    # Use a combination of NDVI and soil-adjusted vegetation index (SAVI)
-    red_band = satellite_image[2]
-    nir_band = satellite_image[3]
-    
-    ndvi = (nir_band - red_band) / (nir_band + red_band)
-    
-    # SAVI calculation
-    L = 0.5  # soil brightness correction factor
-    savi = ((nir_band - red_band) / (nir_band + red_band + L)) * (1 + L)
-    
-    # Identify areas with low vegetation and potentially degraded soil
-    degraded_soil_mask = (ndvi < 0.2) & (savi < 0.3)  # Adjust thresholds as needed
-    
-    logging.info(f"Soil degradation analysis complete. Degraded area: {np.count_nonzero(degraded_soil_mask)} pixels")
-    return degraded_soil_mask
+    return analysis
 
 def create_geojson_from_location(location, output_dir):
     """
