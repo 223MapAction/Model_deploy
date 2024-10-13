@@ -9,6 +9,24 @@ import ee
 import logging
 import locale
 from datetime import datetime, timedelta
+import os
+
+def initialize_earth_engine():
+    """
+    Initialize Earth Engine with service account credentials.
+    """
+    try:
+        credentials = ee.ServiceAccountCredentials(
+            email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
+            key_file=os.environ['GEE_SERVICE_ACCOUNT_KEY_FILE']
+        )
+        ee.Initialize(credentials)
+        logging.info("Earth Engine initialized successfully.")
+    except Exception as e:
+        logging.error(f"Failed to initialize Earth Engine: {str(e)}")
+        raise
+    
+initialize_earth_engine()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

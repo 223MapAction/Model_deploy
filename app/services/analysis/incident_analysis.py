@@ -14,8 +14,7 @@ import locale
 import matplotlib.dates as mdates
 from io import BytesIO
 import base64
-from app.services.llm.gpt_3_5_turbo import generate_satellite_analysis
-from celery import shared_task
+
 
 
 # Set up logging

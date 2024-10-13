@@ -38,23 +38,7 @@ BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads"
 # Add this near the top of the file, with other global variables
 impact_area_storage = {}
 
-def initialize_earth_engine():
-    """
-    Initialize Earth Engine with service account credentials.
-    """
-    try:
-        credentials = ee.ServiceAccountCredentials(
-            email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
-            key_file=os.environ['GEE_SERVICE_ACCOUNT_KEY_FILE']
-        )
-        ee.Initialize(credentials)
-        logger.info("Earth Engine initialized successfully.")
-    except Exception as e:
-        logger.error(f"Failed to initialize Earth Engine: {str(e)}")
-        raise
 
-# Call the initialize function at the beginning of the script
-initialize_earth_engine()
 
 def construct_image_url(image_name: str) -> str:
     """
