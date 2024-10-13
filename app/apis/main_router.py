@@ -17,7 +17,7 @@ from ..services import (
     perform_prediction,
     fetch_contextual_information,
     celery_app,
-    analyze_incident_zone_task
+    analyze_incident_zone
 )
 
 import numpy as np
@@ -164,7 +164,7 @@ async def predict_incident_type(data: ImageModel):
         # Perform satellite data analysis
         start_date = (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
         end_date = datetime.now().strftime("%Y%m%d")
-        satellite_analysis_task = analyze_incident_zone_task.delay(data.latitude, data.longitude, data.zone, prediction, start_date, end_date)
+        satellite_analysis_task = analyze_incident_zone.delay(data.latitude, data.longitude, data.zone, prediction, start_date, end_date)
         try:
             satellite_analysis = satellite_analysis_task.get(timeout=120)
         except Exception as e:
