@@ -145,7 +145,7 @@ async def predict_incident_type(data: ImageModel):
         # Calculate start_date and end_date for a three-month span
         from datetime import datetime, timedelta
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=90)
+        start_date = end_date - timedelta(months=12)
 
         # Convert datetime objects to string format without hyphens
         start_date_str = start_date.strftime("%Y%m%d")
