@@ -22,60 +22,11 @@ from celery import shared_task
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Try to set locale to French
-try:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
-except locale.Error:
-    pass
-
-@shared_task
-def analyze_incident_zone_task(lat, lon, incident_location, incident_type, start_date, end_date):
-    result = analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date)
-    return result
-
-def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date) -> dict:
-    """
-    Analyze the incident zone using satellite data.
-
-    Returns:
-    dict: A dictionary containing analysis results and plot data.
-    """
-    logging.info(f"Analyzing incident zone for {incident_type} at {incident_location}")
-    
-    # Create Earth Engine point and buffered area
-    point = ee.Geometry.Point([lon, lat])
-    buffered_point = point.buffer(500)  # 500-meter buffer
-
-    # Convert dates to datetime objects
-    start_date = datetime.strptime(start_date, '%Y%m%d')
-    end_date = datetime.strptime(end_date, '%Y%m%d')
-
-    # Perform satellite data analysis
-    ndvi_data, ndwi_data = analyze_vegetation_and_water(point, buffered_point, start_date, end_date)
-    landcover_data = analyze_land_cover(buffered_point)
-
-    # Generate plots
-    ndvi_ndwi_plot = generate_ndvi_ndwi_plot(ndvi_data, ndwi_data)
-    ndvi_heatmap = generate_ndvi_heatmap(ndvi_data)
-    landcover_plot = generate_landcover_plot(landcover_data)
-
-    # Generate textual analysis using the new LLM function
-    textual_analysis = generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_type)
-
-    # Prepare return dictionary
-    result = {
-        'textual_analysis': textual_analysis,
-        'ndvi_ndwi_plot': ndvi_ndwi_plot,
-        'ndvi_heatmap': ndvi_heatmap,
-        'landcover_plot': landcover_plot,
-        'raw_data': {
-            'ndvi': ndvi_data.to_dict(),
-            'ndwi': ndwi_data.to_dict(),
-            'landcover': landcover_data
-        }
-    }
-
-    return result
+# # Try to set locale to French
+# try:
+#     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+# except locale.Error:
+#     pass
 
 
 def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
