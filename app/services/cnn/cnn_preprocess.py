@@ -7,7 +7,7 @@ transform = transforms.Compose([
     transforms.Resize((224, 224)),  # Resize the input image to 224x224 pixels
     transforms.ToTensor(),          # Convert the image to a PyTorch tensor
     # Uncomment the following line to normalize the image
-    # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
 def preprocess_image(image):
