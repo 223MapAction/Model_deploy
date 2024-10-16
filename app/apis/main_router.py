@@ -18,7 +18,6 @@ from ..services import (
     fetch_contextual_information,
     celery_app,
     analyze_incident_zone,
-    format_incident_analysis
 )
 
 import numpy as np
@@ -159,17 +158,17 @@ async def predict_incident_type(data: ImageModel):
         # Add satellite analysis to the existing analysis
         analysis += "\n\n" + satellite_analysis['textual_analysis']
 
-        # Concatenate piste_solution to the analysis
-        full_analysis = f"{analysis}\n\nPiste Solution:\n{piste_solution}"
+        # # Concatenate piste_solution to the analysis
+        # full_analysis = f"{analysis}\n\nPiste Solution:\n{piste_solution}"
 
-        # Format the combined analysis
-        formatted_analysis = format_incident_analysis.delay(full_analysis).get() 
+        # # Format the combined analysis
+        # formatted_analysis = format_incident_analysis.delay(full_analysis).get() 
 
         # Prepare the response
         response = {
             "prediction": prediction,
             "probabilities": probabilities,
-            "analysis": formatted_analysis,
+            "analysis": analysis,
             "piste_solution": piste_solution,
             "satellite_data": {
                 "ndvi_ndwi_plot": satellite_analysis['ndvi_ndwi_plot'],
