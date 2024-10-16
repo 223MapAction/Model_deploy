@@ -206,7 +206,8 @@ def chat_response(prompt: str, context: str = "", chat_history: list = [], impac
 
 def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_type):
     """
-    Generate a detailed analysis of satellite data for environmental incidents using LLM.
+    Generate a detailed analysis of satellite data for environmental incidents using LLM,
+    with proper markdown formatting.
 
     Args:
         ndvi_data (pd.DataFrame): DataFrame containing NDVI data
@@ -215,7 +216,7 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
         incident_type (str): Type of environmental incident
 
     Returns:
-        str: Detailed analysis of the satellite data
+        str: Detailed analysis of the satellite data, formatted in markdown
     """
     # Prepare the context
     context = {
@@ -231,7 +232,7 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
     system_message = f"""
     <system>
         <role>assistant AI spécialisé en analyse environnementale</role>
-        <task>analyse des données satellitaires pour incidents environnementaux</task>
+        <task>analyse des données satellitaires pour incidents environnementaux avec formatage markdown</task>
         <incident>
             <type>{context['type_incident']}</type>
             <ndvi_data>
@@ -253,17 +254,21 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
             <instruction>Expliquez l'importance de la couverture terrestre dominante dans le contexte de l'incident.</instruction>
             <instruction>Fournissez des insights sur les implications potentielles pour l'environnement local.</instruction>
             <instruction>Suggérez des pistes de solution ou des recommandations basées sur l'analyse.</instruction>
+            <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
         </instructions>
         <response_formatting>
-            <formatting_rule>Structurez la réponse en paragraphes courts et concis.</formatting_rule>
-            <formatting_rule>Utilisez un langage clair et accessible, en expliquant brièvement les termes techniques.</formatting_rule>
-            <formatting_rule>Concentrez-vous sur les informations les plus pertinentes pour le type d'incident.</formatting_rule>
-            <formatting_rule>Concluez avec une recommandation ou une perspective d'action.</formatting_rule>
+            <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
+            <formatting_rule>Utilisez '**texte**' pour mettre en gras les chiffres, pourcentages et termes clés.</formatting_rule>
+            <formatting_rule>Utilisez '*texte*' pour l'italique si nécessaire.</formatting_rule>
+            <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
+            <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
+            <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
+            <formatting_rule>Utilisez des liens markdown si nécessaire : [texte du lien](URL)</formatting_rule>
         </response_formatting>
     </system>
     """
 
-    user_prompt = f"Analysez les données satellitaires pour l'incident de type '{incident_type}' et fournissez un rapport détaillé."
+    user_prompt = f"Analysez les données satellitaires pour l'incident de type '{incident_type}' et fournissez un rapport détaillé formaté en markdown."
 
     messages = [
         {"role": "system", "content": system_message},
@@ -275,7 +280,7 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
             model="gpt-4o-mini",
             messages=messages,
             temperature=0.7,
-            max_tokens=1500,
+            max_tokens=2000,
             top_p=0.9,
             frequency_penalty=0.3,
             presence_penalty=0.0
@@ -287,68 +292,3 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
     except Exception as e:
         print(f"An error occurred while generating satellite data analysis: {e}")
         return "Désolé, une erreur s'est produite lors de l'analyse des données satellitaires."
-
-def format_analysis(analysis: str):
-    """
-    Takes an environmental incident analysis as input and returns a well-formatted version
-    using proper markdown syntax without altering the content.
-
-    Args:
-        analysis (str): The original environmental incident analysis.
-
-    Returns:
-        str: A markdown-formatted version of the analysis with improved readability.
-    """
-    system_message = """
-    <system>
-        <role>assistant AI spécialisé en formatage markdown</role>
-        <task>appliquer le formatage markdown à une analyse d'incident environnemental sans modifier le contenu</task>
-        <instructions>
-            <instruction>Appliquez le formatage markdown sans changer le contenu de l'analyse.</instruction>
-            <instruction>Utilisez des astérisques pour les titres et sous-titres.</instruction>
-            <instruction>Ajoutez des sauts de ligne (deux espaces en fin de ligne) pour améliorer la lisibilité.</instruction>
-            <instruction>Insérez une ligne vide entre chaque paragraphe pour espacer le contenu.</instruction>
-            <instruction>Utilisez des listes à puces ou numérotées lorsque c'est approprié.</instruction>
-            <instruction>Mettez en gras les chiffres, pourcentages et termes clés.</instruction>
-            <instruction>Assurez-vous que le formatage markdown est compatible avec les convertisseurs markdown vers HTML standard.</instruction>
-        </instructions>
-        <response_formatting>
-            <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
-            <formatting_rule>Utilisez '**texte**' pour mettre en gras.</formatting_rule>
-            <formatting_rule>Utilisez '*texte*' pour l'italique.</formatting_rule>
-            <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
-            <formatting_rule>Ajoutez deux espaces à la fin des lignes pour créer un saut de ligne.</formatting_rule>
-            <formatting_rule>Laissez une ligne vide entre chaque paragraphe.</formatting_rule>
-        </response_formatting>
-    </system>
-    """
-
-    user_prompt = f"""
-    Voici une analyse d'incident environnemental. Appliquez le formatage markdown selon les instructions fournies, 
-    sans modifier le contenu de l'analyse. Assurez-vous d'insérer des lignes vides entre les paragraphes pour bien espacer le contenu :
-
-    {analysis}
-    """
-
-    messages = [
-        {"role": "system", "content": system_message},
-        {"role": "user", "content": user_prompt}
-    ]
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages,
-            temperature=0.3,
-            max_tokens=2000,
-            top_p=0.9,
-            frequency_penalty=0.0,
-            presence_penalty=0.0
-        )
-
-        formatted_analysis = response.choices[0].message.content
-        return formatted_analysis
-
-    except Exception as e:
-        print(f"An error occurred while formatting the environmental analysis: {e}")
-        return "Désolé, une erreur s'est produite lors du formatage de l'analyse environnementale."
