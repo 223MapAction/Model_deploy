@@ -1,2 +1,2 @@
-from .celery_task import perform_prediction, fetch_contextual_information, analyze_incident_zone, format_incident_analysis
+from .celery_task import perform_prediction, fetch_contextual_information, analyze_incident_zone
 from .celery_config import celery_app

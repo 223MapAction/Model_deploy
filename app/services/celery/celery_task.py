@@ -75,14 +75,14 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
         zone (str): The geographic zone related to the prediction.
 
     Returns:
-        tuple: A tuple containing analysis and piste_solution.
+        tuple: A tuple containing analysis and piste_solution, both formatted in markdown.
     """
     try:
         logger.info("Starting contextual information task.")
         system_message = f"""
         <system>
             <role>assistant AI</role>
-            <task>analyse des incidents environnementaux</task>
+            <task>analyse des incidents environnementaux avec formatage markdown</task>
             <location>Mali</location>
             <incident>
                 <type>{prediction}</type>
@@ -95,26 +95,39 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
                 <instruction>Évaluez les conséquences environnementales dans la zone, telles que la pollution, la contamination des eaux, et la perte de biodiversité.</instruction>
                 <instruction>Déterminez les acteurs locaux à mobiliser dans la zone pour résoudre ce problème.</instruction>
                 <instruction>Évaluez les impacts économiques et sociaux à long terme en tenant compte des caractéristiques spécifiques de la zone.</instruction>
-                <response_formatting>
-                    <formatting_rule>Répondez de manière concise, mais développez suffisamment pour fournir une analyse complète et précise.</formatting_rule>
-                    <formatting_rule>Commencez par le problème principal dans la zone spécifiée, puis énoncez les solutions proposées ou les impacts analysés.</formatting_rule>
-                    <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>
-                    <formatting_rule>Donnez des informations essentielles en utilisant un langage direct et précis.</formatting_rule>
-                    <formatting_rule>Si une recommandation est faite, assurez-vous qu'elle est faisable et contextualisée pour la zone en question.</formatting_rule>
-                </response_formatting>
+                <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
             </instructions>
+            <response_formatting>
+                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
+                <formatting_rule>Utilisez '**texte**' pour mettre en gras les chiffres, pourcentages et termes clés.</formatting_rule>
+                <formatting_rule>Utilisez '*texte*' pour l'italique si nécessaire.</formatting_rule>
+                <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
+                <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
+                <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
+                <formatting_rule>Commencez par le problème principal dans la zone spécifiée, puis énoncez les solutions proposées ou les impacts analysés.</formatting_rule>
+                <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>
+                <formatting_rule>Donnez des informations essentielles en utilisant un langage direct et précis.</formatting_rule>
+                <formatting_rule>Si une recommandation est faite, assurez-vous qu'elle est faisable et contextualisée pour la zone en question.</formatting_rule>
+            </response_formatting>
             <examples>
                 <example>
                     <prompt>Analysez l'impact de la pollution de l'eau sur les infrastructures locales dans la région de Bamako.</prompt>
-                    <response>La pollution de l'eau dans la région de Bamako affecte directement les infrastructures locales, notamment les systèmes d'approvisionnement en eau potable. Les rejets industriels non contrôlés contaminent les sources d'eau, ce qui entraîne des coûts supplémentaires pour le traitement de l'eau et des risques sanitaires pour les habitants. Les écoles et hôpitaux dépendent également de cette eau, rendant nécessaire une intervention rapide pour éviter des conséquences sanitaires graves.</response>
-                </example>
-                <example>
-                    <prompt>Quels sont les risques pour la biodiversité dans la zone touchée par la déforestation ?</prompt>
-                    <response>La déforestation dans cette zone entraîne une perte significative d'habitats pour de nombreuses espèces, ce qui réduit la biodiversité locale. Les espèces animales, en particulier celles qui dépendent des forêts pour se nourrir et se reproduire, sont menacées. De plus, la perte de végétation perturbe les écosystèmes environnants, augmentant l'érosion des sols et diminuant la capacité de régénération de la flore.</response>
-                </example>
-                <example>
-                    <prompt>Quelles seraient les conséquences économiques de la pollution de l'air dans cette région ?</prompt>
-                    <response>La pollution de l'air dans cette région a des conséquences économiques importantes, notamment en augmentant les dépenses de santé publique en raison des maladies respiratoires. Les pertes de productivité dues aux absences liées aux problèmes de santé, ainsi que la baisse de l'attractivité touristique, constituent également des impacts économiques négatifs. Pour atténuer ces effets, des mesures de réduction des émissions doivent être rapidement mises en œuvre.</response>
+                    <response>
+** Impact de la pollution de l'eau à Bamako **
+
+La pollution de l'eau dans la région de Bamako affecte directement les infrastructures locales, notamment les systèmes d'approvisionnement en eau potable. Les conséquences principales sont :
+
+- **Contamination des sources d'eau** par des rejets industriels non contrôlés
+- **Coûts supplémentaires** pour le traitement de l'eau
+- **Risques sanitaires** accrus pour les habitants
+
+* Impacts sur les infrastructures sensibles *
+
+- **Écoles et hôpitaux** : Dépendance à l'eau contaminée, nécessitant une intervention rapide
+- **Systèmes de distribution** : Détérioration accélérée due aux polluants
+
+Une action immédiate est nécessaire pour éviter des conséquences sanitaires graves et des coûts à long terme pour la municipalité.
+                    </response>
                 </example>
             </examples>
         </system>
@@ -123,7 +136,7 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
         solution_prompt = f"""
         <system>
             <role>assistant AI</role>
-            <task>recommandations de solutions pour des incidents environnementaux</task>
+            <task>recommandations de solutions pour des incidents environnementaux avec formatage markdown</task>
             <incident>
                 <type>{prediction}</type>
                 <zone>{zone}</zone>
@@ -133,22 +146,43 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
                 <instruction>Recommandez des solutions spécifiques en tenant compte du type de terrain, des infrastructures à proximité, et des écosystèmes sensibles dans la zone spécifiée.</instruction>
                 <instruction>Proposez des mesures préventives et curatives adaptées à la zone pour éviter que le problème ne se reproduise.</instruction>
                 <instruction>Suggérez des collaborations entre les autorités locales, les ONG, et les entreprises pour mettre en œuvre les solutions dans la zone concernée.</instruction>
-                <response_formatting>
-                    <formatting_rule>Répondez de manière concise, mais développez suffisamment pour expliquer clairement chaque solution.</formatting_rule>
-                    <formatting_rule>Commencez par la solution la plus immédiate et pertinente pour la zone spécifiée.</formatting_rule>
-                    <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>
-                </response_formatting>
-                <examples>
-                    <example>
-                        <prompt>Quelles sont les mesures préventives à mettre en place pour éviter la déforestation dans la zone de Sikasso ?</prompt>
-                        <response>Pour éviter la déforestation dans la zone de Sikasso, il est recommandé de renforcer les politiques de gestion durable des forêts, incluant la régulation stricte des coupes d'arbres. La sensibilisation des communautés locales à l'importance des forêts et l'encouragement à l'agroforesterie sont également essentiels. De plus, des partenariats avec des ONG peuvent permettre de reboiser les zones déjà affectées.</response>
-                    </example>
-                    <example>
-                        <prompt>Comment réduire l'impact de la pollution de l'eau sur les écosystèmes locaux de la zone de Mopti ?</prompt>
-                        <response>Pour réduire l'impact de la pollution de l'eau dans la zone de Mopti, il est crucial d'installer des stations de traitement des eaux usées dans les zones industrielles. La création de zones tampons végétales le long des cours d'eau peut également limiter la contamination. Une collaboration entre les autorités locales et les industries est nécessaire pour assurer le respect des normes environnementales.</response>
-                    </example>
-                </examples>
+                <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
             </instructions>
+            <response_formatting>
+                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
+                <formatting_rule>Utilisez '**texte**' pour mettre en gras les chiffres, pourcentages et termes clés.</formatting_rule>
+                <formatting_rule>Utilisez '*texte*' pour l'italique si nécessaire.</formatting_rule>
+                <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
+                <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
+                <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
+                <formatting_rule>Commencez par la solution la plus immédiate et pertinente pour la zone spécifiée.</formatting_rule>
+                <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>
+            </response_formatting>
+            <examples>
+                <example>
+                    <prompt>Quelles sont les mesures préventives à mettre en place pour éviter la déforestation dans la zone de Sikasso ?</prompt>
+                    <response>
+** Mesures préventives contre la déforestation à Sikasso **
+
+* Renforcement des politiques forestières *
+
+- Mise en place d'une **régulation stricte des coupes d'arbres**
+- Développement de **programmes de gestion durable des forêts**
+
+* Sensibilisation et éducation *
+
+- **Campagnes d'information** sur l'importance des forêts pour les communautés locales
+- Promotion de l'**agroforesterie** comme alternative durable
+
+* Partenariats et reboisement *
+
+- Collaboration avec des **ONG spécialisées** pour des projets de reboisement
+- Création de **pépinières communautaires** pour la production de jeunes arbres
+
+Ces mesures, adaptées au contexte local de Sikasso, visent à préserver les forêts existantes tout en encourageant des pratiques durables pour l'avenir.
+                    </response>
+                </example>
+            </examples>
         </system>
         """
 
@@ -163,26 +197,7 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
         logger.error(f"Contextual information task failed: {str(e)}")
         return {"error": str(e)}, None
 
-# Add this new Celery task
-@celery_app.task
-def format_incident_analysis(analysis: str) -> str:
-    """
-    A Celery task that formats the environmental incident analysis.
 
-    Args:
-        analysis (str): The original environmental incident analysis.
-
-    Returns:
-        str: A formatted version of the analysis with improved readability and emphasis on key points.
-    """
-    try:
-        logger.info("Starting analysis formatting task.")
-        formatted_analysis = format_analysis(analysis)
-        logger.info("Analysis formatting completed successfully.")
-        return formatted_analysis
-    except Exception as e:
-        logger.error(f"Analysis formatting task failed: {str(e)}")
-        return f"Désolé, une erreur s'est produite lors du formatage de l'analyse : {str(e)}"
 
 @celery_app.task
 def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date) -> dict:
