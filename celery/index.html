@@ -304,7 +304,9 @@ dict: A dictionary containing analysis results and plot data.</p>
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">202</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
 <span class="normal">205</span>
@@ -345,9 +347,7 @@ dict: A dictionary containing analysis results and plot data.</p>
 <span class="normal">240</span>
 <span class="normal">241</span>
 <span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+<span class="normal">243</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">analyze_incident_zone</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">incident_location</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Analyze the incident zone using satellite data.</span>
@@ -626,9 +626,7 @@ dict: A dictionary containing analysis results and plot data.</p>
 <span class="normal">193</span>
 <span class="normal">194</span>
 <span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+<span class="normal">196</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">fetch_contextual_information</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">,</span> <span class="n">zone</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Celery task that fetches contextual information based on the prediction, sensitive structures, and additional data.</span>
@@ -662,9 +660,8 @@ dict: A dictionary containing analysis results and plot data.</p>
 <span class="s2">                &lt;instruction&gt;Formatez la réponse en utilisant la syntaxe markdown appropriée.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;/instructions&gt;</span>
 <span class="s2">            &lt;response_formatting&gt;</span>
-<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux et &#39;*&#39; suivi d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
-<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras les chiffres, pourcentages et termes clés.&lt;/formatting_rule&gt;</span>
-<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique si nécessaire.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;***texte***&#39; pour mettre en gras et en italique les chiffres, pourcentages et termes clés.&lt;/formatting_rule&gt;</span>
 <span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;- &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
 <span class="s2">                &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.&lt;/formatting_rule&gt;</span>
 <span class="s2">                &lt;formatting_rule&gt;Structurez la réponse en sections claires avec des titres appropriés.&lt;/formatting_rule&gt;</span>
@@ -681,14 +678,14 @@ dict: A dictionary containing analysis results and plot data.</p>
 
 <span class="s2">La pollution de l&#39;eau dans la région de Bamako affecte directement les infrastructures locales, notamment les systèmes d&#39;approvisionnement en eau potable. Les conséquences principales sont :</span>
 
-<span class="s2">- **Contamination des sources d&#39;eau** par des rejets industriels non contrôlés</span>
-<span class="s2">- **Coûts supplémentaires** pour le traitement de l&#39;eau</span>
-<span class="s2">- **Risques sanitaires** accrus pour les habitants</span>
+<span class="s2">- ***Contamination des sources d&#39;eau*** par des rejets industriels non contrôlés</span>
+<span class="s2">- ***Coûts supplémentaires*** pour le traitement de l&#39;eau</span>
+<span class="s2">- ***Risques sanitaires*** accrus pour les habitants</span>
 
-<span class="s2">* Impacts sur les infrastructures sensibles *</span>
+<span class="s2">** Impacts sur les infrastructures sensibles **</span>
 
-<span class="s2">- **Écoles et hôpitaux** : Dépendance à l&#39;eau contaminée, nécessitant une intervention rapide</span>
-<span class="s2">- **Systèmes de distribution** : Détérioration accélérée due aux polluants</span>
+<span class="s2">- ***Écoles et hôpitaux*** : Dépendance à l&#39;eau contaminée, nécessitant une intervention rapide</span>
+<span class="s2">- ***Systèmes de distribution*** : Détérioration accélérée due aux polluants</span>
 
 <span class="s2">Une action immédiate est nécessaire pour éviter des conséquences sanitaires graves et des coûts à long terme pour la municipalité.</span>
 <span class="s2">                    &lt;/response&gt;</span>
@@ -713,9 +710,8 @@ dict: A dictionary containing analysis results and plot data.</p>
 <span class="s2">                &lt;instruction&gt;Formatez la réponse en utilisant la syntaxe markdown appropriée.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;/instructions&gt;</span>
 <span class="s2">            &lt;response_formatting&gt;</span>
-<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux et &#39;*&#39; suivi d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
-<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras les chiffres, pourcentages et termes clés.&lt;/formatting_rule&gt;</span>
-<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique si nécessaire.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux.&lt;/formatting_rule&gt;</span>
+<span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;***texte***&#39; pour mettre en gras et en italique les chiffres, pourcentages et termes clés.&lt;/formatting_rule&gt;</span>
 <span class="s2">                &lt;formatting_rule&gt;Utilisez &#39;- &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
 <span class="s2">                &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.&lt;/formatting_rule&gt;</span>
 <span class="s2">                &lt;formatting_rule&gt;Structurez la réponse en sections claires avec des titres appropriés.&lt;/formatting_rule&gt;</span>
@@ -728,20 +724,20 @@ dict: A dictionary containing analysis results and plot data.</p>
 <span class="s2">                    &lt;response&gt;</span>
 <span class="s2">** Mesures préventives contre la déforestation à Sikasso **</span>
 
-<span class="s2">* Renforcement des politiques forestières *</span>
+<span class="s2">** Renforcement des politiques forestières **</span>
 
-<span class="s2">- Mise en place d&#39;une **régulation stricte des coupes d&#39;arbres**</span>
-<span class="s2">- Développement de **programmes de gestion durable des forêts**</span>
+<span class="s2">- Mise en place d&#39;une ***régulation stricte des coupes d&#39;arbres***</span>
+<span class="s2">- Développement de ***programmes de gestion durable des forêts***</span>
 
-<span class="s2">* Sensibilisation et éducation *</span>
+<span class="s2">** Sensibilisation et éducation **</span>
 
-<span class="s2">- **Campagnes d&#39;information** sur l&#39;importance des forêts pour les communautés locales</span>
-<span class="s2">- Promotion de l&#39;**agroforesterie** comme alternative durable</span>
+<span class="s2">- ***Campagnes d&#39;information*** sur l&#39;importance des forêts pour les communautés locales</span>
+<span class="s2">- Promotion de l&#39;***agroforesterie*** comme alternative durable</span>
 
-<span class="s2">* Partenariats et reboisement *</span>
+<span class="s2">** Partenariats et reboisement **</span>
 
-<span class="s2">- Collaboration avec des **ONG spécialisées** pour des projets de reboisement</span>
-<span class="s2">- Création de **pépinières communautaires** pour la production de jeunes arbres</span>
+<span class="s2">- Collaboration avec des ***ONG spécialisées*** pour des projets de reboisement</span>
+<span class="s2">- Création de ***pépinières communautaires*** pour la production de jeunes arbres</span>
 
 <span class="s2">Ces mesures, adaptées au contexte local de Sikasso, visent à préserver les forêts existantes tout en encourageant des pratiques durables pour l&#39;avenir.</span>
 <span class="s2">                    &lt;/response&gt;</span>
@@ -955,7 +951,9 @@ This function processes an image to predict its content and calculate the probab
 
             <details class="quote">
               <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">247</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
 <span class="normal">248</span>
 <span class="normal">249</span>
 <span class="normal">250</span>
@@ -971,9 +969,7 @@ This function processes an image to predict its content and calculate the probab
 <span class="normal">260</span>
 <span class="normal">261</span>
 <span class="normal">262</span>
-<span class="normal">263</span>
-<span class="normal">264</span>
-<span class="normal">265</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
+<span class="normal">263</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
 <span class="k">def</span> <span class="nf">run_prediction_and_context</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Chain the prediction task with the contextual information task.</span>
