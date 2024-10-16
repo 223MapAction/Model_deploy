@@ -4,7 +4,7 @@ from app.services.celery.celery_config import celery_app
 from app.services.cnn import predict
 from app.services.llm import get_response
 from app.services.analysis import analyze_vegetation_and_water, analyze_land_cover, generate_ndvi_ndwi_plot, generate_ndvi_heatmap, generate_landcover_plot
-from app.services.llm import generate_satellite_analysis, format_analysis
+from app.services.llm import generate_satellite_analysis
 import ee
 import logging
 import locale
