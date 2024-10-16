@@ -257,9 +257,8 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
             <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
         </instructions>
         <response_formatting>
-            <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
-            <formatting_rule>Utilisez '**texte**' pour mettre en gras les chiffres, pourcentages et termes clés.</formatting_rule>
-            <formatting_rule>Utilisez '*texte*' pour l'italique si nécessaire.</formatting_rule>
+            <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux.</formatting_rule>
+            <formatting_rule>Utilisez '***texte***' pour mettre en gras et en italique les chiffres, pourcentages et termes clés.</formatting_rule>
             <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
             <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
             <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
