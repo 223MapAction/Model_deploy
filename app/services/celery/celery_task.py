@@ -4,7 +4,7 @@ from app.services.celery.celery_config import celery_app
 from app.services.cnn import predict
 from app.services.llm import get_response
 from app.services.analysis import analyze_vegetation_and_water, analyze_land_cover, generate_ndvi_ndwi_plot, generate_ndvi_heatmap, generate_landcover_plot
-from app.services.llm import generate_satellite_analysis
+from app.services.llm import generate_satellite_analysis, format_analysis
 import ee
 import logging
 import locale
@@ -163,7 +163,26 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
         logger.error(f"Contextual information task failed: {str(e)}")
         return {"error": str(e)}, None
 
+# Add this new Celery task
+@celery_app.task
+def format_incident_analysis(analysis: str) -> str:
+    """
+    A Celery task that formats the environmental incident analysis.
 
+    Args:
+        analysis (str): The original environmental incident analysis.
+
+    Returns:
+        str: A formatted version of the analysis with improved readability and emphasis on key points.
+    """
+    try:
+        logger.info("Starting analysis formatting task.")
+        formatted_analysis = format_analysis(analysis)
+        logger.info("Analysis formatting completed successfully.")
+        return formatted_analysis
+    except Exception as e:
+        logger.error(f"Analysis formatting task failed: {str(e)}")
+        return f"Désolé, une erreur s'est produite lors du formatage de l'analyse : {str(e)}"
 
 @celery_app.task
 def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date, end_date) -> dict:
@@ -209,7 +228,6 @@ def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date
     }
 
     return result
-
 
 @celery_app.task
 def run_prediction_and_context(image, sensitive_structures):
