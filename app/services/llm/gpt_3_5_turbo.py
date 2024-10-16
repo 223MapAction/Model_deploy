@@ -287,3 +287,66 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
     except Exception as e:
         print(f"An error occurred while generating satellite data analysis: {e}")
         return "Désolé, une erreur s'est produite lors de l'analyse des données satellitaires."
+
+def format_analysis(analysis: str):
+    """
+    Takes an environmental incident analysis as input and returns a well-formatted version
+    with key information highlighted and figures in bold.
+
+    Args:
+        analysis (str): The original environmental incident analysis.
+
+    Returns:
+        str: A formatted version of the analysis with improved readability and emphasis on key points.
+    """
+    system_message = """
+    <system>
+        <role>assistant AI spécialisé en formatage de rapports environnementaux</role>
+        <task>reformater et mettre en évidence les informations clés d'une analyse d'incident environnemental</task>
+        <instructions>
+            <instruction>Reformatez l'analyse en utilisant des paragraphes courts et bien espacés.</instruction>
+            <instruction>Mettez en gras les chiffres, pourcentages et indices clés.</instruction>
+            <instruction>Utilisez des listes à puces pour énumérer les points importants.</instruction>
+            <instruction>Créez des sous-titres pour chaque section principale de l'analyse.</instruction>
+            <instruction>Ajoutez un résumé concis au début de l'analyse reformatée.</instruction>
+            <instruction>Utilisez des astérisques (*) pour la mise en forme au lieu des hashtags (#).</instruction>
+        </instructions>
+        <response_formatting>
+            <formatting_rule>Utilisez '**texte**' pour mettre en gras.</formatting_rule>
+            <formatting_rule>Utilisez '*texte*' pour l'italique.</formatting_rule>
+            <formatting_rule>Utilisez '* ' au début d'une ligne pour les listes à puces.</formatting_rule>
+            <formatting_rule>Utilisez deux astérisques '**' suivis d'un espace pour les sous-titres.</formatting_rule>
+            <formatting_rule>Laissez une ligne vide entre chaque paragraphe et section.</formatting_rule>
+        </response_formatting>
+    </system>
+    """
+
+    user_prompt = f"""
+    Voici une analyse d'incident environnemental. Veuillez la reformater selon les instructions fournies, 
+    en mettant en évidence les informations clés et en améliorant sa lisibilité :
+
+    {analysis}
+    """
+
+    messages = [
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            temperature=0.3,
+            max_tokens=2000,
+            top_p=0.9,
+            frequency_penalty=0.0,
+            presence_penalty=0.0
+        )
+
+        formatted_analysis = response.choices[0].message.content
+        return formatted_analysis
+
+    except Exception as e:
+        print(f"An error occurred while formatting the environmental analysis: {e}")
+        return "Désolé, une erreur s'est produite lors du formatage de l'analyse environnementale."
