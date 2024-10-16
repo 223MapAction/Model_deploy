@@ -752,7 +752,8 @@ using proper markdown syntax without altering the content.</p>
 <span class="normal">350</span>
 <span class="normal">351</span>
 <span class="normal">352</span>
-<span class="normal">353</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="normal">353</span>
+<span class="normal">354</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes an environmental incident analysis as input and returns a well-formatted version</span>
 <span class="sd">    using proper markdown syntax without altering the content.</span>
@@ -769,14 +770,15 @@ using proper markdown syntax without altering the content.</p>
 <span class="s2">        &lt;task&gt;appliquer le formatage markdown à une analyse d&#39;incident environnemental sans modifier le contenu&lt;/task&gt;</span>
 <span class="s2">        &lt;instructions&gt;</span>
 <span class="s2">            &lt;instruction&gt;Appliquez le formatage markdown sans changer le contenu de l&#39;analyse.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Utilisez des titres et sous-titres appropriés (##, ###, etc.).&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Utilisez des astérisques pour les titres et sous-titres.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Ajoutez des sauts de ligne (deux espaces en fin de ligne) pour améliorer la lisibilité.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Insérez une ligne vide entre chaque paragraphe pour espacer le contenu.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Utilisez des listes à puces ou numérotées lorsque c&#39;est approprié.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Mettez en gras les chiffres, pourcentages et termes clés.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Assurez-vous que le formatage markdown est compatible avec les convertisseurs markdown vers HTML standard.&lt;/instruction&gt;</span>
 <span class="s2">        &lt;/instructions&gt;</span>
 <span class="s2">        &lt;response_formatting&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;##&#39; pour les titres principaux et &#39;###&#39; pour les sous-titres.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux et &#39;*&#39; suivi d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
 <span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras.&lt;/formatting_rule&gt;</span>
 <span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique.&lt;/formatting_rule&gt;</span>
 <span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;- &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
@@ -788,7 +790,7 @@ using proper markdown syntax without altering the content.</p>
 
     <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">    Voici une analyse d&#39;incident environnemental. Appliquez le formatage markdown selon les instructions fournies, </span>
-<span class="s2">    sans modifier le contenu de l&#39;analyse :</span>
+<span class="s2">    sans modifier le contenu de l&#39;analyse. Assurez-vous d&#39;insérer des lignes vides entre les paragraphes pour bien espacer le contenu :</span>
 
 <span class="s2">    </span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span>
 <span class="s2">    &quot;&quot;&quot;</span>
