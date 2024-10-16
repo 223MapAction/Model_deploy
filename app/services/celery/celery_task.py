@@ -98,9 +98,8 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
                 <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
             </instructions>
             <response_formatting>
-                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
-                <formatting_rule>Utilisez '**texte**' pour mettre en gras les chiffres, pourcentages et termes clés.</formatting_rule>
-                <formatting_rule>Utilisez '*texte*' pour l'italique si nécessaire.</formatting_rule>
+                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux.</formatting_rule>
+                <formatting_rule>Utilisez '***texte***' pour mettre en gras et en italique les chiffres, pourcentages et termes clés.</formatting_rule>
                 <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
                 <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
                 <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
@@ -117,14 +116,14 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
 
 La pollution de l'eau dans la région de Bamako affecte directement les infrastructures locales, notamment les systèmes d'approvisionnement en eau potable. Les conséquences principales sont :
 
-- **Contamination des sources d'eau** par des rejets industriels non contrôlés
-- **Coûts supplémentaires** pour le traitement de l'eau
-- **Risques sanitaires** accrus pour les habitants
+- ***Contamination des sources d'eau*** par des rejets industriels non contrôlés
+- ***Coûts supplémentaires*** pour le traitement de l'eau
+- ***Risques sanitaires*** accrus pour les habitants
 
-* Impacts sur les infrastructures sensibles *
+** Impacts sur les infrastructures sensibles **
 
-- **Écoles et hôpitaux** : Dépendance à l'eau contaminée, nécessitant une intervention rapide
-- **Systèmes de distribution** : Détérioration accélérée due aux polluants
+- ***Écoles et hôpitaux*** : Dépendance à l'eau contaminée, nécessitant une intervention rapide
+- ***Systèmes de distribution*** : Détérioration accélérée due aux polluants
 
 Une action immédiate est nécessaire pour éviter des conséquences sanitaires graves et des coûts à long terme pour la municipalité.
                     </response>
@@ -149,9 +148,8 @@ Une action immédiate est nécessaire pour éviter des conséquences sanitaires 
                 <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
             </instructions>
             <response_formatting>
-                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
-                <formatting_rule>Utilisez '**texte**' pour mettre en gras les chiffres, pourcentages et termes clés.</formatting_rule>
-                <formatting_rule>Utilisez '*texte*' pour l'italique si nécessaire.</formatting_rule>
+                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux.</formatting_rule>
+                <formatting_rule>Utilisez '***texte***' pour mettre en gras et en italique les chiffres, pourcentages et termes clés.</formatting_rule>
                 <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
                 <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
                 <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
@@ -164,20 +162,20 @@ Une action immédiate est nécessaire pour éviter des conséquences sanitaires 
                     <response>
 ** Mesures préventives contre la déforestation à Sikasso **
 
-* Renforcement des politiques forestières *
+** Renforcement des politiques forestières **
 
-- Mise en place d'une **régulation stricte des coupes d'arbres**
-- Développement de **programmes de gestion durable des forêts**
+- Mise en place d'une ***régulation stricte des coupes d'arbres***
+- Développement de ***programmes de gestion durable des forêts***
 
-* Sensibilisation et éducation *
+** Sensibilisation et éducation **
 
-- **Campagnes d'information** sur l'importance des forêts pour les communautés locales
-- Promotion de l'**agroforesterie** comme alternative durable
+- ***Campagnes d'information*** sur l'importance des forêts pour les communautés locales
+- Promotion de l'***agroforesterie*** comme alternative durable
 
-* Partenariats et reboisement *
+** Partenariats et reboisement **
 
-- Collaboration avec des **ONG spécialisées** pour des projets de reboisement
-- Création de **pépinières communautaires** pour la production de jeunes arbres
+- Collaboration avec des ***ONG spécialisées*** pour des projets de reboisement
+- Création de ***pépinières communautaires*** pour la production de jeunes arbres
 
 Ces mesures, adaptées au contexte local de Sikasso, visent à préserver les forêts existantes tout en encourageant des pratiques durables pour l'avenir.
                     </response>
