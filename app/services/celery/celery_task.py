@@ -98,8 +98,8 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
                 <instruction>Formatez la réponse en utilisant la syntaxe markdown appropriée.</instruction>
             </instructions>
             <response_formatting>
-                <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux.</formatting_rule>
-                <formatting_rule>Utilisez '***texte***' pour mettre en gras et en italique les chiffres, pourcentages et termes clés.</formatting_rule>
+                <formatting_rule>Utilisez '**' pour les titres principaux ex: **Titre**.</formatting_rule>
+                <formatting_rule>Utilisez '***texte***' pour mettre en gras et en italique les chiffres, pourcentages ex: ***100***.</formatting_rule>
                 <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
                 <formatting_rule>Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.</formatting_rule>
                 <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
