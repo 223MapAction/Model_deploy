@@ -110,6 +110,11 @@
               </ul>
             </li>
             
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.format_analysis" class="nav-link">format_analysis</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
             <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="nav-link">generate_satellite_analysis</a>
               <ul class="nav flex-column">
               </ul>
@@ -610,6 +615,204 @@ with context about the environmental incident.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;role&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="services.llm.gpt_3_5_turbo.format_analysis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Takes an environmental incident analysis as input and returns a well-formatted version
+with key information highlighted and figures in bold.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>analysis</code>
+            </td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The original environmental incident analysis.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A formatted version of the analysis with improved readability and emphasis on key points.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes an environmental incident analysis as input and returns a well-formatted version</span>
+<span class="sd">    with key information highlighted and figures in bold.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        analysis (str): The original environmental incident analysis.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: A formatted version of the analysis with improved readability and emphasis on key points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">system_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    &lt;system&gt;</span>
+<span class="s2">        &lt;role&gt;assistant AI spécialisé en formatage de rapports environnementaux&lt;/role&gt;</span>
+<span class="s2">        &lt;task&gt;reformater et mettre en évidence les informations clés d&#39;une analyse d&#39;incident environnemental&lt;/task&gt;</span>
+<span class="s2">        &lt;instructions&gt;</span>
+<span class="s2">            &lt;instruction&gt;Reformatez l&#39;analyse en utilisant des paragraphes courts et bien espacés.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Mettez en gras les chiffres, pourcentages et indices clés.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Utilisez des listes à puces pour énumérer les points importants.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Créez des sous-titres pour chaque section principale de l&#39;analyse.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Ajoutez un résumé concis au début de l&#39;analyse reformatée.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Utilisez des astérisques (*) pour la mise en forme au lieu des hashtags (#).&lt;/instruction&gt;</span>
+<span class="s2">        &lt;/instructions&gt;</span>
+<span class="s2">        &lt;response_formatting&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;* &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez deux astérisques &#39;**&#39; suivis d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe et section.&lt;/formatting_rule&gt;</span>
+<span class="s2">        &lt;/response_formatting&gt;</span>
+<span class="s2">    &lt;/system&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+    <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    Voici une analyse d&#39;incident environnemental. Veuillez la reformater selon les instructions fournies, </span>
+<span class="s2">    en mettant en évidence les informations clés et en améliorant sa lisibilité :</span>
+
+<span class="s2">    </span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">system_message</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">user_prompt</span><span class="p">}</span>
+    <span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+            <span class="n">max_tokens</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+            <span class="n">top_p</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+            <span class="n">frequency_penalty</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">presence_penalty</span><span class="o">=</span><span class="mf">0.0</span>
+        <span class="p">)</span>
+
+        <span class="n">formatted_analysis</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
+        <span class="k">return</span> <span class="n">formatted_analysis</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred while formatting the environmental analysis: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Désolé, une erreur s&#39;est produite lors du formatage de l&#39;analyse environnementale.&quot;</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
