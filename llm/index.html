@@ -110,11 +110,6 @@
               </ul>
             </li>
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.format_analysis" class="nav-link">format_analysis</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            
             <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="nav-link">generate_satellite_analysis</a>
               <ul class="nav flex-column">
               </ul>
@@ -624,208 +619,6 @@ with context about the environmental incident.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="services.llm.gpt_3_5_turbo.format_analysis" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">)</span></code>
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Takes an environmental incident analysis as input and returns a well-formatted version
-using proper markdown syntax without altering the content.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>analysis</code>
-            </td>
-            <td>
-                  <code>str</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>The original environmental incident analysis.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-<th>Name</th>          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-<td><code>str</code></td>            <td>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>A markdown-formatted version of the analysis with improved readability.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-            <details class="quote">
-              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">291</span>
-<span class="normal">292</span>
-<span class="normal">293</span>
-<span class="normal">294</span>
-<span class="normal">295</span>
-<span class="normal">296</span>
-<span class="normal">297</span>
-<span class="normal">298</span>
-<span class="normal">299</span>
-<span class="normal">300</span>
-<span class="normal">301</span>
-<span class="normal">302</span>
-<span class="normal">303</span>
-<span class="normal">304</span>
-<span class="normal">305</span>
-<span class="normal">306</span>
-<span class="normal">307</span>
-<span class="normal">308</span>
-<span class="normal">309</span>
-<span class="normal">310</span>
-<span class="normal">311</span>
-<span class="normal">312</span>
-<span class="normal">313</span>
-<span class="normal">314</span>
-<span class="normal">315</span>
-<span class="normal">316</span>
-<span class="normal">317</span>
-<span class="normal">318</span>
-<span class="normal">319</span>
-<span class="normal">320</span>
-<span class="normal">321</span>
-<span class="normal">322</span>
-<span class="normal">323</span>
-<span class="normal">324</span>
-<span class="normal">325</span>
-<span class="normal">326</span>
-<span class="normal">327</span>
-<span class="normal">328</span>
-<span class="normal">329</span>
-<span class="normal">330</span>
-<span class="normal">331</span>
-<span class="normal">332</span>
-<span class="normal">333</span>
-<span class="normal">334</span>
-<span class="normal">335</span>
-<span class="normal">336</span>
-<span class="normal">337</span>
-<span class="normal">338</span>
-<span class="normal">339</span>
-<span class="normal">340</span>
-<span class="normal">341</span>
-<span class="normal">342</span>
-<span class="normal">343</span>
-<span class="normal">344</span>
-<span class="normal">345</span>
-<span class="normal">346</span>
-<span class="normal">347</span>
-<span class="normal">348</span>
-<span class="normal">349</span>
-<span class="normal">350</span>
-<span class="normal">351</span>
-<span class="normal">352</span>
-<span class="normal">353</span>
-<span class="normal">354</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Takes an environmental incident analysis as input and returns a well-formatted version</span>
-<span class="sd">    using proper markdown syntax without altering the content.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        analysis (str): The original environmental incident analysis.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        str: A markdown-formatted version of the analysis with improved readability.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">system_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    &lt;system&gt;</span>
-<span class="s2">        &lt;role&gt;assistant AI spécialisé en formatage markdown&lt;/role&gt;</span>
-<span class="s2">        &lt;task&gt;appliquer le formatage markdown à une analyse d&#39;incident environnemental sans modifier le contenu&lt;/task&gt;</span>
-<span class="s2">        &lt;instructions&gt;</span>
-<span class="s2">            &lt;instruction&gt;Appliquez le formatage markdown sans changer le contenu de l&#39;analyse.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Utilisez des astérisques pour les titres et sous-titres.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Ajoutez des sauts de ligne (deux espaces en fin de ligne) pour améliorer la lisibilité.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Insérez une ligne vide entre chaque paragraphe pour espacer le contenu.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Utilisez des listes à puces ou numérotées lorsque c&#39;est approprié.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Mettez en gras les chiffres, pourcentages et termes clés.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Assurez-vous que le formatage markdown est compatible avec les convertisseurs markdown vers HTML standard.&lt;/instruction&gt;</span>
-<span class="s2">        &lt;/instructions&gt;</span>
-<span class="s2">        &lt;response_formatting&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux et &#39;*&#39; suivi d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;- &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Ajoutez deux espaces à la fin des lignes pour créer un saut de ligne.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe.&lt;/formatting_rule&gt;</span>
-<span class="s2">        &lt;/response_formatting&gt;</span>
-<span class="s2">    &lt;/system&gt;</span>
-<span class="s2">    &quot;&quot;&quot;</span>
-
-    <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    Voici une analyse d&#39;incident environnemental. Appliquez le formatage markdown selon les instructions fournies, </span>
-<span class="s2">    sans modifier le contenu de l&#39;analyse. Assurez-vous d&#39;insérer des lignes vides entre les paragraphes pour bien espacer le contenu :</span>
-
-<span class="s2">    </span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span>
-<span class="s2">    &quot;&quot;&quot;</span>
-
-    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">system_message</span><span class="p">},</span>
-        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">user_prompt</span><span class="p">}</span>
-    <span class="p">]</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
-            <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
-            <span class="n">temperature</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
-            <span class="n">max_tokens</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
-            <span class="n">top_p</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
-            <span class="n">frequency_penalty</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-            <span class="n">presence_penalty</span><span class="o">=</span><span class="mf">0.0</span>
-        <span class="p">)</span>
-
-        <span class="n">formatted_analysis</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span>
-        <span class="k">return</span> <span class="n">formatted_analysis</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred while formatting the environmental analysis: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;Désolé, une erreur s&#39;est produite lors du formatage de l&#39;analyse environnementale.&quot;</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
 <h2 id="services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">generate_satellite_analysis</span><span class="p">(</span><span class="n">ndvi_data</span><span class="p">,</span> <span class="n">ndwi_data</span><span class="p">,</span> <span class="n">landcover_data</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">)</span></code>
 
@@ -834,7 +627,8 @@ using proper markdown syntax without altering the content.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Generate a detailed analysis of satellite data for environmental incidents using LLM.</p>
+        <p>Generate a detailed analysis of satellite data for environmental incidents using LLM,
+with proper markdown formatting.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -930,7 +724,7 @@ using proper markdown syntax without altering the content.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Detailed analysis of the satellite data</p>
+                <p>Detailed analysis of the satellite data, formatted in markdown</p>
               </div>
             </td>
           </tr>
@@ -1021,9 +815,15 @@ using proper markdown syntax without altering the content.</p>
 <span class="normal">286</span>
 <span class="normal">287</span>
 <span class="normal">288</span>
-<span class="normal">289</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_satellite_analysis</span><span class="p">(</span><span class="n">ndvi_data</span><span class="p">,</span> <span class="n">ndwi_data</span><span class="p">,</span> <span class="n">landcover_data</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">):</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_satellite_analysis</span><span class="p">(</span><span class="n">ndvi_data</span><span class="p">,</span> <span class="n">ndwi_data</span><span class="p">,</span> <span class="n">landcover_data</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate a detailed analysis of satellite data for environmental incidents using LLM.</span>
+<span class="sd">    Generate a detailed analysis of satellite data for environmental incidents using LLM,</span>
+<span class="sd">    with proper markdown formatting.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ndvi_data (pd.DataFrame): DataFrame containing NDVI data</span>
@@ -1032,7 +832,7 @@ using proper markdown syntax without altering the content.</p>
 <span class="sd">        incident_type (str): Type of environmental incident</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        str: Detailed analysis of the satellite data</span>
+<span class="sd">        str: Detailed analysis of the satellite data, formatted in markdown</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Prepare the context</span>
     <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
@@ -1048,7 +848,7 @@ using proper markdown syntax without altering the content.</p>
     <span class="n">system_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">    &lt;system&gt;</span>
 <span class="s2">        &lt;role&gt;assistant AI spécialisé en analyse environnementale&lt;/role&gt;</span>
-<span class="s2">        &lt;task&gt;analyse des données satellitaires pour incidents environnementaux&lt;/task&gt;</span>
+<span class="s2">        &lt;task&gt;analyse des données satellitaires pour incidents environnementaux avec formatage markdown&lt;/task&gt;</span>
 <span class="s2">        &lt;incident&gt;</span>
 <span class="s2">            &lt;type&gt;</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;type_incident&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;/type&gt;</span>
 <span class="s2">            &lt;ndvi_data&gt;</span>
@@ -1070,17 +870,21 @@ using proper markdown syntax without altering the content.</p>
 <span class="s2">            &lt;instruction&gt;Expliquez l&#39;importance de la couverture terrestre dominante dans le contexte de l&#39;incident.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Fournissez des insights sur les implications potentielles pour l&#39;environnement local.&lt;/instruction&gt;</span>
 <span class="s2">            &lt;instruction&gt;Suggérez des pistes de solution ou des recommandations basées sur l&#39;analyse.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Formatez la réponse en utilisant la syntaxe markdown appropriée.&lt;/instruction&gt;</span>
 <span class="s2">        &lt;/instructions&gt;</span>
 <span class="s2">        &lt;response_formatting&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Structurez la réponse en paragraphes courts et concis.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez un langage clair et accessible, en expliquant brièvement les termes techniques.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Concentrez-vous sur les informations les plus pertinentes pour le type d&#39;incident.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Concluez avec une recommandation ou une perspective d&#39;action.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**&#39; suivi d&#39;un espace pour les titres principaux et &#39;*&#39; suivi d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras les chiffres, pourcentages et termes clés.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique si nécessaire.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;- &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe pour bien espacer le contenu.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Structurez la réponse en sections claires avec des titres appropriés.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez des liens markdown si nécessaire : [texte du lien](URL)&lt;/formatting_rule&gt;</span>
 <span class="s2">        &lt;/response_formatting&gt;</span>
 <span class="s2">    &lt;/system&gt;</span>
 <span class="s2">    &quot;&quot;&quot;</span>
 
-    <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Analysez les données satellitaires pour l&#39;incident de type &#39;</span><span class="si">{</span><span class="n">incident_type</span><span class="si">}</span><span class="s2">&#39; et fournissez un rapport détaillé.&quot;</span>
+    <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Analysez les données satellitaires pour l&#39;incident de type &#39;</span><span class="si">{</span><span class="n">incident_type</span><span class="si">}</span><span class="s2">&#39; et fournissez un rapport détaillé formaté en markdown.&quot;</span>
 
     <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">system_message</span><span class="p">},</span>
@@ -1092,7 +896,7 @@ using proper markdown syntax without altering the content.</p>
             <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4o-mini&quot;</span><span class="p">,</span>
             <span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span>
             <span class="n">temperature</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
-            <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span>
+            <span class="n">max_tokens</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
             <span class="n">top_p</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
             <span class="n">frequency_penalty</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
             <span class="n">presence_penalty</span><span class="o">=</span><span class="mf">0.0</span>
