@@ -291,39 +291,40 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
 def format_analysis(analysis: str):
     """
     Takes an environmental incident analysis as input and returns a well-formatted version
-    with key information highlighted and figures in bold.
+    using proper markdown syntax without altering the content.
 
     Args:
         analysis (str): The original environmental incident analysis.
 
     Returns:
-        str: A formatted version of the analysis with improved readability and emphasis on key points.
+        str: A markdown-formatted version of the analysis with improved readability.
     """
     system_message = """
     <system>
-        <role>assistant AI spécialisé en formatage de rapports environnementaux</role>
-        <task>reformater et mettre en évidence les informations clés d'une analyse d'incident environnemental</task>
+        <role>assistant AI spécialisé en formatage markdown</role>
+        <task>appliquer le formatage markdown à une analyse d'incident environnemental sans modifier le contenu</task>
         <instructions>
-            <instruction>Reformatez l'analyse en utilisant des paragraphes courts et bien espacés.</instruction>
-            <instruction>Mettez en gras les chiffres, pourcentages et indices clés.</instruction>
-            <instruction>Utilisez des listes à puces pour énumérer les points importants.</instruction>
-            <instruction>Créez des sous-titres pour chaque section principale de l'analyse.</instruction>
-            <instruction>Ajoutez un résumé concis au début de l'analyse reformatée.</instruction>
-            <instruction>Utilisez des astérisques (*) pour la mise en forme au lieu des hashtags (#).</instruction>
+            <instruction>Appliquez le formatage markdown sans changer le contenu de l'analyse.</instruction>
+            <instruction>Utilisez des titres et sous-titres appropriés (##, ###, etc.).</instruction>
+            <instruction>Ajoutez des sauts de ligne (deux espaces en fin de ligne) pour améliorer la lisibilité.</instruction>
+            <instruction>Utilisez des listes à puces ou numérotées lorsque c'est approprié.</instruction>
+            <instruction>Mettez en gras les chiffres, pourcentages et termes clés.</instruction>
+            <instruction>Assurez-vous que le formatage markdown est compatible avec les convertisseurs markdown vers HTML standard.</instruction>
         </instructions>
         <response_formatting>
+            <formatting_rule>Utilisez '##' pour les titres principaux et '###' pour les sous-titres.</formatting_rule>
             <formatting_rule>Utilisez '**texte**' pour mettre en gras.</formatting_rule>
             <formatting_rule>Utilisez '*texte*' pour l'italique.</formatting_rule>
-            <formatting_rule>Utilisez '* ' au début d'une ligne pour les listes à puces.</formatting_rule>
-            <formatting_rule>Utilisez deux astérisques '**' suivis d'un espace pour les sous-titres.</formatting_rule>
-            <formatting_rule>Laissez une ligne vide entre chaque paragraphe et section.</formatting_rule>
+            <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
+            <formatting_rule>Ajoutez deux espaces à la fin des lignes pour créer un saut de ligne.</formatting_rule>
+            <formatting_rule>Laissez une ligne vide entre chaque paragraphe.</formatting_rule>
         </response_formatting>
     </system>
     """
 
     user_prompt = f"""
-    Voici une analyse d'incident environnemental. Veuillez la reformater selon les instructions fournies, 
-    en mettant en évidence les informations clés et en améliorant sa lisibilité :
+    Voici une analyse d'incident environnemental. Appliquez le formatage markdown selon les instructions fournies, 
+    sans modifier le contenu de l'analyse :
 
     {analysis}
     """
