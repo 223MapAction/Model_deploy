@@ -305,14 +305,15 @@ def format_analysis(analysis: str):
         <task>appliquer le formatage markdown à une analyse d'incident environnemental sans modifier le contenu</task>
         <instructions>
             <instruction>Appliquez le formatage markdown sans changer le contenu de l'analyse.</instruction>
-            <instruction>Utilisez des titres et sous-titres appropriés (##, ###, etc.).</instruction>
+            <instruction>Utilisez des astérisques pour les titres et sous-titres.</instruction>
             <instruction>Ajoutez des sauts de ligne (deux espaces en fin de ligne) pour améliorer la lisibilité.</instruction>
+            <instruction>Insérez une ligne vide entre chaque paragraphe pour espacer le contenu.</instruction>
             <instruction>Utilisez des listes à puces ou numérotées lorsque c'est approprié.</instruction>
             <instruction>Mettez en gras les chiffres, pourcentages et termes clés.</instruction>
             <instruction>Assurez-vous que le formatage markdown est compatible avec les convertisseurs markdown vers HTML standard.</instruction>
         </instructions>
         <response_formatting>
-            <formatting_rule>Utilisez '##' pour les titres principaux et '###' pour les sous-titres.</formatting_rule>
+            <formatting_rule>Utilisez '**' suivi d'un espace pour les titres principaux et '*' suivi d'un espace pour les sous-titres.</formatting_rule>
             <formatting_rule>Utilisez '**texte**' pour mettre en gras.</formatting_rule>
             <formatting_rule>Utilisez '*texte*' pour l'italique.</formatting_rule>
             <formatting_rule>Utilisez '- ' au début d'une ligne pour les listes à puces.</formatting_rule>
@@ -324,7 +325,7 @@ def format_analysis(analysis: str):
 
     user_prompt = f"""
     Voici une analyse d'incident environnemental. Appliquez le formatage markdown selon les instructions fournies, 
-    sans modifier le contenu de l'analyse :
+    sans modifier le contenu de l'analyse. Assurez-vous d'insérer des lignes vides entre les paragraphes pour bien espacer le contenu :
 
     {analysis}
     """
