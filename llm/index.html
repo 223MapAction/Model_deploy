@@ -633,7 +633,7 @@ with context about the environmental incident.</p>
     <div class="doc doc-contents ">
 
         <p>Takes an environmental incident analysis as input and returns a well-formatted version
-with key information highlighted and figures in bold.</p>
+using proper markdown syntax without altering the content.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -681,7 +681,7 @@ with key information highlighted and figures in bold.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>A formatted version of the analysis with improved readability and emphasis on key points.</p>
+                <p>A markdown-formatted version of the analysis with improved readability.</p>
               </div>
             </td>
           </tr>
@@ -751,42 +751,44 @@ with key information highlighted and figures in bold.</p>
 <span class="normal">349</span>
 <span class="normal">350</span>
 <span class="normal">351</span>
-<span class="normal">352</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="normal">352</span>
+<span class="normal">353</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">format_analysis</span><span class="p">(</span><span class="n">analysis</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Takes an environmental incident analysis as input and returns a well-formatted version</span>
-<span class="sd">    with key information highlighted and figures in bold.</span>
+<span class="sd">    using proper markdown syntax without altering the content.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        analysis (str): The original environmental incident analysis.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        str: A formatted version of the analysis with improved readability and emphasis on key points.</span>
+<span class="sd">        str: A markdown-formatted version of the analysis with improved readability.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">system_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">    &lt;system&gt;</span>
-<span class="s2">        &lt;role&gt;assistant AI spécialisé en formatage de rapports environnementaux&lt;/role&gt;</span>
-<span class="s2">        &lt;task&gt;reformater et mettre en évidence les informations clés d&#39;une analyse d&#39;incident environnemental&lt;/task&gt;</span>
+<span class="s2">        &lt;role&gt;assistant AI spécialisé en formatage markdown&lt;/role&gt;</span>
+<span class="s2">        &lt;task&gt;appliquer le formatage markdown à une analyse d&#39;incident environnemental sans modifier le contenu&lt;/task&gt;</span>
 <span class="s2">        &lt;instructions&gt;</span>
-<span class="s2">            &lt;instruction&gt;Reformatez l&#39;analyse en utilisant des paragraphes courts et bien espacés.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Mettez en gras les chiffres, pourcentages et indices clés.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Utilisez des listes à puces pour énumérer les points importants.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Créez des sous-titres pour chaque section principale de l&#39;analyse.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Ajoutez un résumé concis au début de l&#39;analyse reformatée.&lt;/instruction&gt;</span>
-<span class="s2">            &lt;instruction&gt;Utilisez des astérisques (*) pour la mise en forme au lieu des hashtags (#).&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Appliquez le formatage markdown sans changer le contenu de l&#39;analyse.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Utilisez des titres et sous-titres appropriés (##, ###, etc.).&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Ajoutez des sauts de ligne (deux espaces en fin de ligne) pour améliorer la lisibilité.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Utilisez des listes à puces ou numérotées lorsque c&#39;est approprié.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Mettez en gras les chiffres, pourcentages et termes clés.&lt;/instruction&gt;</span>
+<span class="s2">            &lt;instruction&gt;Assurez-vous que le formatage markdown est compatible avec les convertisseurs markdown vers HTML standard.&lt;/instruction&gt;</span>
 <span class="s2">        &lt;/instructions&gt;</span>
 <span class="s2">        &lt;response_formatting&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;##&#39; pour les titres principaux et &#39;###&#39; pour les sous-titres.&lt;/formatting_rule&gt;</span>
 <span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;**texte**&#39; pour mettre en gras.&lt;/formatting_rule&gt;</span>
 <span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;*texte*&#39; pour l&#39;italique.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;* &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Utilisez deux astérisques &#39;**&#39; suivis d&#39;un espace pour les sous-titres.&lt;/formatting_rule&gt;</span>
-<span class="s2">            &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe et section.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Utilisez &#39;- &#39; au début d&#39;une ligne pour les listes à puces.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Ajoutez deux espaces à la fin des lignes pour créer un saut de ligne.&lt;/formatting_rule&gt;</span>
+<span class="s2">            &lt;formatting_rule&gt;Laissez une ligne vide entre chaque paragraphe.&lt;/formatting_rule&gt;</span>
 <span class="s2">        &lt;/response_formatting&gt;</span>
 <span class="s2">    &lt;/system&gt;</span>
 <span class="s2">    &quot;&quot;&quot;</span>
 
     <span class="n">user_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    Voici une analyse d&#39;incident environnemental. Veuillez la reformater selon les instructions fournies, </span>
-<span class="s2">    en mettant en évidence les informations clés et en améliorant sa lisibilité :</span>
+<span class="s2">    Voici une analyse d&#39;incident environnemental. Appliquez le formatage markdown selon les instructions fournies, </span>
+<span class="s2">    sans modifier le contenu de l&#39;analyse :</span>
 
 <span class="s2">    </span><span class="si">{</span><span class="n">analysis</span><span class="si">}</span>
 <span class="s2">    &quot;&quot;&quot;</span>
