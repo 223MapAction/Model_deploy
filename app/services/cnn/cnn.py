@@ -8,7 +8,6 @@ from app.services.cnn.cnn_preprocess import preprocess_image
 from app.services.cnn.cnn_model import m_a_model
 import logging
 
-# Rest of the code remains unchanged
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -45,24 +44,29 @@ def load_model():
 # Initialize the model once
 model = load_model()
 
-categories = ["Caniveau obstrué", "Déchet dans l'eau", "Déchet solide",
-              "Déforestation", "Pollution de l’eau", "Sécheresse", "Sol dégradé"]
+tags = ["Caniveau obstrué", "Déchet dans l'eau", "Déchet solide",
+        "Déforestation", "Pollution de l'eau", "Sécheresse", "Sol dégradé"]
 
 def predict(image):
     """
-    Performs image classification using a pre-loaded ResNet50 model.
+    Performs multi-label image classification using a pre-loaded ResNet50 model.
     
     Args:
         image (bytes): The image data in bytes format.
     
     Returns:
-        tuple: A tuple containing the predicted category and probabilities.
+        list: A list of predicted tags and their probabilities.
     """
     model.eval()  # Set model to evaluation mode
     input_data = preprocess_image(image)  # Preprocess the image
     with torch.no_grad():  # Disable gradient computation
         output = model(input_data)  # Forward pass
-        probabilities = torch.nn.functional.softmax(output[0], dim=0)  # Compute probabilities
-        predicted_class = torch.argmax(probabilities, dim=0).item()  # Get predicted class index
-        predict_label = categories[predicted_class]  # Get category name
-        return predict_label, probabilities.tolist()
+        probabilities = torch.sigmoid(output[0])  # Apply sigmoid to get probabilities
+        predictions = (probabilities > 0.5).float()  # Threshold predictions
+        
+        results = []
+        for i, (prob, pred) in enumerate(zip(probabilities, predictions)):
+            if pred.item() == 1:
+                results.append((tags[i], prob.item()))
+        
+        return sorted(results, key=lambda x: x[1], reverse=True)
