@@ -22,12 +22,6 @@ def m_a_model(num_tags: int):
     
     # Modify the classifier (fully connected) layer for multi-label classification
     num_ftrs = model.fc.in_features
-    model.fc = nn.Sequential(
-        nn.Linear(num_ftrs, 8),  # Adjusted to match the checkpoint's output size
-        nn.ReLU(),
-        nn.Dropout(0.3),
-        nn.Linear(8, num_tags),  # Adjusted to match the checkpoint's output size
-        nn.Sigmoid()  # Use Sigmoid for multi-label output
-    )
+    model.fc = nn.Linear(num_ftrs, num_tags)  # Single linear layer as per training script
     
     return model
