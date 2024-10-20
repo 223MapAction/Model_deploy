@@ -1,13 +1,8 @@
-# app/services/cnn/cnn.py
-
-# app/services/cnn/cnn.py
-
 import os
 import torch
 from app.services.cnn.cnn_preprocess import preprocess_image
 from app.services.cnn.cnn_model import m_a_model
 import logging
-
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -32,8 +27,18 @@ def load_model():
         raise FileNotFoundError(f"Model file not found at {state_dict_path}")
 
     loaded_state_dict = torch.load(state_dict_path, map_location=torch.device('cpu'))
+    
+    # Adjust state_dict keys to match the model architecture
+    adjusted_state_dict = {}
+    for key, value in loaded_state_dict.items():
+        if key.startswith('fc.'):
+            new_key = 'fc.0' + key[2:] if 'weight' in key or 'bias' in key else key
+            adjusted_state_dict[new_key] = value
+        else:
+            adjusted_state_dict[key] = value
+
     try:
-        model.load_state_dict(loaded_state_dict)
+        model.load_state_dict(adjusted_state_dict)
         logger.info("Model loaded successfully.")
     except Exception as e:
         logger.error(f"Model loading failed: {e}")
