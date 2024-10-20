@@ -170,7 +170,9 @@ async def predict_incident_type(data: ImageModel):
             raise HTTPException(status_code=400, detail="Missing required fields for database insertion.")
 
         # Convert prediction list to a string format for database insertion
-        prediction_str = json.dumps(prediction)
+        prediction_texts = [pred[0] for pred in prediction]
+        prediction_texts = [text.replace("Pollution de leau", "Pollution de l'eau").replace("Pollution de lair", "Pollution de l'air") for text in prediction_texts] # Replace the prediction text with the correct prediction text specifically for this case
+        prediction_str = ", ".join(prediction_texts).encode('utf-8').decode('utf-8')
 
         # Insert the prediction and context into the database
         query = """
