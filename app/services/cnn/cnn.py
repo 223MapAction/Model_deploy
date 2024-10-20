@@ -68,12 +68,11 @@ def predict(image):
     with torch.no_grad():  # Disable gradient computation
         output = model(input_data)  # Forward pass
         probabilities = torch.sigmoid(output[0])  # Apply sigmoid to get probabilities
-        predictions = (probabilities > 0.5).float()  # Threshold predictions
         
-        results = []
-        for i, (prob, pred) in enumerate(zip(probabilities, predictions)):
-            if pred.item() == 1:
-                results.append((tags[i], prob.item()))
+        # Get the top 3 predictions with probabilities above 0.4
+        top_predictions = [(tags[i], prob.item()) for i, prob in enumerate(probabilities) if prob.item() > 0.4]
+        top_predictions.sort(key=lambda x: x[1], reverse=True)
+        top_predictions = top_predictions[:3]
         
         # Return both the predictions and the raw probabilities
-        return results, probabilities.tolist()
+        return top_predictions, probabilities.tolist()

@@ -129,6 +129,9 @@ async def predict_incident_type(data: ImageModel):
         except Exception as e:
             logger.error(f"Error during prediction task: {e}")
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+        
+        if len(prediction) == 0:
+            prediction = "Prédiction indisponible"
 
         # Fetch contextual information asynchronously using Celery
         context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures, data.zone)
