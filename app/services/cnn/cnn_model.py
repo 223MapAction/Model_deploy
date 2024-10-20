@@ -1,4 +1,4 @@
-# app/services/cnn/cnn_model.py
+import torch
 from torchvision.models import resnet50, ResNet50_Weights
 import torch.nn as nn
 
@@ -23,10 +23,10 @@ def m_a_model(num_tags: int):
     # Modify the classifier (fully connected) layer for multi-label classification
     num_ftrs = model.fc.in_features
     model.fc = nn.Sequential(
-        nn.Linear(num_ftrs, 512),
+        nn.Linear(num_ftrs, 8),  # Adjusted to match the checkpoint's output size
         nn.ReLU(),
         nn.Dropout(0.3),
-        nn.Linear(512, num_tags),
+        nn.Linear(8, num_tags),  # Adjusted to match the checkpoint's output size
         nn.Sigmoid()  # Use Sigmoid for multi-label output
     )
     
