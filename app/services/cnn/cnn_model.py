@@ -20,8 +20,13 @@ def m_a_model(num_tags: int):
     for param in model.parameters():
         param.requires_grad = False
     
-    # Modify the classifier (fully connected) layer for multi-label classification
+    # Modify the classifier (fully connected) layer to match the training architecture
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, num_tags)  # Single linear layer as per training script
+    model.fc = nn.Sequential(
+        nn.Linear(num_ftrs, 1024),
+        nn.ReLU(),
+        nn.Dropout(0.5),
+        nn.Linear(1024, num_tags)
+    )
     
     return model
