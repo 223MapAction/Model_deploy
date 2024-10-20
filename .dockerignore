@@ -7,3 +7,4 @@ __pycache__
 .gitignore
 Dockerfile*
 *.md
+train_resnet50.py
