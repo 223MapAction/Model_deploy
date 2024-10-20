@@ -14,8 +14,8 @@ def load_model():
     Returns:
         torch.nn.Module: The loaded ResNet50 model.
     """
-    num_classes = 7
-    model = m_a_model(num_classes)
+    num_classes = 8
+    model = m_a_model(num_tags=num_classes)
     state_dict_path = os.environ.get('MODEL_PATH')
 
     if not state_dict_path:
@@ -32,10 +32,11 @@ def load_model():
     adjusted_state_dict = {}
     for key, value in loaded_state_dict.items():
         if key.startswith('fc.'):
-            new_key = 'fc.0' + key[2:] if 'weight' in key or 'bias' in key else key
+            new_key = 'fc.0.' + key[3:]  # Corrected slicing and added period
             adjusted_state_dict[new_key] = value
         else:
             adjusted_state_dict[key] = value
+
 
     try:
         model.load_state_dict(adjusted_state_dict)
