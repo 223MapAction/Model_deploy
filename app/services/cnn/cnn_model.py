@@ -1,6 +1,4 @@
 # app/services/cnn/cnn_model.py
-
-import torch
 from torchvision.models import resnet50, ResNet50_Weights
 import torch.nn as nn
 

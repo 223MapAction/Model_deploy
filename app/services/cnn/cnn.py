@@ -49,8 +49,8 @@ def load_model():
 # Initialize the model once
 model = load_model()
 
-tags = ["Caniveau obstrué", "Déchet dans l'eau", "Déchet solide",
-        "Déforestation", "Pollution de l'eau", "Sécheresse", "Sol dégradé"]
+tags = ["Caniveau obstrué", "Déchets", "Déforestation",
+        "Feux de brousse", "Pollution de leau", "Pollution de lair", "Sécheresse", "Sol dégradé"]
 
 def predict(image):
     """

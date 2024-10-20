@@ -1,3 +1,4 @@
 .cv_deploy.env
 *.pth
 .env
+train_resnet50.py
