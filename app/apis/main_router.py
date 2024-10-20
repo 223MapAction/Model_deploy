@@ -38,8 +38,6 @@ BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads"
 # Add this near the top of the file, with other global variables
 impact_area_storage = {}
 
-
-
 def construct_image_url(image_name: str) -> str:
     """
     Constructs the full URL for the image based on the image name.
@@ -51,7 +49,6 @@ def construct_image_url(image_name: str) -> str:
         str: The full URL to access the image.
     """
     return f"{BASE_URL}/{image_name.split('/')[-1]}"
-
 
 async def fetch_image(image_url: str) -> bytes:
     """
@@ -74,7 +71,6 @@ async def fetch_image(image_url: str) -> bytes:
         logger.error(f"Failed to fetch image from {image_url}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch image: {str(e)}")
 
-
 def sanitize_error_message(message: str, sensitive_structures: List[str]) -> str:
     """
     Sanitizes the error message by masking sensitive structures.
@@ -91,7 +87,6 @@ def sanitize_error_message(message: str, sensitive_structures: List[str]) -> str
         sanitized_message = sanitized_message.replace(structure, "***")
     return sanitized_message
 
-
 @router.get("/")
 def index():
     """
@@ -101,7 +96,6 @@ def index():
         dict: A message indicating the API is operational.
     """
     return {"message": "Map Action classification model"}
-
 
 @router.post("/image/predict")
 async def predict_incident_type(data: ImageModel):
@@ -158,12 +152,6 @@ async def predict_incident_type(data: ImageModel):
         # Add satellite analysis to the existing analysis
         analysis += "\n\n" + satellite_analysis['textual_analysis']
 
-        # # Concatenate piste_solution to the analysis
-        # full_analysis = f"{analysis}\n\nPiste Solution:\n{piste_solution}"
-
-        # # Format the combined analysis
-        # formatted_analysis = format_incident_analysis.delay(full_analysis).get() 
-
         # Prepare the response
         response = {
             "prediction": prediction,
@@ -181,6 +169,9 @@ async def predict_incident_type(data: ImageModel):
         if not all([data.incident_id, prediction, piste_solution, analysis]):
             raise HTTPException(status_code=400, detail="Missing required fields for database insertion.")
 
+        # Convert prediction list to a string format for database insertion
+        prediction_str = json.dumps(prediction)
+
         # Insert the prediction and context into the database
         query = """
         INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, analysis)
@@ -188,7 +179,7 @@ async def predict_incident_type(data: ImageModel):
         """
         values = {
             "incident_id": data.incident_id,
-            "incident_type": prediction,
+            "incident_type": prediction_str,
             "piste_solution": piste_solution,
             "analysis": analysis,
         }
