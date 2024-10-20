@@ -61,7 +61,7 @@ def predict(image):
         image (bytes): The image data in bytes format.
     
     Returns:
-        list: A list of predicted tags and their probabilities.
+        tuple: A tuple containing a list of predicted tags and a list of probabilities.
     """
     model.eval()  # Set model to evaluation mode
     input_data = preprocess_image(image)  # Preprocess the image
@@ -75,4 +75,5 @@ def predict(image):
             if pred.item() == 1:
                 results.append((tags[i], prob.item()))
         
-        return sorted(results, key=lambda x: x[1], reverse=True)
+        # Return both the predictions and the raw probabilities
+        return results, probabilities.tolist()
