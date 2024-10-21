@@ -178,11 +178,9 @@ async def predict_incident_type(data: ImageModel):
             "probabilities": probabilities,
             "analysis": analysis,
             "piste_solution": piste_solution,
-            "satellite_data": {
-                "ndvi_ndwi_plot": ndvi_ndwi_plot_url,
-                "ndvi_heatmap": ndvi_heatmap_url,
-                "landcover_plot": landcover_plot_url,
-            }
+            "ndvi_ndwi_plot": ndvi_ndwi_plot_url,
+            "ndvi_heatmap": ndvi_heatmap_url,
+            "landcover_plot": landcover_plot_url,
         }
 
         # Validate all required fields are present
