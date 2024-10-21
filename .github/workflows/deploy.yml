@@ -14,8 +14,16 @@ jobs:
         steps:
             - name: Check and set permissions for sentinel_data directory
               run: |
-                  if [ -d "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/local_uploads" ]; then
-                    sudo chown azureuser:azureuser /home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/local_uploads
+                  if [ -d "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data" ]; then
+                    sudo chown azureuser:azureuser /home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data
+                  else
+                    echo "Directory does not exist. Skipping chown command."
+                  fi
+
+            - name: Check and set permissions for local_uploads directory
+              run: |
+                  if [ -d "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/local_uploads" ]; then
+                    sudo chown azureuser:azureuser /home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/local_uploads
                   else
                     echo "Directory does not exist. Skipping chown command."
                   fi
