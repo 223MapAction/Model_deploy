@@ -129,9 +129,6 @@ async def predict_incident_type(data: ImageModel):
         except Exception as e:
             logger.error(f"Error during prediction task: {e}")
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
-        
-        if len(prediction) == 0:
-            prediction = "Prédiction indisponible"
 
         # Fetch contextual information asynchronously using Celery
         context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures, data.zone)
@@ -155,6 +152,26 @@ async def predict_incident_type(data: ImageModel):
         # Add satellite analysis to the existing analysis
         analysis += "\n\n" + satellite_analysis['textual_analysis']
 
+        # Save plots to the local server directory
+        local_upload_dir = "local_uploads"
+        os.makedirs(local_upload_dir, exist_ok=True)
+        ndvi_ndwi_plot_path = f"{local_upload_dir}/{data.incident_id}_ndvi_ndwi_plot.png"
+        ndvi_heatmap_path = f"{local_upload_dir}/{data.incident_id}_ndvi_heatmap.png"
+        landcover_plot_path = f"{local_upload_dir}/{data.incident_id}_landcover_plot.png"
+
+        with open(ndvi_ndwi_plot_path, "wb") as f:
+            f.write(satellite_analysis['ndvi_ndwi_plot'])
+        with open(ndvi_heatmap_path, "wb") as f:
+            f.write(satellite_analysis['ndvi_heatmap'])
+        with open(landcover_plot_path, "wb") as f:
+            f.write(satellite_analysis['landcover_plot'])
+
+        # Construct URLs for accessing the plots
+        server_url = os.getenv('SERVER_URL', "http://localhost:8000")
+        ndvi_ndwi_plot_url = f"{server_url}/{ndvi_ndwi_plot_path}"
+        ndvi_heatmap_url = f"{server_url}/{ndvi_heatmap_path}"
+        landcover_plot_url = f"{server_url}/{landcover_plot_path}"
+
         # Prepare the response
         response = {
             "prediction": prediction,
@@ -162,9 +179,9 @@ async def predict_incident_type(data: ImageModel):
             "analysis": analysis,
             "piste_solution": piste_solution,
             "satellite_data": {
-                "ndvi_ndwi_plot": satellite_analysis['ndvi_ndwi_plot'],
-                "ndvi_heatmap": satellite_analysis['ndvi_heatmap'],
-                "landcover_plot": satellite_analysis['landcover_plot'],
+                "ndvi_ndwi_plot": ndvi_ndwi_plot_url,
+                "ndvi_heatmap": ndvi_heatmap_url,
+                "landcover_plot": landcover_plot_url,
             }
         }
 
@@ -182,14 +199,17 @@ async def predict_incident_type(data: ImageModel):
 
         # Insert the prediction and context into the database
         query = """
-        INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, analysis)
-        VALUES (:incident_id, :incident_type, :piste_solution, :analysis);
+        INSERT INTO "Mapapi_prediction" (incident_id, incident_type, piste_solution, analysis, ndvi_ndwi_plot, ndvi_heatmap, landcover_plot)
+        VALUES (:incident_id, :incident_type, :piste_solution, :analysis, :ndvi_ndwi_plot, :ndvi_heatmap, :landcover_plot);
         """
         values = {
             "incident_id": data.incident_id,
             "incident_type": prediction_str,
             "piste_solution": piste_solution,
             "analysis": analysis,
+            "ndvi_ndwi_plot": ndvi_ndwi_plot_url,
+            "ndvi_heatmap": ndvi_heatmap_url,
+            "landcover_plot": landcover_plot_url,
         }
 
         try:
