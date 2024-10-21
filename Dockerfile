@@ -29,6 +29,8 @@ RUN pip install redis "uvicorn[standard]"
 
 # Copy the rest of the application code
 COPY . .
+# Create the local_uploads directory and set permissions
+RUN mkdir -p local_uploads && chmod 777 local_uploads
 
 # Expose the necessary port
 EXPOSE 8001
