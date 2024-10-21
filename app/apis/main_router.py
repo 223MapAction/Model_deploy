@@ -160,11 +160,11 @@ async def predict_incident_type(data: ImageModel):
         landcover_plot_path = f"{local_upload_dir}/{data.incident_id}_landcover_plot.png"
 
         with open(ndvi_ndwi_plot_path, "wb") as f:
-            f.write(satellite_analysis['ndvi_ndwi_plot'])
+            f.write(satellite_analysis['ndvi_ndwi_plot'].encode('utf-8'))
         with open(ndvi_heatmap_path, "wb") as f:
-            f.write(satellite_analysis['ndvi_heatmap'])
+            f.write(satellite_analysis['ndvi_heatmap'].encode('utf-8'))
         with open(landcover_plot_path, "wb") as f:
-            f.write(satellite_analysis['landcover_plot'])
+            f.write(satellite_analysis['landcover_plot'].encode('utf-8'))
 
         # Construct URLs for accessing the plots
         server_url = os.getenv('SERVER_URL', "http://localhost:8000")
