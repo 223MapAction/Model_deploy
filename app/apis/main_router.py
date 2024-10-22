@@ -34,7 +34,7 @@ manager = ConnectionManager()
 router = APIRouter()
 
 # Update the BASE_URL to match where the images are hosted
-BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads")
+BASE_URL = os.getenv('IMAGE_SERVER_URL')
 
 # Add this near the top of the file, with other global variables
 impact_area_storage = {}
@@ -155,9 +155,9 @@ async def predict_incident_type(data: ImageModel):
 
         # Upload plots to Azure Blob Storage
         container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
-        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'].encode('utf-8'))
-        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'].encode('utf-8'))
-        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'].encode('utf-8'))
+        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'].encode('utf-8')).decode('utf-8') 
+        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'].encode('utf-8')).decode('utf-8')
+        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'].encode('utf-8')).decode('utf-8')
 
         # Prepare the response
         response = {
