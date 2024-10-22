@@ -41,6 +41,15 @@ jobs:
                   sudo apt-get update
                   sudo apt-get install -y docker-compose
 
+            - name: Install Azure CLI
+              run: |
+                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+            - name: Azure Login
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+
             - name: Create .cv_deploy.env
               run: |
                   echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
@@ -53,6 +62,9 @@ jobs:
                   echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
                   echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
                   echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
+                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
+                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
+                  echo "IMAGE_SERVER_URL=${{ secrets.IMAGE_SERVER_URL }}" >> .cv_deploy.env
               shell: bash
 
             - name: Build Docker Image
