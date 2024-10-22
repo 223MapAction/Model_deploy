@@ -50,6 +50,7 @@ jobs:
               with:
                   creds: ${{ secrets.AZURE_CREDENTIALS }}
                   auth-type: IDENTITY
+                  allow-no-subscriptions: true
 
             - name: Create .cv_deploy.env
               run: |
