@@ -155,9 +155,12 @@ async def predict_incident_type(data: ImageModel):
 
         # Upload plots to Azure Blob Storage
         container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
-        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'].encode('utf-8')).decode('utf-8') 
-        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'].encode('utf-8')).decode('utf-8')
-        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'].encode('utf-8')).decode('utf-8')
+        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'].encode('utf-8'))
+        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'].encode('utf-8'))
+        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'].encode('utf-8'))
+        logger.info("ndvi_ndwi_plot_url: ", ndvi_ndwi_plot_url)
+        logger.info("ndvi_heatmap_url: ", ndvi_heatmap_url)
+        logger.info("landcover_plot_url: ", landcover_plot_url)
 
         # Prepare the response
         response = {
@@ -196,6 +199,9 @@ async def predict_incident_type(data: ImageModel):
             "ndvi_heatmap": ndvi_heatmap_url,
             "landcover_plot": landcover_plot_url,
         }
+        logger.info("ndvi_ndwi_plot_url: ", ndvi_ndwi_plot_url)
+        logger.info("ndvi_heatmap_url: ", ndvi_heatmap_url)
+        logger.info("landcover_plot_url: ", landcover_plot_url)
 
         try:
             await database.execute(query=query, values=values)
