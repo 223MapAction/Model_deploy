@@ -19,6 +19,8 @@ from ..services import (
     celery_app,
     analyze_incident_zone,
 )
+from ..services.azure_blob_storage import upload_image_to_blob  # Import the Azure Blob Storage function
+import uuid
 
 import numpy as np
 from ..models import ImageModel
@@ -33,7 +35,7 @@ manager = ConnectionManager()
 router = APIRouter()
 
 # Update the BASE_URL to match where the images are hosted
-BASE_URL = os.getenv('IMAGE_SERVER_URL', "http://139.144.63.238/uploads/uploads")
+BASE_URL = os.getenv('IMAGE_SERVER_URL')
 
 # Add this near the top of the file, with other global variables
 impact_area_storage = {}
@@ -152,25 +154,11 @@ async def predict_incident_type(data: ImageModel):
         # Add satellite analysis to the existing analysis
         analysis += "\n\n" + satellite_analysis['textual_analysis']
 
-        # Save plots to the local server directory
-        local_upload_dir = "local_uploads"
-        os.makedirs(local_upload_dir, exist_ok=True)
-        ndvi_ndwi_plot_path = f"{local_upload_dir}/{data.incident_id}_ndvi_ndwi_plot.png"
-        ndvi_heatmap_path = f"{local_upload_dir}/{data.incident_id}_ndvi_heatmap.png"
-        landcover_plot_path = f"{local_upload_dir}/{data.incident_id}_landcover_plot.png"
-
-        with open(ndvi_ndwi_plot_path, "wb") as f:
-            f.write(satellite_analysis['ndvi_ndwi_plot'].encode('utf-8'))
-        with open(ndvi_heatmap_path, "wb") as f:
-            f.write(satellite_analysis['ndvi_heatmap'].encode('utf-8'))
-        with open(landcover_plot_path, "wb") as f:
-            f.write(satellite_analysis['landcover_plot'].encode('utf-8'))
-
-        # Construct URLs for accessing the plots
-        server_url = os.getenv('SERVER_URL', "http://localhost:8000")
-        ndvi_ndwi_plot_url = f"{server_url}/{ndvi_ndwi_plot_path}"
-        ndvi_heatmap_url = f"{server_url}/{ndvi_heatmap_path}"
-        landcover_plot_url = f"{server_url}/{landcover_plot_path}"
+        # Upload plots to Azure Blob Storage
+        container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
+        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'])
+        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
+        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'])
 
         # Prepare the response
         response = {
