@@ -24,6 +24,9 @@ from ..services.azure_blob_storage import upload_image_to_blob  # Import the Azu
 import numpy as np
 from ..models import ImageModel
 from ..database import database
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -34,7 +37,7 @@ manager = ConnectionManager()
 router = APIRouter()
 
 # Update the BASE_URL to match where the images are hosted
-BASE_URL = os.getenv('http://139.144.63.238/')
+BASE_URL = os.getenv('SERVER_URL')
 
 # Add this near the top of the file, with other global variables
 impact_area_storage = {}
