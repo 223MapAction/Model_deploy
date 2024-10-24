@@ -22,8 +22,8 @@ def upload_image_to_blob(container_name: str, image_data: bytes) -> str:
     # Create a blob client
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
-    # Upload the image
-    blob_client.upload_blob(image_data)
+    # Upload the image as a binary stream
+    blob_client.upload_blob(image_data, blob_type="BlockBlob", overwrite=True)
 
     # Retrieve the SAS token from an environment variable
     sas_token = os.environ.get('BLOB_SAS_TOKEN', '')
