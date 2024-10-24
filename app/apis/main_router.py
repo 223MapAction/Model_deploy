@@ -158,6 +158,12 @@ async def predict_incident_type(data: ImageModel):
 
         # Upload plots to Azure Blob Storage
         container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
+
+        # Log a preview of the bytes content of the image files
+        logger.info(f"NDVI/NDWI Plot bytes preview: {satellite_analysis['ndvi_ndwi_plot'][:100]}")
+        logger.info(f"NDVI Heatmap bytes preview: {satellite_analysis['ndvi_heatmap'][:100]}")
+        logger.info(f"Landcover Plot bytes preview: {satellite_analysis['landcover_plot'][:100]}")
+
         ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'])
         ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
         landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'])
