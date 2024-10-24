@@ -14,8 +14,7 @@ import locale
 import matplotlib.dates as mdates
 from io import BytesIO
 import base64
-
-
+import uuid  # Import uuid for generating unique filenames
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +26,9 @@ logger = logging.getLogger(__name__)
 # except locale.Error:
 #     pass
 
+# Ensure the plots directory exists
+plots_dir = os.path.join(os.path.dirname(__file__), '../../plots')
+os.makedirs(plots_dir, exist_ok=True)
 
 def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
     """
@@ -118,13 +120,13 @@ def generate_ndvi_ndwi_plot(ndvi_data, ndwi_data):
     plt.grid(True)
     plt.tight_layout()
 
-    img_buffer = BytesIO()
-    plt.savefig(img_buffer, format='png')
-    img_buffer.seek(0)
-    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    # Save plot to file
+    filename = f"{uuid.uuid4()}.png"
+    filepath = os.path.join(plots_dir, filename)
+    plt.savefig(filepath, format='png')
     plt.close()
 
-    return img_str
+    return filepath
 
 def generate_ndvi_heatmap(ndvi_data):
     """
@@ -147,13 +149,13 @@ def generate_ndvi_heatmap(ndvi_data):
     plt.ylabel('Jour du mois')
     plt.tight_layout()
 
-    img_buffer = BytesIO()
-    plt.savefig(img_buffer, format='png')
-    img_buffer.seek(0)
-    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    # Save plot to file
+    filename = f"{uuid.uuid4()}.png"
+    filepath = os.path.join(plots_dir, filename)
+    plt.savefig(filepath, format='png')
     plt.close()
 
-    return img_str
+    return filepath
 
 def generate_landcover_plot(landcover_data):
     """
@@ -180,13 +182,13 @@ def generate_landcover_plot(landcover_data):
 
     plt.tight_layout()
 
-    img_buffer = BytesIO()
-    plt.savefig(img_buffer, format='png')
-    img_buffer.seek(0)
-    img_str = base64.b64encode(img_buffer.getvalue()).decode()
+    # Save plot to file
+    filename = f"{uuid.uuid4()}.png"
+    filepath = os.path.join(plots_dir, filename)
+    plt.savefig(filepath, format='png')
     plt.close()
 
-    return img_str
+    return filepath
 
 def create_geojson_from_location(location, output_dir):
     """
