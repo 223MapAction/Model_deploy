@@ -65,6 +65,7 @@ jobs:
                   echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
                   echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
                   echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
+                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
               shell: bash
 
             - name: Build Docker Image
