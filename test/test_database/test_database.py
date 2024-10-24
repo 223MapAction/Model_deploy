@@ -1,8 +1,11 @@
 import pytest
 from databases import Database
+from dotenv import load_dotenv
+import os
 
-postgres_url = "postgresql://root:postges@20.19.82.202/mapaction"
-# postgres_url = "postgresql://postgres:postges@localhost/mapaction"
+load_dotenv()
+
+postgres_url = os.getenv('POSTGRES_URL')
 database = Database(postgres_url)
 
 
