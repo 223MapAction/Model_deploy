@@ -158,9 +158,9 @@ async def predict_incident_type(data: ImageModel):
 
         # Upload plots to Azure Blob Storage
         container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
-        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'].encode('utf-8'))
-        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'].encode('utf-8'))
-        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'].encode('utf-8'))
+        ndvi_ndwi_plot_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'])
+        ndvi_heatmap_url = upload_image_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
+        landcover_plot_url = upload_image_to_blob(container_name, satellite_analysis['landcover_plot'])
 
         # Log the URLs to verify correctness
         logger.info(f"Constructed ndvi_ndwi_plot_url: {ndvi_ndwi_plot_url}")
