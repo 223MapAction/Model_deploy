@@ -322,3 +322,19 @@ This project is protected under the [GNU GPLv3](https://choosealicense.com/licen
 See our [Code of Conduct](https://github.com/223MapAction/.github/blob/main/CODE_OF_CONDUCT.md) for details on expected behavior in our community.
 
 ---
+
+## Digital Public Goods Standard Compliance
+
+This project aims to comply with the Digital Public Goods Standard. Below is a summary of our current compliance status:
+
+1. Relevance to Sustainable Development Goals: [Brief explanation]
+2. Use of Approved Open License: Compliant (GPL-3.0 license)
+3. Clear Ownership: [Brief explanation]
+4. Platform Independence: [Brief explanation]
+5. Documentation: Largely compliant (see README and [link to developer docs])
+6. Mechanism for Extracting Data: [Brief explanation]
+7. Adherence to Privacy and Applicable Laws: [Brief explanation]
+8. Adherence to Standards & Best Practices: [Brief explanation]
+9. Do No Harm Assessment: [Brief explanation]
+
+For a detailed assessment and ongoing compliance efforts, please see our [DPG_ASSESSMENT.md](link_to_file).
