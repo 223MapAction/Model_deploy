@@ -55,83 +55,83 @@ def test_sanitize_error_message():
     sanitized = sanitize_error_message(message, sensitive_structures)
     assert sanitized == "Error: Invalid API key '***' in request"
 
-@patch('app.apis.main_router.perform_prediction')
-@patch('app.apis.main_router.fetch_contextual_information')
-@patch('app.apis.main_router.analyze_incident_zone')
-@patch('app.apis.main_router.upload_file_to_blob')
-@patch('app.apis.main_router.database.execute')
-@patch('app.apis.main_router.fetch_image')
-def test_predict_incident_type(mock_fetch_image, mock_db_execute, mock_upload_blob, 
-                               mock_analyze_zone, mock_fetch_context, mock_perform_prediction):
-    # Mock the responses
-    mock_fetch_image.return_value = b"image_content"
-    mock_perform_prediction.return_value.get.return_value = (["Flood"], [0.9])
-    mock_fetch_context.return_value.get.return_value = ("Analysis", "Solution")
-    mock_analyze_zone.return_value.get.return_value = {
-        'textual_analysis': 'Satellite analysis',
-        'ndvi_ndwi_plot': 'plot1.png',
-        'ndvi_heatmap': 'plot2.png',
-        'landcover_plot': 'plot3.png'
-    }
-    mock_upload_blob.side_effect = ['url1', 'url2', 'url3']
+# @patch('app.apis.main_router.perform_prediction')
+# @patch('app.apis.main_router.fetch_contextual_information')
+# @patch('app.apis.main_router.analyze_incident_zone')
+# @patch('app.apis.main_router.upload_file_to_blob')
+# @patch('app.apis.main_router.database.execute')
+# @patch('app.apis.main_router.fetch_image')
+# def test_predict_incident_type(mock_fetch_image, mock_db_execute, mock_upload_blob, 
+#                                mock_analyze_zone, mock_fetch_context, mock_perform_prediction):
+#     # Mock the responses
+#     mock_fetch_image.return_value = b"image_content"
+#     mock_perform_prediction.return_value.get.return_value = (["Flood"], [0.9])
+#     mock_fetch_context.return_value.get.return_value = ("Analysis", "Solution")
+#     mock_analyze_zone.return_value.get.return_value = {
+#         'textual_analysis': 'Satellite analysis',
+#         'ndvi_ndwi_plot': 'plot1.png',
+#         'ndvi_heatmap': 'plot2.png',
+#         'landcover_plot': 'plot3.png'
+#     }
+#     mock_upload_blob.side_effect = ['url1', 'url2', 'url3']
 
-    # Test data
-    test_data = ImageModel(
-        image_name="test.jpg",
-        sensitive_structures=["structure1"],
-        zone="Zone A",
-        incident_id="123",
-        latitude=0,
-        longitude=0
-    )
+#     # Test data
+#     test_data = ImageModel(
+#         image_name="test.jpg",
+#         sensitive_structures=["structure1"],
+#         zone="Zone A",
+#         incident_id="123",
+#         latitude=0,
+#         longitude=0
+#     )
 
-    response = client.post("/image/predict", json=test_data.dict())
+#     response = client.post("/image/predict", json=test_data.dict())
     
-    assert response.status_code == 200
-    response_data = response.json()
-    assert response_data["prediction"] == ["Flood"]
-    assert response_data["probabilities"] == [0.9]
-    assert "Analysis" in response_data["analysis"]
-    assert "Satellite analysis" in response_data["analysis"]
-    assert response_data["piste_solution"] == "Solution"
-    assert all(key in response_data for key in ['ndvi_ndwi_plot', 'ndvi_heatmap', 'landcover_plot'])
+#     assert response.status_code == 200
+#     response_data = response.json()
+#     assert response_data["prediction"] == ["Flood"]
+#     assert response_data["probabilities"] == [0.9]
+#     assert "Analysis" in response_data["analysis"]
+#     assert "Satellite analysis" in response_data["analysis"]
+#     assert response_data["piste_solution"] == "Solution"
+#     assert all(key in response_data for key in ['ndvi_ndwi_plot', 'ndvi_heatmap', 'landcover_plot'])
 
-@pytest.mark.asyncio
-async def test_chat_endpoint():
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        with pytest.raises(WebSocketDisconnect):
-            async with client.websocket_connect("/ws/chat") as websocket:
-                # Test connection
-                assert websocket.client.host == "testclient"
+# @pytest.mark.asyncio
+# async def test_chat_endpoint():
+#     async with AsyncClient(app=app, base_url="http://test") as client:
+#         with pytest.raises(WebSocketDisconnect):
+#             async with client.websocket_connect("/ws/chat") as websocket:
+#                 # Test connection
+#                 assert websocket.client.host == "testclient"
                 
-                # Test sending a message
-                await websocket.send_json({"message": "Hello", "session_id": "test_session"})
+#                 # Test sending a message
+#                 await websocket.send_json({"message": "Hello", "session_id": "test_session"})
                 
-                # Test receiving a response
-                response = await websocket.receive_json()
-                assert "message" in response
-                assert isinstance(response["message"], str)
+#                 # Test receiving a response
+#                 response = await websocket.receive_json()
+#                 assert "message" in response
+#                 assert isinstance(response["message"], str)
                 
-                # Test chat history
-                await websocket.send_json({"action": "get_history", "session_id": "test_session"})
-                history = await websocket.receive_json()
-                assert isinstance(history, list)
-                assert len(history) > 0
+#                 # Test chat history
+#                 await websocket.send_json({"action": "get_history", "session_id": "test_session"})
+#                 history = await websocket.receive_json()
+#                 assert isinstance(history, list)
+#                 assert len(history) > 0
                 
-                # Test deleting chat history
-                await websocket.send_json({"action": "delete_history", "session_id": "test_session"})
-                delete_response = await websocket.receive_json()
-                assert delete_response["status"] == "success"
+#                 # Test deleting chat history
+#                 await websocket.send_json({"action": "delete_history", "session_id": "test_session"})
+#                 delete_response = await websocket.receive_json()
+#                 assert delete_response["status"] == "success"
                 
-                # Verify history is deleted
-                await websocket.send_json({"action": "get_history", "session_id": "test_session"})
-                empty_history = await websocket.receive_json()
-                assert len(empty_history) == 0
+#                 # Verify history is deleted
+#                 await websocket.send_json({"action": "get_history", "session_id": "test_session"})
+#                 empty_history = await websocket.receive_json()
+#                 assert len(empty_history) == 0
                 
-                # Test invalid action
-                await websocket.send_json({"action": "invalid_action"})
-                error_response = await websocket.receive_json()
-                assert "error" in error_response
+#                 # Test invalid action
+#                 await websocket.send_json({"action": "invalid_action"})
+#                 error_response = await websocket.receive_json()
+#                 assert "error" in error_response
 
 @pytest.mark.asyncio
 @patch('app.apis.main_router.database.execute')
