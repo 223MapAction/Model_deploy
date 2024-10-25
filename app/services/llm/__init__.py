@@ -1,1 +1,1 @@
-from .gpt_3_5_turbo import get_response, chat_response, generate_satellite_analysis
+from .llm import get_response, chat_response, generate_satellite_analysis
