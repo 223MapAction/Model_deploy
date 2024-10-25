@@ -8,6 +8,7 @@ from app.apis.main_router import router, construct_image_url, fetch_image, sanit
 from app.models import ImageModel
 from app.main import app  # Add this import at the top of the file
 import os
+# import requests  # Add this import
 
 
 client = TestClient(router)
@@ -40,14 +41,14 @@ def test_fetch_image_success(mock_get):
     result = fetch_image("http://example.com/image.jpg")
     assert result == b"image_content"
 
-# @patch('app.apis.main_router.requests.get')
-# def test_fetch_image_failure(mock_get):
-#     mock_get.side_effect = Exception("Network error")
+@patch('app.apis.main_router.requests.get')
+def test_fetch_image_failure(mock_get):
+    mock_get.side_effect = Exception("Network error")
 
-#     with pytest.raises(HTTPException) as exc_info:
-#         fetch_image("http://example.com/image.jpg")
-#     assert exc_info.value.status_code == 500
-#     assert "Failed to fetch image" in str(exc_info.value.detail)
+    with pytest.raises(HTTPException) as exc_info:
+        fetch_image("http://example.com/image.jpg")
+    assert exc_info.value.status_code == 500
+    assert "Failed to fetch image" in str(exc_info.value.detail)
 
 def test_sanitize_error_message():
     message = "Error: Invalid API key 'abc123' in request"
@@ -164,25 +165,25 @@ async def test_get_chat_history(mock_db_fetch_all):
     assert result[2] == {"role": "user", "content": "Q2"}
     assert result[3] == {"role": "assistant", "content": "A2"}
 
-@pytest.mark.asyncio
-async def test_fetch_image_success():
-    mock_response = MagicMock()
-    mock_response.content = b"mock image content"
-    mock_response.raise_for_status.return_value = None
+# @pytest.mark.asyncio
+# async def test_fetch_image_success():
+#     mock_response = MagicMock()
+#     mock_response.content = b"mock image content"
+#     mock_response.raise_for_status.return_value = None
 
-    with patch('app.apis.main_router.requests.get', return_value=mock_response):
-        image_content = await fetch_image("http://example.com/image.jpg")
-        assert image_content == b"mock image content"
+#     with patch('app.apis.main_router.requests.get', return_value=mock_response):
+#         image_content = await fetch_image("http://example.com/image.jpg")
+#         assert image_content == b"mock image content"
 
-@pytest.mark.asyncio
-async def test_fetch_image_failure():
-    with patch('app.apis.main_router.requests.get') as mock_get:
-        mock_get.side_effect = requests.RequestException("Network error")
+# @pytest.mark.asyncio
+# async def test_fetch_image_failure():
+#     with patch('app.apis.main_router.requests.get') as mock_get:
+#         mock_get.side_effect = requests.RequestException("Network error")
         
-        with pytest.raises(HTTPException) as exc_info:
-            await fetch_image("http://example.com/image.jpg")
+#         with pytest.raises(HTTPException) as exc_info:
+#             await fetch_image("http://example.com/image.jpg")
         
-        assert exc_info.value.status_code == 500
-        assert "Failed to fetch image" in str(exc_info.value.detail)
+#         assert exc_info.value.status_code == 500
+#         assert "Failed to fetch image" in str(exc_info.value.detail)
 
 __all__ = ['router', 'construct_image_url', 'BASE_URL']
