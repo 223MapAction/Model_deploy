@@ -430,3 +430,5 @@ async def get_chat_history(chat_key: str):
 async def expire_impact_area(incident_id: str, delay: int):
     await asyncio.sleep(delay)
     impact_area_storage.pop(incident_id, None)
+
+
