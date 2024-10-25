@@ -1,6 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock
 import os
+from databases import Database
+
+# Mock the database module to avoid actual database connections during tests
+with patch('app.database.Database') as MockDatabase:
+    from app.database import database, postgres_url
 
 @pytest.fixture
 def mock_env_vars():
@@ -18,29 +23,28 @@ def mock_database():
         yield mock
 
 class TestDatabase:
-    def test_load_dotenv_called(self, mock_load_dotenv, mock_env_vars, mock_database):
+    @patch('app.database.load_dotenv')
+    def test_load_dotenv_called(self, mock_load_dotenv):
         import app.database
         mock_load_dotenv.assert_called_once()
 
-    def test_postgres_url_retrieved(self, mock_env_vars, mock_database):
-        import app.database
-        assert app.database.postgres_url == 'postgresql://user:pass@localhost/testdb'
+    @patch.dict(os.environ, {'POSTGRES_URL': 'mock://postgres/url'})
+    def test_postgres_url_retrieved(self):
+        assert postgres_url == 'mock://postgres/url'
 
-    def test_database_initialized(self, mock_env_vars, mock_database):
-        import app.database
-        mock_database.assert_called_once_with('postgresql://user:pass@localhost/testdb')
+    @patch.dict(os.environ, {'POSTGRES_URL': 'mock://postgres/url'})
+    def test_database_initialized(self):
+        MockDatabase.assert_called_once_with('mock://postgres/url')
 
-    def test_database_instance_created(self, mock_env_vars, mock_database):
-        import app.database
-        assert isinstance(app.database.database, MagicMock)
+    def test_database_instance_created(self):
+        assert isinstance(database, MagicMock)
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_missing_postgres_url(self, mock_load_dotenv, mock_database):
+    def test_missing_postgres_url(self):
         with pytest.raises(TypeError):
             import app.database
 
-    @patch('app.database.os.getenv')
-    def test_empty_postgres_url(self, mock_getenv, mock_load_dotenv, mock_database):
-        mock_getenv.return_value = ''
+    @patch.dict(os.environ, {'POSTGRES_URL': ''})
+    def test_empty_postgres_url(self):
         with pytest.raises(ValueError):
             import app.database
