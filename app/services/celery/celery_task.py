@@ -242,22 +242,22 @@ def analyze_incident_zone(lat, lon, incident_location, incident_type, start_date
 
     return result
 
-@celery_app.task
-def run_prediction_and_context(image, sensitive_structures):
-    """
-    Chain the prediction task with the contextual information task.
-    """
-    try:
-        logger.info("Starting chained task: run_prediction_and_context.")
-        prediction, probabilities = perform_prediction(image)
+# @celery_app.task
+# def run_prediction_and_context(image, sensitive_structures):
+#     """
+#     Chain the prediction task with the contextual information task.
+#     """
+#     try:
+#         logger.info("Starting chained task: run_prediction_and_context.")
+#         prediction, probabilities = perform_prediction(image)
         
-        # Proceed with fetching contextual information only if prediction is successful
-        if prediction and not isinstance(prediction, dict):  # Ensure it's not an error dict
-            context_info = fetch_contextual_information.delay(prediction, sensitive_structures)
-            return context_info.get(timeout=120)
-        else:
-            logger.error(f"Failed to proceed due to prediction error: {prediction}")
-            return {"error": "Prediction failed, unable to fetch contextual information."}
-    except Exception as e:
-        logger.error(f"Chained task failed: {e}")
-        return {"error": str(e)}
+#         # Proceed with fetching contextual information only if prediction is successful
+#         if prediction and not isinstance(prediction, dict):  # Ensure it's not an error dict
+#             context_info = fetch_contextual_information.delay(prediction, sensitive_structures)
+#             return context_info.get(timeout=120)
+#         else:
+#             logger.error(f"Failed to proceed due to prediction error: {prediction}")
+#             return {"error": "Prediction failed, unable to fetch contextual information."}
+#     except Exception as e:
+#         logger.error(f"Chained task failed: {e}")
+#         return {"error": str(e)}
