@@ -14,7 +14,19 @@ env:
     AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
 jobs:
+    cleanup:
+        runs-on: self-hosted
+        steps:
+            - name: Free up disk space
+              run: |
+                  sudo docker system prune -af
+                  sudo docker volume prune -f
+                  sudo apt-get clean
+                  sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+                  sudo df -h
+
     setup-and-test:
+        needs: cleanup
         runs-on: self-hosted
         steps:
             - name: Checkout Repository
@@ -81,7 +93,7 @@ jobs:
                   files: ./coverage/coverage.xml
 
     deploy:
-        needs: setup-and-test
+        needs: [cleanup, setup-and-test]
         runs-on: self-hosted
         steps:
             - name: Checkout Repository
@@ -120,8 +132,12 @@ jobs:
                   docker-compose -f _cd_pipeline.yaml down --remove-orphans
                   docker-compose -f _cd_pipeline.yaml up --build -d
 
-            - name: Clean Up Unused Docker Images and Containers
-              run: docker system prune -af --volumes
+            - name: Post-deployment cleanup
+              if: always()
+              run: |
+                  docker system prune -af --volumes
+                  docker image prune -af
+                  docker volume prune -f
 
     deploy-docs:
         needs: deploy
