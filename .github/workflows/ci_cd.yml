@@ -33,6 +33,8 @@ jobs:
               uses: azure/login@v1
               with:
                   creds: ${{ secrets.AZURE_CREDENTIALS }}
+                  auth-type: IDENTITY
+                  allow-no-subscriptions: true
 
             - name: Install Docker Compose
               run: |
