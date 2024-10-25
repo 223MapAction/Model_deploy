@@ -62,11 +62,21 @@ jobs:
               run: |
                   docker-compose -f _ci_pipeline.yml up --build -d
                   docker-compose -f _ci_pipeline.yml run --rm testing
+                  docker cp $(docker-compose -f _ci_pipeline.yml ps -q testing):/app/coverage.xml ./coverage.xml
+
+            - name: Check for coverage file
+              run: |
+                  if [ ! -f ./coverage.xml ]; then
+                    echo "Coverage file not found!"
+                    exit 1
+                  fi
 
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+              with:
+                  files: ./coverage.xml
 
     deploy:
         needs: setup-and-test
@@ -75,10 +85,16 @@ jobs:
             - name: Checkout Repository
               uses: actions/checkout@v3
 
+            - name: Install Azure CLI
+              run: |
+                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
             - name: Login to Azure
               uses: azure/login@v1
               with:
                   creds: ${{ secrets.AZURE_CREDENTIALS }}
+                  auth-type: IDENTITY
+                  allow-no-subscriptions: true
 
             - name: Build and Deploy Docker Image
               run: |
