@@ -129,11 +129,6 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            
-            <li class="nav-item" data-bs-level="2"><a href="#services.celery.celery_task.run_prediction_and_context" class="nav-link">run_prediction_and_context</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
         </ul>
     </div>
 </div></div>
@@ -930,64 +925,6 @@ This function processes an image to predict its content and calculate the probab
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction task failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)},</span> <span class="p">[]</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="services.celery.celery_task.run_prediction_and_context" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">run_prediction_and_context</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span></code>
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Chain the prediction task with the contextual information task.</p>
-
-            <details class="quote">
-              <summary>Source code in <code>app/services/celery/celery_task.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span>
-<span class="normal">250</span>
-<span class="normal">251</span>
-<span class="normal">252</span>
-<span class="normal">253</span>
-<span class="normal">254</span>
-<span class="normal">255</span>
-<span class="normal">256</span>
-<span class="normal">257</span>
-<span class="normal">258</span>
-<span class="normal">259</span>
-<span class="normal">260</span>
-<span class="normal">261</span>
-<span class="normal">262</span>
-<span class="normal">263</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span>
-<span class="k">def</span> <span class="nf">run_prediction_and_context</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Chain the prediction task with the contextual information task.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting chained task: run_prediction_and_context.&quot;</span><span class="p">)</span>
-        <span class="n">prediction</span><span class="p">,</span> <span class="n">probabilities</span> <span class="o">=</span> <span class="n">perform_prediction</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-
-        <span class="c1"># Proceed with fetching contextual information only if prediction is successful</span>
-        <span class="k">if</span> <span class="n">prediction</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>  <span class="c1"># Ensure it&#39;s not an error dict</span>
-            <span class="n">context_info</span> <span class="o">=</span> <span class="n">fetch_contextual_information</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">sensitive_structures</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">context_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to proceed due to prediction error: </span><span class="si">{</span><span class="n">prediction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Prediction failed, unable to fetch contextual information.&quot;</span><span class="p">}</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chained task failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

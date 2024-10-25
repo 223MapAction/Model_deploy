@@ -95,32 +95,32 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo" class="nav-link">gpt_3_5_turbo</a>
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.llm" class="nav-link">llm</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.chat_response" class="nav-link">chat_response</a>
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.llm.chat_response" class="nav-link">chat_response</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.display_chat_history" class="nav-link">display_chat_history</a>
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.llm.display_chat_history" class="nav-link">display_chat_history</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="nav-link">generate_satellite_analysis</a>
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.llm.generate_satellite_analysis" class="nav-link">generate_satellite_analysis</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.get_assistant_response" class="nav-link">get_assistant_response</a>
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.llm.get_assistant_response" class="nav-link">get_assistant_response</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             
-            <li class="nav-item" data-bs-level="2"><a href="#services.llm.gpt_3_5_turbo.get_response" class="nav-link">get_response</a>
+            <li class="nav-item" data-bs-level="2"><a href="#services.llm.llm.get_response" class="nav-link">get_response</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -133,7 +133,7 @@
 
 
 
-<a id="services.llm.gpt_3_5_turbo"></a>
+<a id="services.llm.llm"></a>
     <div class="doc doc-contents first">
 
 
@@ -156,7 +156,7 @@
 <div class="doc doc-object doc-function">
 
 
-<h2 id="services.llm.gpt_3_5_turbo.chat_response" class="doc doc-heading">
+<h2 id="services.llm.llm.chat_response" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">chat_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">chat_history</span><span class="o">=</span><span class="p">[],</span> <span class="n">impact_area</span><span class="o">=</span><span class="s1">&#39;Non spécifié&#39;</span><span class="p">)</span></code>
 
 </h2>
@@ -282,7 +282,7 @@ with context about the environmental incident.</p>
 </code></pre></div>
 
             <details class="quote">
-              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <summary>Source code in <code>app/services/llm/llm.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 78</span>
 <span class="normal"> 79</span>
 <span class="normal"> 80</span>
@@ -547,7 +547,7 @@ with context about the environmental incident.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="services.llm.gpt_3_5_turbo.display_chat_history" class="doc doc-heading">
+<h2 id="services.llm.llm.display_chat_history" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">display_chat_history</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span></code>
 
 </h2>
@@ -590,7 +590,7 @@ with context about the environmental incident.</p>
     </table>
 
             <details class="quote">
-              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <summary>Source code in <code>app/services/llm/llm.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
@@ -619,7 +619,7 @@ with context about the environmental incident.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="services.llm.gpt_3_5_turbo.generate_satellite_analysis" class="doc doc-heading">
+<h2 id="services.llm.llm.generate_satellite_analysis" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">generate_satellite_analysis</span><span class="p">(</span><span class="n">ndvi_data</span><span class="p">,</span> <span class="n">ndwi_data</span><span class="p">,</span> <span class="n">landcover_data</span><span class="p">,</span> <span class="n">incident_type</span><span class="p">)</span></code>
 
 </h2>
@@ -732,7 +732,7 @@ with proper markdown formatting.</p>
     </table>
 
             <details class="quote">
-              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <summary>Source code in <code>app/services/llm/llm.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">207</span>
 <span class="normal">208</span>
 <span class="normal">209</span>
@@ -915,7 +915,7 @@ with proper markdown formatting.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="services.llm.gpt_3_5_turbo.get_assistant_response" class="doc doc-heading">
+<h2 id="services.llm.llm.get_assistant_response" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">get_assistant_response</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span></code>
 
 </h2>
@@ -1002,7 +1002,7 @@ with proper markdown formatting.</p>
     </table>
 
             <details class="quote">
-              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <summary>Source code in <code>app/services/llm/llm.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
@@ -1067,7 +1067,7 @@ with proper markdown formatting.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="services.llm.gpt_3_5_turbo.get_response" class="doc doc-heading">
+<h2 id="services.llm.llm.get_response" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">get_response</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span></code>
 
 </h2>
@@ -1131,7 +1131,7 @@ with proper markdown formatting.</p>
     </table>
 
             <details class="quote">
-              <summary>Source code in <code>app/services/llm/gpt_3_5_turbo.py</code></summary>
+              <summary>Source code in <code>app/services/llm/llm.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">53</span>
 <span class="normal">54</span>
 <span class="normal">55</span>
