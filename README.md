@@ -337,4 +337,4 @@ This project aims to comply with the Digital Public Goods Standard. Below is a s
 8. Adherence to Standards & Best Practices: [Brief explanation]
 9. Do No Harm Assessment: [Brief explanation]
 
-For a detailed assessment and ongoing compliance efforts, please see our [DPG_ASSESSMENT.md](link_to_file).
+For a detailed assessment and ongoing compliance efforts, please see our [DPG_ASSESSMENT.md](DPG_ASSESSMENT.md).
