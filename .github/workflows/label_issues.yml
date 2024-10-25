@@ -1,0 +1,23 @@
+name: Label issues
+on:
+    issues:
+        types: [opened, edited]
+
+jobs:
+    label_issues:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/github-script@v6
+              with:
+                  github-token: ${{secrets.GITHUB_TOKEN}}
+                  script: |
+                      const issue = context.payload.issue;
+                      const keywords = ['simple', 'beginner', 'newcomer', 'first contribution', 'comment'];
+                      if (keywords.some(keyword => issue.body.toLowerCase().includes(keyword))) {
+                        github.rest.issues.addLabels({
+                          issue_number: issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          labels: ['good first issue']
+                        })
+                      }
