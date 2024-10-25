@@ -58,15 +58,17 @@ jobs:
                   echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
               shell: bash
 
+            - name: Create coverage directory
+              run: mkdir -p coverage
+
             - name: Run Tests
               run: |
                   docker-compose -f _ci_pipeline.yml up --build -d
-                  docker-compose -f _ci_pipeline.yml run --rm testing
-                  docker cp $(docker-compose -f _ci_pipeline.yml ps -q testing):/app/coverage.xml ./coverage.xml
+                  docker-compose -f _ci_pipeline.yml run --rm -v ${{ github.workspace }}/coverage:/app/coverage testing
 
             - name: Check for coverage file
               run: |
-                  if [ ! -f ./coverage.xml ]; then
+                  if [ ! -f ./coverage/coverage.xml ]; then
                     echo "Coverage file not found!"
                     exit 1
                   fi
@@ -76,7 +78,7 @@ jobs:
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
               with:
-                  files: ./coverage.xml
+                  files: ./coverage/coverage.xml
 
     deploy:
         needs: setup-and-test
