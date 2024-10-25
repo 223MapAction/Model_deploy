@@ -63,6 +63,16 @@ jobs:
                   flags: unittests
                   name: codecov-umbrella
 
+            - name: Check MODEL_PATH
+              run: |
+                  echo "MODEL_PATH is set to: $MODEL_PATH"
+                  ls -l $MODEL_PATH
+                  if [ -f "$MODEL_PATH" ]; then
+                    echo "Model file exists"
+                  else
+                    echo "Model file does not exist"
+                  fi
+
     deploy:
         needs: test
         runs-on: self-hosted
