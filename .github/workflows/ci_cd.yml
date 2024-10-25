@@ -1,0 +1,157 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - main
+
+permissions:
+    contents: write
+    pages: write
+    id-token: write
+
+jobs:
+    test:
+        runs-on: self-hosted
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v3
+              with:
+                  python-version: "3.10"
+
+            - name: Install Docker Compose
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y docker-compose
+
+            - name: Create .cv_deploy.env
+              run: |
+                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
+                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
+                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
+                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
+                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
+                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
+                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
+                  echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
+                  echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
+                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
+                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
+                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
+                  echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
+              shell: bash
+
+            - name: Build Containers
+              run: docker-compose -f _ci_pipeline.yml up --build -d
+
+            - name: Run Tests
+              run: docker-compose -f _ci_pipeline.yml run --rm testing
+
+            - name: Copy Coverage Report
+              run: |
+                  container_id=$(docker-compose -f _ci_pipeline.yml ps -q testing)
+                  docker cp $container_id:/app/coverage/coverage.xml ./coverage.xml
+
+            - name: Upload Coverage Reports to Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  files: ./coverage.xml
+                  flags: unittests
+                  name: codecov-umbrella
+
+    deploy:
+        needs: test
+        runs-on: self-hosted
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v3
+              with:
+                  python-version: "3.10"
+
+            - name: Install Docker Compose
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y docker-compose
+
+            - name: Install Azure CLI
+              run: |
+                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+            - name: Azure Login
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+                  auth-type: IDENTITY
+                  allow-no-subscriptions: true
+
+            - name: Set Permissions for Directories
+              run: |
+                  for dir in "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data" "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/local_uploads"; do
+                    if [ -d "$dir" ]; then
+                      sudo chown azureuser:azureuser "$dir"
+                    else
+                      echo "Directory $dir does not exist. Skipping chown command."
+                    fi
+                  done
+
+            - name: Create .cv_deploy.env
+              run: |
+                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
+                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
+                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
+                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
+                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
+                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
+                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
+                  echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
+                  echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
+                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
+                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
+                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
+                  echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
+              shell: bash
+
+            - name: Build and Deploy Docker Image
+              run: |
+                  docker-compose -f _cd_pipeline.yaml build
+                  docker-compose -f _cd_pipeline.yaml down --remove-orphans
+                  docker-compose -f _cd_pipeline.yaml up --build -d
+
+            - name: Clean Up Unused Docker Images and Containers
+              run: docker system prune -af --volumes
+
+    deploy-docs:
+        needs: deploy
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v3
+              with:
+                  python-version: "3.10"
+
+            - name: Install Dependencies
+              run: pip install mkdocs mkdocstrings mkdocs-material mkdocstrings-python
+
+            - name: Build MkDocs Site
+              run: mkdocs build
+
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v4
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./site
