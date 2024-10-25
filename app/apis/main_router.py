@@ -164,7 +164,6 @@ async def predict_incident_type(data: ImageModel):
         ndvi_heatmap_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
         landcover_plot_url = upload_file_to_blob(container_name, satellite_analysis['landcover_plot'])
 
-
         # Prepare the response
         response = {
             "prediction": prediction,
