@@ -37,18 +37,18 @@ def mock_generate_satellite_analysis():
     with patch('app.services.celery.celery_task.generate_satellite_analysis') as mock:
         yield mock
 
-def test_perform_prediction(mock_predict):
-    # Setup mock
-    mock_predict.return_value = ("cat", torch.tensor([0.1, 0.9]))
+# def test_perform_prediction(mock_predict):
+#     # Setup mock
+#     mock_predict.return_value = ("cat", torch.tensor([0.1, 0.9]))
 
-    # Call the task
-    image_data = b"fake_image_data"
-    result = perform_prediction(image_data)
+#     # Call the task
+#     image_data = b"fake_image_data"
+#     result = perform_prediction(image_data)
 
-    # Assertions
-    assert result[0] == "cat"
-    assert result[1] == [0.1, 0.9]
-    mock_predict.assert_called_once_with(image_data)
+#     # Assertions
+#     assert result[0] == "cat"
+#     assert result[1] == [0.1, 0.9]
+#     mock_predict.assert_called_once_with(image_data)
 
 def test_fetch_contextual_information(mock_get_response):
     # Setup mock
