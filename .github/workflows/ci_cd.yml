@@ -10,8 +10,11 @@ permissions:
     pages: write
     id-token: write
 
+env:
+    AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
 jobs:
-    test:
+    setup-and-test:
         runs-on: self-hosted
         steps:
             - name: Checkout Repository
@@ -21,95 +24,20 @@ jobs:
               uses: actions/setup-python@v3
               with:
                   python-version: "3.10"
-
-            - name: Install Docker Compose
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y docker-compose
-
-            - name: Create .cv_deploy.env
-              run: |
-                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
-                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
-                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
-                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
-                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
-                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
-                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
-                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
-                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-                  echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
-              shell: bash
-
-            - name: Build Containers
-              run: docker-compose -f _ci_pipeline.yml up --build -d
-
-            - name: Run Tests
-              run: docker-compose -f _ci_pipeline.yml run --rm testing
-
-            - name: Copy Coverage Report
-              run: |
-                  container_id=$(docker-compose -f _ci_pipeline.yml ps -q testing)
-                  docker cp $container_id:/app/coverage/coverage.xml ./coverage.xml
-
-            - name: Upload Coverage Reports to Codecov
-              uses: codecov/codecov-action@v4
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  files: ./coverage.xml
-                  flags: unittests
-                  name: codecov-umbrella
-
-            - name: Check MODEL_PATH
-              run: |
-                  echo "MODEL_PATH is set to: $MODEL_PATH"
-                  ls -l $MODEL_PATH
-                  if [ -f "$MODEL_PATH" ]; then
-                    echo "Model file exists"
-                  else
-                    echo "Model file does not exist"
-                  fi
-
-    deploy:
-        needs: test
-        runs-on: self-hosted
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
-
-            - name: Set up Python
-              uses: actions/setup-python@v3
-              with:
-                  python-version: "3.10"
-
-            - name: Install Docker Compose
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y docker-compose
 
             - name: Install Azure CLI
               run: |
                   curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-            - name: Azure Login
+            - name: Login to Azure
               uses: azure/login@v1
               with:
                   creds: ${{ secrets.AZURE_CREDENTIALS }}
-                  auth-type: IDENTITY
-                  allow-no-subscriptions: true
 
-            - name: Set Permissions for Directories
+            - name: Install Docker Compose
               run: |
-                  for dir in "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/app/sentinel_data" "/home/azureuser/actions-runner/_work/Model_deploy/Model_deploy/local_uploads"; do
-                    if [ -d "$dir" ]; then
-                      sudo chown azureuser:azureuser "$dir"
-                    else
-                      echo "Directory $dir does not exist. Skipping chown command."
-                    fi
-                  done
+                  sudo apt-get update
+                  sudo apt-get install -y docker-compose
 
             - name: Create .cv_deploy.env
               run: |
@@ -127,6 +55,28 @@ jobs:
                   echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
                   echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
               shell: bash
+
+            - name: Run Tests
+              run: |
+                  docker-compose -f _ci_pipeline.yml up --build -d
+                  docker-compose -f _ci_pipeline.yml run --rm testing
+
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v4
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    deploy:
+        needs: setup-and-test
+        runs-on: self-hosted
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+
+            - name: Login to Azure
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
 
             - name: Build and Deploy Docker Image
               run: |
