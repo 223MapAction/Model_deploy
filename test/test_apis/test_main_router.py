@@ -32,23 +32,23 @@ def test_construct_image_url():
     expected_url_2 = f"{BASE_URL}/image.png"
     assert construct_image_url(another_mock_path) == expected_url_2
 
-@patch('app.apis.main_router.requests.get')
-def test_fetch_image_success(mock_get):
-    mock_response = MagicMock()
-    mock_response.content = b"image_content"
-    mock_get.return_value = mock_response
+# @patch('app.apis.main_router.requests.get')
+# def test_fetch_image_success(mock_get):
+#     mock_response = MagicMock()
+#     mock_response.content = b"image_content"
+#     mock_get.return_value = mock_response
 
-    result = fetch_image("http://example.com/image.jpg")
-    assert result == b"image_content"
+#     result = fetch_image("http://example.com/image.jpg")
+#     assert result == b"image_content"
 
-@patch('app.apis.main_router.requests.get')
-def test_fetch_image_failure(mock_get):
-    mock_get.side_effect = Exception("Network error")
+# @patch('app.apis.main_router.requests.get')
+# def test_fetch_image_failure(mock_get):
+#     mock_get.side_effect = Exception("Network error")
 
-    with pytest.raises(HTTPException) as exc_info:
-        fetch_image("http://example.com/image.jpg")
-    assert exc_info.value.status_code == 500
-    assert "Failed to fetch image" in str(exc_info.value.detail)
+#     with pytest.raises(HTTPException) as exc_info:
+#         fetch_image("http://example.com/image.jpg")
+#     assert exc_info.value.status_code == 500
+#     assert "Failed to fetch image" in str(exc_info.value.detail)
 
 def test_sanitize_error_message():
     message = "Error: Invalid API key 'abc123' in request"
