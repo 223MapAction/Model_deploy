@@ -55,7 +55,7 @@ tags = ["Caniveau obstrué", "Déchets", "Déforestation",
 
 def predict(image):
     """
-    Performs multi-label image classification using a pre-loaded ResNet50 model.
+    Performs multi-label image classification using a preloaded ResNet50 model.
     
     Args:
         image (bytes): The image data in bytes format.
@@ -63,16 +63,22 @@ def predict(image):
     Returns:
         tuple: A tuple containing a list of predicted tags and a list of probabilities.
     """
-    model.eval()  # Set model to evaluation mode
-    input_data = preprocess_image(image)  # Preprocess the image
-    with torch.no_grad():  # Disable gradient computation
-        output = model(input_data)  # Forward pass
-        probabilities = torch.sigmoid(output[0])  # Apply sigmoid to get probabilities
-        
-        # Get the top 3 predictions with probabilities above 0.4
+    model.eval()  # Set model to evaluation mode to disable dropout and batch normalization layers.
+    input_data = preprocess_image(image)   # Preprocess the image to the format required by the model.
+
+    # Disable gradient computation to reduce memory usage and speed up computations during inference.
+    with torch.no_grad():
+        output = model(input_data)  # Perform a forward pass through the model to get the raw output.
+        probabilities = torch.sigmoid(output[0])  # Apply sigmoid activation to get probabilities for each tag.
+
+        # The probabilities represent the likelihood of each tag being associated with the input image.
+        # A value closer to 1 indicates a higher confidence that the tag applies to the image.
+
+        # Filter out predictions with probability less than 0.4 and sort the rest in descending order.
         top_predictions = [(tags[i], prob.item()) for i, prob in enumerate(probabilities) if prob.item() > 0.4]
-        top_predictions.sort(key=lambda x: x[1], reverse=True)
-        top_predictions = top_predictions[:3]
-        
-        # Return both the predictions and the raw probabilities
+        top_predictions.sort(key=lambda x: x[1], reverse=True) # Sort predictions by probability in descending order.
+        top_predictions = top_predictions[:3] # Get the top 3 predictions based on probability.
+
+        # Return both the top predictions and the raw probabilities for all tags.
         return top_predictions, probabilities.tolist()
+
