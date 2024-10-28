@@ -62,7 +62,7 @@ Model_deploy is a versatile open-source project designed for seamless deployment
 
 The system uses FastAPI endpoints to make predictions using computer vision models and generate summaries using a Large Language Model (LLM).
 
-![System Architecture Diagram]
+![System Architecture Diagram](system_arch.png)
 
 ---
 
