@@ -319,14 +319,14 @@ See our [Code of Conduct](https://github.com/223MapAction/.github/blob/main/CODE
 
 This project aims to comply with the Digital Public Goods Standard. Below is a summary of our current compliance status:
 
-1. Relevance to Sustainable Development Goals: [Brief explanation]
+1. Relevance to Sustainable Development Goals: The project aligns with SDGs by promoting sustainable urban and environmental management through technology and data-driven insights.
 2. Use of Approved Open License: Compliant (AGPL-3.0 license)
-3. Clear Ownership: [Brief explanation]
-4. Platform Independence: [Brief explanation]
+3. Clear Ownership: The project is owned and maintained by Map Action, ensuring accountability and continuous development.
+4. Platform Independence: The project is designed to be platform-independent, running on various operating systems and environments with Docker support.
 5. Documentation: Largely compliant (see README and [link to developer docs])
-6. Mechanism for Extracting Data: [Brief explanation]
-7. Adherence to Privacy and Applicable Laws: [Brief explanation]
-8. Adherence to Standards & Best Practices: [Brief explanation]
-9. Do No Harm Assessment: [Brief explanation]
+6. Mechanism for Extracting Data: The project includes APIs and data processing pipelines to extract and analyze environmental data efficiently.
+7. Adherence to Privacy and Applicable Laws: The project follows best practices for data privacy and complies with relevant legal requirements to protect user data.
+8. Adherence to Standards & Best Practices: The project adheres to industry standards and best practices in software development, ensuring high-quality and reliable solutions.
+9. Do No Harm Assessment: The project undergoes regular assessments to ensure it does not negatively impact users or the environment.
 
 For a detailed assessment and ongoing compliance efforts, please see our [Digital Public Goods Standard Assessment](DPG_ASSESSMENT.md).
