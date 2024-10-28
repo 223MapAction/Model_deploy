@@ -227,11 +227,11 @@ This structure highlights the main components of the Model_deploy project:
 
 **System Requirements:**
 
--   **Python**: `version x.y.z`
+-   **Docker**: Ensure Docker is installed and running on your system.
 
 ### Installation
 
-<h4>From <code>source</code></h4>
+<h4>Using Docker</h4>
 
 > 1. Clone the Model_deploy repository:
 >
@@ -245,20 +245,20 @@ This structure highlights the main components of the Model_deploy project:
 > $ cd Model_deploy
 > ```
 >
-> 3. Install the dependencies:
+> 3. Build and start the Docker containers:
 >
 > ```console
-> $ pip install -r requirements.txt
+> $ docker-compose -f _cd_pipeline.yaml up --build
 > ```
 
 ### Usage
 
-<h4>From <code>source</code></h4>
+<h4>Access the Application</h4>
 
-> Run Model_deploy using the command below:
+> Once the containers are up and running, access the application at:
 >
 > ```console
-> $ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+> http://localhost:8001
 > ```
 
 ### Tests
@@ -266,7 +266,7 @@ This structure highlights the main components of the Model_deploy project:
 > Run the test suite using the command below:
 >
 > ```console
-> $ pytest --cov=app --cov-report term-missing
+> $ docker-compose -f _ci_pipeline.yml up
 > ```
 
 ---
