@@ -177,13 +177,9 @@ This structure highlights the main components of the Model_deploy project:
 
 <details closed><summary>app.services.llm</summary>
 
-| File                                                                                                                                 | Summary                                                                                           |
-| ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| [llm.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/llm.py)                                       | Contains core LLM functionality for processing queries and generating responses.                  |
-| [llm_preprocessing.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/llm_preprocessing.py)           | Handles data preprocessing for LLM input, including document loading and vector storage.          |
-| [pgml_llm_preprocessing.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/pgml_llm_preprocessing.py) | Implements preprocessing specific to PostgreSQL-based machine learning integration.               |
-| [pgml_llm.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/pgml_llm.py)                             | Contains logic for LLM operations using PostgreSQL machine learning extensions.                   |
-| [preprocessing.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/preprocessing.py)                   | General preprocessing utilities for LLM tasks, including text splitting and embedding generation. |
+| File                                                                                           | Summary                         |
+| ---------------------------------------------------------------------------------------------- | ------------------------------- |
+| [llm.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/llm.py) | Contains core LLM functionality |
 
 </details>
 
@@ -223,10 +219,9 @@ This structure highlights the main components of the Model_deploy project:
 
 <details closed><summary>.github.workflows</summary>
 
-| File                                                                                                      | Summary                                                                                                                                                                                                                  |
-| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [testing.yml](https://github.com/223MapAction/Model_deploy.git/blob/master/.github/workflows/testing.yml) | Enables automated testing via GitHub Actions by running test suites upon code changes. Ensures continuous integration by validating code quality, fostering robustness and stability within the Model_deploy repository. |
-| [deploy.yml](https://github.com/223MapAction/Model_deploy.git/blob/master/.github/workflows/deploy.yml)   | Deploys the ML model API via GitHub Actions. Orchestrates docker build and push steps, trigger-based deployment on master branch push events. Secret handling for Docker Hub credentials.                                |
+| File                                                                                                  | Summary                                                                                                                                                                                                                                                  |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ci_cd.yml](https://github.com/223MapAction/Model_deploy.git/blob/master/.github/workflows/ci_cd.yml) | Handles continuous integration and deployment via GitHub Actions. Runs test suites to validate code quality, builds and pushes Docker images, and deploys the ML model API on master branch pushes. Includes secret handling for Docker Hub credentials. |
 
 </details>
 
@@ -284,9 +279,9 @@ This structure highlights the main components of the Model_deploy project:
 
 Contributions are welcome! Here are several ways you can contribute:
 
--   **[Report Issues](https://github.com/223MapAction/Model_deploy.git/issues)**: Submit bugs found or log feature requests for the `Model_deploy` project.
--   **[Submit Pull Requests](https://github.com/223MapAction/Model_deploy.git/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
--   **[Join the Discussions](https://github.com/223MapAction/Model_deploy.git/discussions)**: Share your insights, provide feedback, or ask questions.
+-   **[Report Issues](https://github.com/223MapAction/Model_deploy/issues)**: Submit bugs found or log feature requests for the `Model_deploy` project.
+-   **[Submit Pull Requests](https://github.com/223MapAction/Model_deploy/pulls)**: Review open PRs, and submit your own PRs.
+-   **[Join the Discussions](https://github.com/223MapAction/Model_deploy/discussions)**: Share your insights, provide feedback, or ask questions.
 
 See our [Contribution Guidelines](https://github.com/223MapAction/.github/blob/main/CONTRIBUTING.md) for details on how to contribute.
 
