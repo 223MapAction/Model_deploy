@@ -1,70 +1,40 @@
-Map Action Contribution Guidelines
+# Contributing to Model_deploy
 
-Welcome to Map Action! We're excited about your interest in contributing to our open-source project. These guidelines will help you understand how to effectively contribute to our codebase.
+Thank you for considering contributing to Model_deploy! We welcome contributions from the community to help improve and enhance the project. Please take a moment to review this document to make the contribution process easy and effective for everyone involved.
 
-About Map Action
+## How to Contribute
 
-Map Action is a Bamako-based trailblazer in using mapping technology to tackle environmental challenges and solve urban issues. Our innovative approach began by addressing Water, Sanitation, and Hygiene (WASH) problems and has grown to encompass various sectors through collaboration with civil society, governments, NGOs, and private entities.
+### Reporting Issues
 
-Our sustainable business model includes paid subscriptions for organizations that rely on our data to gain actionable insights across diverse domains. This model allows us to continuously enhance our offerings.
+If you encounter any bugs or have suggestions for improvements, please report them by creating an issue in the [GitHub Issues](https://github.com/223MapAction/Model_deploy/issues) section. When reporting an issue, please include:
 
-Contributing
+-   A clear and descriptive title.
+-   A detailed description of the problem or suggestion.
+-   Steps to reproduce the issue, if applicable.
+-   Any relevant logs or screenshots.
 
-We welcome contributions of all shapes and sizes! Here are the different ways you can get involved:
+### Submitting Pull Requests
 
-    Report bugs and request features: Identify any issues you encounter while using our tools. You can report them directly on GitHub Issues https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues.
-    Submit code changes: If you have improvements or new features in mind, you can contribute code by creating pull requests (PRs).
-    Write documentation or tutorials: Enhance our documentation to make it easier for others to understand and use our tools.
-    Help with code reviews and testing: Lend your expertise by reviewing pull requests submitted by others and assisting with testing efforts.
+We welcome pull requests for bug fixes, improvements, and new features. To submit a pull request:
 
-Finding Issues to Work On
+1. Fork the repository and clone your fork.
+2. Create a new branch for your changes: `git checkout -b my-feature-branch`
+3. Make your changes and commit them with clear and descriptive commit messages.
+4. Push your changes to your fork: `git push origin my-feature-branch`
+5. Open a pull request against the `main` branch of the original repository.
 
-    Browse our issue tracker on GitHub Issues https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues to find existing issues.
-    Look for issues labeled "help wanted" or those categorized as bugs or enhancements that you're interested in tackling.
+Please ensure that your pull request:
 
-Making Changes
+-   Follows the project's coding style and conventions.
+-   Includes tests for any new functionality or bug fixes.
+-   Does not introduce any new linting errors or warnings.
 
-    Fork the Repository:
-        Visit the Map Action project on GitHub: https://github.com/223MapAction
-        Click on the "Fork" button to create your own copy of the repository.
+### Code of Conduct
 
-    Create a Branch:
-        Clone your forked repository to your local machine.
-        Create a new branch for your specific changes.
-        Use a descriptive branch name that reflects your contribution (e.g., "fix-map-loading-bug").
+Please note that this project is governed by a [Code of Conduct](https://github.com/223MapAction/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report any unacceptable behavior to the project maintainers.
 
-    Code and Commit:
-        Make your changes to the codebase.
-        Write clear and concise commit messages that describe your modifications.
+## Additional Resources
 
-    Testing:
-        Ensure your changes don't introduce any regressions.
-        We use pytest and flake8 for testing. Make sure your code passes all tests before submitting a pull request.
+-   [Developer Documentation](https://223mapaction.github.io/Model_deploy/)
 
-Submitting Pull Requests
-
-    Push to Your Branch:
-        Once you're satisfied with your changes, push your local branch to your forked repository on GitHub.
-
-    Open a Pull Request:
-        Navigate to your forked repository on GitHub and go to the "Pull Requests" tab.
-        Click on "New pull request" and select the branch containing your changes.
-        Create a pull request with a clear and descriptive title and explanation of your modifications.
-        Mention any issues your pull request addresses.
-
-    Code Review:
-        Our internal code review process involves two Map Action developers.
-        They'll review your pull request and provide feedback or suggestions for improvement.
-
-    Merge:
-        Once your pull request is approved and any necessary changes are made, it will be merged into the main codebase.
-
-Additional Notes
-
-    License: All our repositories use the GPL-3.0 license. Ensure your contributions comply with the license terms.
-    Code of Conduct: We value a respectful and inclusive environment. Please familiarize yourself with our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. 
-    Appreciation: We appreciate all contributions, regardless of their scope. Thank you for helping us improve Map Action!
-
-We look forward to your contributions!
-
-This tailored guide incorporates the information you provided, making it specific to the Map Action project and its contribution workflow.
+Thank you for your contributions!
