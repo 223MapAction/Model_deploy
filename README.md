@@ -8,11 +8,11 @@
     <em>FastAPI wrapper for Map Action Model deployment.</em>
 </p>
 <p align="center">
-	<img src="https://img.shields.io/github/license/223MapAction/Model_deploy.git?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;color=0080ff" alt="license">
-	<img src="https://img.shields.io/github/last-commit/223MapAction/Model_deploy.git?style=flat-square&amp;logo=git&amp;logoColor=white&amp;color=0080ff" alt="last-commit">
-	<img src="https://img.shields.io/github/languages/top/223MapAction/Model_deploy.git?style=flat-square&amp;color=0080ff" alt="repo-top-language">
-	<img src="https://img.shields.io/github/languages/count/223MapAction/Model_deploy.git?style=flat-square&amp;color=0080ff" alt="repo-language-count">
-<p>
+	<img src="https://img.shields.io/github/license/223MapAction/Model_deploy.git?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;color=0080ff" alt="License">
+	<img src="https://img.shields.io/github/last-commit/223MapAction/Model_deploy.git?style=flat-square&amp;logo=git&amp;logoColor=white&amp;color=0080ff" alt="Last Commit">
+	<img src="https://img.shields.io/github/languages/top/223MapAction/Model_deploy.git?style=flat-square&amp;color=0080ff" alt="Top Language">
+	<img src="https://img.shields.io/github/languages/count/223MapAction/Model_deploy.git?style=flat-square&amp;color=0080ff" alt="Language Count">
+</p>
 <p align="center">
 		<em>Developed with the software and tools below.</em>
 </p>
@@ -22,11 +22,10 @@
 	<img src="https://img.shields.io/badge/YAML-CB171E.svg?style=flat-square&amp;logo=YAML&amp;logoColor=white" alt="YAML">
 	<img src="https://img.shields.io/badge/OpenAI-412991.svg?style=flat-square&amp;logo=OpenAI&amp;logoColor=white" alt="OpenAI">
 	<img src="https://img.shields.io/badge/Celery-37814A.svg?style=flat-square&amp;logo=Celery&amp;logoColor=white" alt="Celery">
-	<img src="https://img.shields.io/badge/Celery-37814A.svg?style=flat-square&amp;logo=Celery&amp;logoColor=white" alt="Celery">
 	<br>
 	<img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat-square&amp;logo=Python&amp;logoColor=white" alt="Python">
 	<img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat-square&amp;logo=Docker&amp;logoColor=white" alt="Docker">
-	<img src="https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=flat-square&amp;logo=GitHub-Actions&amp;logoColor=white" alt="GitHub%20Actions">
+	<img src="https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=flat-square&amp;logo=GitHub-Actions&amp;logoColor=white" alt="GitHub Actions">
 	<img src="https://img.shields.io/badge/Pytest-0A9EDC.svg?style=flat-square&amp;logo=Pytest&amp;logoColor=white" alt="Pytest">
 	<img src="https://img.shields.io/badge/FastAPI-009688.svg?style=flat-square&amp;logo=FastAPI&amp;logoColor=white" alt="FastAPI">
 </p>
@@ -53,8 +52,8 @@
 
 ## Overview
 
-Model_deploy is a versatile open-source project designed for seamless deployment and scalable management of machine learning models. Leveraging FastAPI, Celery, and Transformers, it offers robust features such as asynchronous task management, context building, and image classification. With Dockerized environments, CI/CD pipelines, and PostgreSQL integration, Model_deploy ensures efficient ML deployment with enhanced maintainability and scalability. This projects value proposition lies in simplifying ML model deployment processes while enabling reliable and performance-driven AI applications.
-[Developper Documentation](https://223mapaction.github.io/Model_deploy/)
+Model_deploy is a versatile open-source project designed for seamless deployment and scalable management of machine learning models. Leveraging FastAPI, Celery, and Transformers, it offers robust features such as asynchronous task management, context building, and image classification. With Dockerized environments, CI/CD pipelines, and PostgreSQL integration, Model_deploy ensures efficient ML deployment with enhanced maintainability and scalability. This project's value proposition lies in simplifying ML model deployment processes while enabling reliable and performance-driven AI applications.
+[Developer Documentation](https://223mapaction.github.io/Model_deploy/)
 
 ---
 
@@ -125,7 +124,6 @@ The system uses FastAPI endpoints to make predictions using computer vision mode
     ├── Dockerfile.Celery
     ├── LICENSE
     ├── README.md
-    ├── ResNet50_TCM1.pth
     ├── _cd_pipeline.yaml
     ├── _ci_pipeline.yml
     ├── mkdocs.yml
@@ -289,9 +287,12 @@ See our [Contribution Guidelines](https://github.com/223MapAction/.github/blob/m
 <summary>Contributor Graph</summary>
 <br>
 <p align="center">
-   <a href="https://github.com{/223MapAction/Model_deploy.git/}graphs/contributors">
-      <img src="https://contrib.rocks/image?repo=223MapAction/Model_deploy.git">
-   </a>
+   <a href="https://github.com/223MapAction/Model_deploy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=223MapAction/Model_deploy" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
 </p>
 </details>
 
@@ -331,4 +332,4 @@ This project aims to comply with the Digital Public Goods Standard. Below is a s
 8. Adherence to Standards & Best Practices: [Brief explanation]
 9. Do No Harm Assessment: [Brief explanation]
 
-For a detailed assessment and ongoing compliance efforts, please see our [DPG_ASSESSMENT.md](DPG_ASSESSMENT.md).
+For a detailed assessment and ongoing compliance efforts, please see our [DIGITAL PUBLIC GOODS STANDARD ASSESSMENT](DPG_ASSESSMENT.md).
