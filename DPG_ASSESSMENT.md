@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a detailed assessment of ML-Deploy's compliance with the Digital Public Goods Standard. Our goal is to ensure that our project meets the criteria for being recognized as a Digital Public Good, contributing to sustainable development and creating a more equitable world.
+This document provides a detailed assessment of Model_deploy's compliance with the Digital Public Goods Standard. Our goal is to ensure that our project meets the criteria for being recognized as a Digital Public Good, contributing to sustainable development and creating a more equitable world.
 
 ## Detailed Assessment
 
@@ -10,7 +10,7 @@ This document provides a detailed assessment of ML-Deploy's compliance with the 
 
 **Status: Compliant**
 
-ML-Deploy primarily contributes to the following Sustainable Development Goals:
+Model_deploy primarily contributes to the following Sustainable Development Goals:
 
 -   **SDG 13: Climate Action**: By providing tools for environmental issue detection and analysis, our project supports efforts to combat climate change and its impacts.
 -   **SDG 11: Sustainable Cities and Communities**: Our image classification system can help identify urban environmental issues, contributing to more sustainable urban planning.
@@ -30,7 +30,7 @@ ML-Deploy primarily contributes to the following Sustainable Development Goals:
 
 **Status: Compliant**
 
-ML-Deploy is released under the GNU General Public License v3.0 (GPL-3.0), which is an approved open license.
+Model_deploy is released under the GNU General Public License v3.0 (GPL-3.0), which is an approved open license.
 
 **Evidence**:
 
@@ -62,7 +62,7 @@ The project is clearly owned and maintained by MapAction.
 
 **Status: Largely Compliant**
 
-ML-Deploy is designed to be platform-independent, utilizing technologies that can be deployed across various environments.
+Model_deploy is designed to be platform-independent, utilizing technologies that can be deployed across various environments.
 
 **Evidence**:
 
@@ -79,12 +79,12 @@ ML-Deploy is designed to be platform-independent, utilizing technologies that ca
 
 **Status: Largely Compliant**
 
-ML-Deploy provides comprehensive documentation covering various aspects of the project.
+Model_deploy provides comprehensive documentation covering various aspects of the project.
 
 **Evidence**:
 
 -   Detailed README.md file covering project overview, features, and setup instructions.
--   Developer documentation available at https://223mapaction.github.io/ML-Deploy/
+-   Developer documentation available at https://223mapaction.github.io/Model_deploy/
 -   Inline code comments explaining complex logic.
 -   Clear contribution guidelines.
 
@@ -132,7 +132,7 @@ While the project implements some security practices, a more comprehensive appro
 
 **Status: Largely Compliant**
 
-ML-Deploy follows many software development best practices and standards.
+Model_deploy follows many software development best practices and standards.
 
 **Evidence**:
 
@@ -161,11 +161,11 @@ While the project's focus on environmental issues aligns with principles of doin
 **Areas for Improvement**:
 
 -   Conduct a formal "Do No Harm" assessment, considering potential misuse or unintended consequences of the technology.
--   Develop guidelines for ethical use of the ML-Deploy system.
+-   Develop guidelines for ethical use of the Model_deploy system.
 -   Implement mechanisms to monitor and prevent potential misuse of the platform.
 
 ## Conclusion
 
-ML-Deploy demonstrates strong alignment with many aspects of the Digital Public Goods Standard. The project is particularly strong in its relevance to SDGs, open licensing, and technical best practices. However, there are areas for improvement, particularly in privacy compliance and formal harm assessment.
+Model_deploy demonstrates strong alignment with many aspects of the Digital Public Goods Standard. The project is particularly strong in its relevance to SDGs, open licensing, and technical best practices. However, there are areas for improvement, particularly in privacy compliance and formal harm assessment.
 
 We are committed to addressing these gaps and continuously improving our alignment with the DPG Standard. We welcome community feedback and contributions to help us achieve full compliance and maximize our positive impact as a Digital Public Good.
