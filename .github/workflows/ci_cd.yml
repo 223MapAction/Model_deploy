@@ -142,31 +142,31 @@ jobs:
                   docker image prune -af
                   docker volume prune -f
 
-    deploy-docs:
-        needs: deploy
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
+    # deploy-docs:
+    #     needs: deploy
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - name: Checkout Repository
+    #           uses: actions/checkout@v3
 
-            - name: Set up Python
-              uses: actions/setup-python@v3
-              with:
-                  python-version: "3.10"
+    #         - name: Set up Python
+    #           uses: actions/setup-python@v3
+    #           with:
+    #               python-version: "3.10"
 
-            - name: Install Dependencies
-              run: pip install mkdocs mkdocstrings mkdocs-material mkdocstrings-python
+    #         - name: Install Dependencies
+    #           run: pip install mkdocs mkdocstrings mkdocs-material mkdocstrings-python
 
-            - name: Build MkDocs Site
-              run: mkdocs build
+    #         - name: Build MkDocs Site
+    #           run: mkdocs build
 
-            - name: Configure Git
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
+    #         - name: Configure Git
+    #           run: |
+    #               git config user.name "github-actions[bot]"
+    #               git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Deploy to GitHub Pages
-              uses: peaceiris/actions-gh-pages@v4
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: ./site
+    #         - name: Deploy to GitHub Pages
+    #           uses: peaceiris/actions-gh-pages@v4
+    #           with:
+    #               github_token: ${{ secrets.GITHUB_TOKEN }}
+    #               publish_dir: ./site
