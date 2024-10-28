@@ -94,14 +94,61 @@
     
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#convolutional-neural-network-cnn-components" class="nav-link">Convolutional Neural Network (CNN) Components</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#preprocessing" class="nav-link">Preprocessing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#model-configuration" class="nav-link">Model Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#image-classification" class="nav-link">Image Classification</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
         </ul>
     </div>
 </div></div>
                     <div class="col-md-9" role="main">
 
-<!-- ::: services.cnn.cnn_preprocess
-::: services.cnn.cnn_model
-::: services.cnn.cnn --></div>
+<h1 id="convolutional-neural-network-cnn-components">Convolutional Neural Network (CNN) Components</h1>
+<p>This document provides an overview of the CNN components used in the Map Action project. These components are responsible for preprocessing images, configuring the CNN model, and performing image classification.</p>
+<h2 id="preprocessing">Preprocessing</h2>
+<p>The preprocessing of images is handled by the <code>cnn_preprocess.py</code> file. It defines a function <code>preprocess_image</code> that resizes images to 224x224 pixels, converts them to PyTorch tensors, and optionally normalizes them. This preprocessing is tailored for models expecting input images in this format.</p>
+<h2 id="model-configuration">Model Configuration</h2>
+<p>The CNN model is configured in the <code>cnn_model.py</code> file. It defines a function <code>m_a_model</code> that initializes and modifies a ResNet50 model for multi-label classification. The model's fully connected layer is adjusted to match the number of tags to predict.</p>
+<h2 id="image-classification">Image Classification</h2>
+<p>The image classification process is managed by the <code>cnn.py</code> file. It integrates the preprocessing and model components to perform multi-label image classification using the ResNet50 model. The file includes functions to load the model and perform predictions on images, returning the top predictions and their probabilities.</p>
+<h3 id="key-functions">Key Functions</h3>
+<ul>
+<li>
+<p><strong>preprocess_image</strong>:</p>
+<ul>
+<li><strong>Args</strong>: <code>image</code> (bytes) - The image data to be processed.</li>
+<li><strong>Returns</strong>: A PyTorch tensor representing the processed image.</li>
+</ul>
+</li>
+<li>
+<p><strong>m_a_model</strong>:</p>
+<ul>
+<li><strong>Args</strong>: <code>num_tags</code> (int) - The number of tags to predict.</li>
+<li><strong>Returns</strong>: A PyTorch model configured for multi-label classification.</li>
+</ul>
+</li>
+<li>
+<p><strong>predict</strong>:</p>
+<ul>
+<li><strong>Args</strong>: <code>image</code> (bytes) - The image data to be classified.</li>
+<li><strong>Returns</strong>: A tuple containing a list of predicted tags and a list of probabilities.</li>
+</ul>
+</li>
+</ul>
+<p>For more detailed information on each component, refer to the respective files in the <code>app/services/cnn/</code> directory.</p></div>
             </div>
         </div>
 

@@ -94,12 +94,82 @@
     
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#system-architecture" class="nav-link">System Architecture</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#overview" class="nav-link">Overview</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#key-components" class="nav-link">Key Components</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#interaction-flow" class="nav-link">Interaction Flow</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
         </ul>
     </div>
 </div></div>
                     <div class="col-md-9" role="main">
 
-</div>
+<h1 id="system-architecture">System Architecture</h1>
+<p>This document provides an overview of the system architecture for the Map Action project. It outlines the key components and their interactions within the system.</p>
+<h2 id="overview">Overview</h2>
+<p>The Map Action project is designed to leverage mapping technology and machine learning to address environmental challenges. The system is composed of several key components, each responsible for specific functionalities.</p>
+<h2 id="key-components">Key Components</h2>
+<ol>
+<li>
+<p><strong>API Layer</strong>:</p>
+<ul>
+<li>Built using FastAPI, this layer handles incoming requests and routes them to the appropriate services.</li>
+<li>Key files: <code>main_router.py</code>, <code>image_model.py</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Services</strong>:</p>
+<ul>
+<li><strong>Celery</strong>: Manages asynchronous task processing for operations like image prediction and contextual information retrieval.<ul>
+<li>Key files: <code>celery_config.py</code>, <code>celery_task.py</code>.</li>
+</ul>
+</li>
+<li><strong>CNN</strong>: Handles image preprocessing and classification using a convolutional neural network.<ul>
+<li>Key files: <code>cnn_preprocess.py</code>, <code>cnn_model.py</code>, <code>cnn.py</code>.</li>
+</ul>
+</li>
+<li><strong>LLM</strong>: Utilizes a language model to generate responses and analyze satellite data.<ul>
+<li>Key files: <code>llm.py</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Database</strong>:</p>
+<ul>
+<li>Stores prediction results, chat history, and other relevant data.</li>
+<li>Interacts with the API layer for data retrieval and storage.</li>
+</ul>
+</li>
+<li>
+<p><strong>External Integrations</strong>:</p>
+<ul>
+<li><strong>OpenAI API</strong>: Used by the LLM component for generating responses.</li>
+<li><strong>Redis</strong>: Serves as the message broker and backend for Celery.</li>
+</ul>
+</li>
+</ol>
+<h2 id="interaction-flow">Interaction Flow</h2>
+<ol>
+<li>A request is received by the API layer, which validates and processes the input data.</li>
+<li>The request is routed to the appropriate service, such as the CNN for image classification or the LLM for generating responses.</li>
+<li>Asynchronous tasks are managed by Celery, allowing for efficient processing and response generation.</li>
+<li>Results are stored in the database and can be retrieved for further analysis or reporting.</li>
+</ol>
+<p>This architecture ensures a scalable and efficient system capable of handling complex environmental data and providing actionable insights.</p>
+<p>For more detailed information on each component, refer to the respective documentation files in the <code>docs/</code> directory.</p></div>
             </div>
         </div>
 

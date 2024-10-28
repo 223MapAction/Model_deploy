@@ -95,13 +95,12 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="2"><a href="#models.image_model" class="nav-link">image_model</a>
+            <li class="nav-item" data-bs-level="1"><a href="#image-model" class="nav-link">Image Model</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#attributes" class="nav-link">Attributes</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            
-            <li class="nav-item" data-bs-level="2"><a href="#models.image_model.ImageModel" class="nav-link">ImageModel</a>
-              <ul class="nav flex-column">
               </ul>
             </li>
         </ul>
@@ -109,163 +108,19 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<div class="doc doc-object doc-module">
-
-
-
-<a id="models.image_model"></a>
-    <div class="doc doc-contents first">
-
-
-
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-class">
-
-
-
-<h2 id="models.image_model.ImageModel" class="doc doc-heading">
-            <code>ImageModel</code>
-
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-            <p class="doc doc-class-bases">
-              Bases: <code><span title="pydantic.BaseModel">BaseModel</span></code></p>
-
-
-        <p>A model representing image data for processing and prediction in the API.</p>
-
-
-<p><span class="doc-section-title">Attributes:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code><span title="models.image_model.ImageModel.image_name">image_name</span></code></td>
-            <td>
-                  <code>str</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>The name or path where the image is stored. This is used to fetch the image for analysis.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code><span title="models.image_model.ImageModel.sensitive_structures">sensitive_structures</span></code></td>
-            <td>
-                  <code><span title="typing.List">List</span>[str]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>A list of structures or areas in the image that are considered sensitive. This information is used to provide contextual analysis based on the prediction results.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code><span title="models.image_model.ImageModel.incident_id">incident_id</span></code></td>
-            <td>
-                  <code>str</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>A unique identifier for the incident depicted in the image. This is used for tracking and storing results in the database.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-
-
-
-
-              <details class="quote">
-                <summary>Source code in <code>app/models/image_model.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 4</span>
-<span class="normal"> 5</span>
-<span class="normal"> 6</span>
-<span class="normal"> 7</span>
-<span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
-<span class="normal">14</span>
-<span class="normal">15</span>
-<span class="normal">16</span>
-<span class="normal">17</span>
-<span class="normal">18</span>
-<span class="normal">19</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ImageModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A model representing image data for processing and prediction in the API.</span>
-
-<span class="sd">    Attributes:</span>
-<span class="sd">        image_name (str): The name or path where the image is stored. This is used to fetch the image for analysis.</span>
-<span class="sd">        sensitive_structures (List[str]): A list of structures or areas in the image that are considered sensitive. This information is used to provide contextual analysis based on the prediction results.</span>
-<span class="sd">        incident_id (str): A unique identifier for the incident depicted in the image. This is used for tracking and storing results in the database.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1">#Id: int  # Uncomment if an ID attribute is necessary</span>
-    <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">sensitive_structures</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="n">incident_id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">zone</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">latitude</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">longitude</span><span class="p">:</span> <span class="nb">float</span>
-</code></pre></div></td></tr></table></div>
-              </details>
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-
-  </div>
-
-    </div>
-
-</div>
-
-
-
-
-  </div>
-
-    </div>
-
-</div></div>
+<h1 id="image-model">Image Model</h1>
+<p>This document provides an overview of the <code>ImageModel</code> component used in the Map Action project. The <code>ImageModel</code> is a Pydantic model that represents image data for processing and prediction in the API.</p>
+<h2 id="attributes">Attributes</h2>
+<ul>
+<li><strong>image_name</strong> (str): The name or path where the image is stored. This is used to fetch the image for analysis.</li>
+<li><strong>sensitive_structures</strong> (List[str]): A list of structures or areas in the image that are considered sensitive. This information is used to provide contextual analysis based on the prediction results.</li>
+<li><strong>incident_id</strong> (str): A unique identifier for the incident depicted in the image. This is used for tracking and storing results in the database.</li>
+<li><strong>zone</strong> (str): The geographic zone related to the image and incident.</li>
+<li><strong>latitude</strong> (float): The latitude coordinate of the incident location.</li>
+<li><strong>longitude</strong> (float): The longitude coordinate of the incident location.</li>
+</ul>
+<p>The <code>ImageModel</code> is integral to the API's functionality, as it encapsulates all necessary data for image processing and prediction tasks.</p>
+<p>For more detailed information, refer to the <code>image_model.py</code> file in the <code>app/models/</code> directory.</p></div>
             </div>
         </div>
 
