@@ -323,7 +323,7 @@ This project aims to comply with the Digital Public Goods Standard. Below is a s
 2. Use of Approved Open License: Compliant (AGPL-3.0 license)
 3. Clear Ownership: The project is owned and maintained by Map Action, ensuring accountability and continuous development.
 4. Platform Independence: The project is designed to be platform-independent, running on various operating systems and environments with Docker support.
-5. Documentation: Largely compliant (see README and [link to developer docs])
+5. Documentation: Largely compliant (see README and [developer documentation](https://223mapaction.github.io/Model_deploy/))
 6. Mechanism for Extracting Data: The project includes APIs and data processing pipelines to extract and analyze environmental data efficiently.
 7. Adherence to Privacy and Applicable Laws: The project follows best practices for data privacy and complies with relevant legal requirements to protect user data.
 8. Adherence to Standards & Best Practices: The project adheres to industry standards and best practices in software development, ensuring high-quality and reliable solutions.
