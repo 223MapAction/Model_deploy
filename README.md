@@ -8,10 +8,10 @@
     <em>FastAPI wrapper for Map Action Model deployment.</em>
 </p>
 <p align="center">
-	<img src="https://img.shields.io/github/license/223MapAction/Model_deploy.git?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;color=0080ff" alt="License">
-	<img src="https://img.shields.io/github/last-commit/223MapAction/Model_deploy.git?style=flat-square&amp;logo=git&amp;logoColor=white&amp;color=0080ff" alt="Last Commit">
-	<img src="https://img.shields.io/github/languages/top/223MapAction/Model_deploy.git?style=flat-square&amp;color=0080ff" alt="Top Language">
-	<img src="https://img.shields.io/github/languages/count/223MapAction/Model_deploy.git?style=flat-square&amp;color=0080ff" alt="Language Count">
+	<img src="https://img.shields.io/github/license/223MapAction/Model_deploy?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;color=0080ff" alt="License">
+	<img src="https://img.shields.io/github/last-commit/223MapAction/Model_deploy?style=flat-square&amp;logo=git&amp;logoColor=white&amp;color=0080ff" alt="Last Commit">
+	<img src="https://img.shields.io/github/languages/top/223MapAction/Model_deploy?style=flat-square&amp;color=0080ff" alt="Top Language">
+	<img src="https://img.shields.io/github/languages/count/223MapAction/Model_deploy?style=flat-square&amp;color=0080ff" alt="Language Count">
 </p>
 <p align="center">
 		<em>Developed with the software and tools below.</em>
@@ -153,73 +153,73 @@ This structure highlights the main components of the Model_deploy project:
 
 <details closed><summary>.</summary>
 
-| File                                                                                                 | Summary                                                                                                                                                                                                                                                                                     |
-| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [requirements.txt](https://github.com/223MapAction/Model_deploy.git/blob/master/requirements.txt)    | Lists Python package dependencies in requirements.txt for seamless project setup and reproducibility. Key libraries include fastapi, celery, transformers, and uvicorn to support ML deployment. Enhances project scalability and maintainability by managing package versions efficiently. |
-| [Dockerfile.Celery](https://github.com/223MapAction/Model_deploy.git/blob/master/Dockerfile.Celery)  | Builds a Docker image for Celery worker, leveraging Python 3.10.13, to manage asynchronous tasks in the Model_deploy project. Inherits project dependencies from requirements.txt while ensuring a streamlined environment setup for seamless task execution.                               |
-| [Dockerfile](https://github.com/223MapAction/Model_deploy.git/blob/master/Dockerfile)                | Enables deploying a Python application using Uvicorn server, handling data processing requests. Utilizes Docker for portability, installs dependencies, and configures the execution environment. Dynamically serves the app on port 8001 in the container.                                 |
-| [Dockerfile.CI](https://github.com/223MapAction/Model_deploy.git/blob/master/Dockerfile.CI)          | Builds Python environment, installs project dependencies, and runs test coverage using pytest in the CI pipeline for Model_deploy.                                                                                                                                                          |
-| [\_cd_pipeline.yaml](https://github.com/223MapAction/Model_deploy.git/blob/master/_cd_pipeline.yaml) | Sets up Docker services for a FastAPI app, Redis, and Celery workers with networking configurations in a micro-services environment. Enables communication between services for seamless deployment and scalability.                                                                        |
-| [\_ci_pipeline.yml](https://github.com/223MapAction/Model_deploy.git/blob/master/_ci_pipeline.yml)   | Automates creation and configuration of a CI service within the Model_deploy repository. Orchestrates building a Docker container for testing purposes based on the specified Dockerfile.CI. Integrates environment variables for seamless deployment.                                      |
+| File                                                                                             | Summary                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [requirements.txt](https://github.com/223MapAction/Model_deploy/blob/master/requirements.txt)    | Lists Python package dependencies in requirements.txt for seamless project setup and reproducibility. Key libraries include fastapi, celery, transformers, and uvicorn to support ML deployment. Enhances project scalability and maintainability by managing package versions efficiently. |
+| [Dockerfile.Celery](https://github.com/223MapAction/Model_deploy/blob/master/Dockerfile.Celery)  | Builds a Docker image for Celery worker, leveraging Python 3.10.13, to manage asynchronous tasks in the Model_deploy project. Inherits project dependencies from requirements.txt while ensuring a streamlined environment setup for seamless task execution.                               |
+| [Dockerfile](https://github.com/223MapAction/Model_deploy/blob/master/Dockerfile)                | Enables deploying a Python application using Uvicorn server, handling data processing requests. Utilizes Docker for portability, installs dependencies, and configures the execution environment. Dynamically serves the app on port 8001 in the container.                                 |
+| [Dockerfile.CI](https://github.com/223MapAction/Model_deploy/blob/master/Dockerfile.CI)          | Builds Python environment, installs project dependencies, and runs test coverage using pytest in the CI pipeline for Model_deploy.                                                                                                                                                          |
+| [\_cd_pipeline.yaml](https://github.com/223MapAction/Model_deploy/blob/master/_cd_pipeline.yaml) | Sets up Docker services for a FastAPI app, Redis, and Celery workers with networking configurations in a micro-services environment. Enables communication between services for seamless deployment and scalability.                                                                        |
+| [\_ci_pipeline.yml](https://github.com/223MapAction/Model_deploy/blob/master/_ci_pipeline.yml)   | Automates creation and configuration of a CI service within the Model_deploy repository. Orchestrates building a Docker container for testing purposes based on the specified Dockerfile.CI. Integrates environment variables for seamless deployment.                                      |
 
 </details>
 
 <details closed><summary>app</summary>
 
-| File                                                                                        | Summary                                                                                                                                                                                                                                                 |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [main.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/main.py)         | Initializes FastAPI app with CORS middleware.-Connects to the database on app startup.-Gracefully disconnects from the database on app shutdown.-Includes main_routers APIs under /api1 prefix.                                                         |
-| [database.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/database.py) | Establishes a connection to a PostgreSQL database within the Model_deploy repo's app module. Leveraging the databases library, it initializes a database instance with a predefined URL for subsequent data operations across the ML deployment system. |
+| File                                                                                    | Summary                                                                                                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [main.py](https://github.com/223MapAction/Model_deploy/blob/master/app/main.py)         | Initializes FastAPI app with CORS middleware.-Connects to the database on app startup.-Gracefully disconnects from the database on app shutdown.-Includes main_routers APIs under /api1 prefix.                                                         |
+| [database.py](https://github.com/223MapAction/Model_deploy/blob/master/app/database.py) | Establishes a connection to a PostgreSQL database within the Model_deploy repo's app module. Leveraging the databases library, it initializes a database instance with a predefined URL for subsequent data operations across the ML deployment system. |
 
 </details>
 
 <details closed><summary>app.services.llm</summary>
 
-| File                                                                                           | Summary                         |
-| ---------------------------------------------------------------------------------------------- | ------------------------------- |
-| [llm.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/llm/llm.py) | Contains core LLM functionality |
+| File                                                                                       | Summary                         |
+| ------------------------------------------------------------------------------------------ | ------------------------------- |
+| [llm.py](https://github.com/223MapAction/Model_deploy/blob/master/app/services/llm/llm.py) | Contains core LLM functionality |
 
 </details>
 
 <details closed><summary>app.services.cnn</summary>
 
-| File                                                                                                                 | Summary                                                                                                             |
-| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| [cnn_preprocess.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/cnn/cnn_preprocess.py) | Implements image preprocessing for the CNN model, including resizing and normalization.                             |
-| [cnn.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/cnn/cnn.py)                       | Contains the main CNN prediction logic, using a pre-trained VGG16 model to classify environmental issues in images. |
-| [cnn_model.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/services/cnn/cnn_model.py)           | Defines the CNN model architecture, adapting VGG16 for the specific classification task.                            |
+| File                                                                                                             | Summary                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| [cnn_preprocess.py](https://github.com/223MapAction/Model_deploy/blob/master/app/services/cnn/cnn_preprocess.py) | Implements image preprocessing for the CNN model, including resizing and normalization.                             |
+| [cnn.py](https://github.com/223MapAction/Model_deploy/blob/master/app/services/cnn/cnn.py)                       | Contains the main CNN prediction logic, using a pre-trained VGG16 model to classify environmental issues in images. |
+| [cnn_model.py](https://github.com/223MapAction/Model_deploy/blob/master/app/services/cnn/cnn_model.py)           | Defines the CNN model architecture, adapting VGG16 for the specific classification task.                            |
 
 </details>
 
 <details closed><summary>app.apis</summary>
 
-| File                                                                                                   | Summary                                                                                                                                                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [main_router.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/apis/main_router.py) | Handles image prediction, contextualization, and data insertion. Utilizes FastAPI, requests, and Celery for async tasks. Fetches images, processes predictions, and stores results in the Mapapi_prediction table. Resilient to exceptions with proper error handling. |
+| File                                                                                               | Summary                                                                                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [main_router.py](https://github.com/223MapAction/Model_deploy/blob/master/app/apis/main_router.py) | Handles image prediction, contextualization, and data insertion. Utilizes FastAPI, requests, and Celery for async tasks. Fetches images, processes predictions, and stores results in the Mapapi_prediction table. Resilient to exceptions with proper error handling. |
 
 </details>
 
 <details closed><summary>app.models</summary>
 
-| File                                                                                                     | Summary                                                                               |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [image_model.py](https://github.com/223MapAction/Model_deploy.git/blob/master/app/models/image_model.py) | Defines ImageModel with image_name, sensitive_structures, and incident_id attributes. |
+| File                                                                                                 | Summary                                                                               |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [image_model.py](https://github.com/223MapAction/Model_deploy/blob/master/app/models/image_model.py) | Defines ImageModel with image_name, sensitive_structures, and incident_id attributes. |
 
 </details>
 
 <details closed><summary>test.apis</summary>
 
-| File                                                                                                              | Summary                                                                                                                                            |
-| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [test_main_router.py](https://github.com/223MapAction/Model_deploy.git/blob/master/test/apis/test_main_router.py) | Verifies FastAPI endpoint functionality by simulating HTTP requests to ensure the Index route returns a 200 status code and correct JSON response. |
+| File                                                                                                          | Summary                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [test_main_router.py](https://github.com/223MapAction/Model_deploy/blob/master/test/apis/test_main_router.py) | Verifies FastAPI endpoint functionality by simulating HTTP requests to ensure the Index route returns a 200 status code and correct JSON response. |
 
 </details>
 
 <details closed><summary>.github.workflows</summary>
 
-| File                                                                                                  | Summary                                                                                                                                                                                                                                                  |
-| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [ci_cd.yml](https://github.com/223MapAction/Model_deploy.git/blob/master/.github/workflows/ci_cd.yml) | Handles continuous integration and deployment via GitHub Actions. Runs test suites to validate code quality, builds and pushes Docker images, and deploys the ML model API on master branch pushes. Includes secret handling for Docker Hub credentials. |
+| File                                                                                              | Summary                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ci_cd.yml](https://github.com/223MapAction/Model_deploy/blob/master/.github/workflows/ci_cd.yml) | Handles continuous integration and deployment via GitHub Actions. Runs test suites to validate code quality, builds and pushes Docker images, and deploys the ML model API on master branch pushes. Includes secret handling for Docker Hub credentials. |
 
 </details>
 
@@ -287,12 +287,9 @@ See our [Contribution Guidelines](https://github.com/223MapAction/.github/blob/m
 <summary>Contributor Graph</summary>
 <br>
 <p align="center">
-   <a href="https://github.com/223MapAction/Model_deploy/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=223MapAction/Model_deploy" />
-</a>
-
-Made with [contrib.rocks](https://contrib.rocks).
-
+   <a href="https://github.com{/223MapAction/Model_deploy/}graphs/contributors">
+      <img src="https://contrib.rocks/image?repo=223MapAction/Model_deploy">
+   </a>
 </p>
 </details>
 
@@ -332,4 +329,4 @@ This project aims to comply with the Digital Public Goods Standard. Below is a s
 8. Adherence to Standards & Best Practices: [Brief explanation]
 9. Do No Harm Assessment: [Brief explanation]
 
-For a detailed assessment and ongoing compliance efforts, please see our [DIGITAL PUBLIC GOODS STANDARD ASSESSMENT](DPG_ASSESSMENT.md).
+For a detailed assessment and ongoing compliance efforts, please see our [Digital Public Goods Standard Assessment](DPG_ASSESSMENT.md).
