@@ -3,3 +3,13 @@ coverage:
         project:
             default:
                 target: 40%
+                threshold: 1%
+
+    precision: 2
+    round: down
+    range: "40...100"
+
+comment:
+    layout: "reach, diff, flags, files"
+    behavior: default
+    require_changes: false
