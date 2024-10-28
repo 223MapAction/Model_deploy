@@ -73,8 +73,6 @@ The system uses FastAPI endpoints to make predictions using computer vision mode
 4. The LLM generates a summary using the image classification and retrieved context.
 5. The results are returned to the user and stored in the database.
 
-![Workflow Diagram]
-
 ---
 
 ## Features
