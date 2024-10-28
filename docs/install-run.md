@@ -1,45 +1,45 @@
-##  Getting Started
+## Getting Started
 
 **System Requirements:**
 
-* **Python**: `3.x`
+-   **Docker**: Ensure Docker is installed and running on your system.
 
-###  Installation
+### Installation
 
-<h4>From <code>source</code></h4>
+<h4>Using Docker</h4>
 
-> 1. Clone the ML-Deploy repository:
-> ```
-> $ git clone https://github.com/223MapAction/ML-Deploy.git
+> 1. Clone the Model_deploy repository:
+>
+> ```console
+> $ git clone https://github.com/223MapAction/Model_deploy.git
 > ```
 >
 > 2. Change to the project directory:
-> ```
-> $ cd ML-Deploy
+>
+> ```console
+> $ cd Model_deploy
 > ```
 >
-> 3. Create a virtual environement:
-> ```
-> $ python3 -m venv env
-> ```
+> 3. Build and start the Docker containers:
 >
-> 4. Install the dependencies:
-> ```
-> $ pip install -r requirements.txt
-> ```
-
-###  Usage
-
-<h4>From <code>source</code></h4>
-
-> Run ML-Deploy using the command below:
-> ```
-> $ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+> ```console
+> $ docker-compose -f _cd_pipeline.yaml up --build
 > ```
 
-###  Tests
+### Usage
+
+<h4>Access the Application</h4>
+
+> Once the containers are up and running, access the application at:
+>
+> ```console
+> http://localhost:8001
+> ```
+
+### Tests
 
 > Run the test suite using the command below:
+>
 > ```console
-> $ pytest --cov=app --cov-report term-missing
+> $ docker-compose -f _ci_pipeline.yml up
 > ```
