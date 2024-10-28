@@ -41,3 +41,7 @@ The Map Action project is designed to leverage mapping technology and machine le
 This architecture ensures a scalable and efficient system capable of handling complex environmental data and providing actionable insights.
 
 For more detailed information on each component, refer to the respective documentation files in the `docs/` directory.
+
+## Diagrams
+
+![System Architecture Diagram](system_arch.png)
