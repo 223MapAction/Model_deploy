@@ -8,27 +8,27 @@
     <em>FastAPI wrapper for Map Action Model deployment.</em>
 </p>
 <p align="center">
-	<img src="https://img.shields.io/github/license/223MapAction/ML-Deploy.git?style=flat-square&logo=opensourceinitiative&logoColor=white&color=0080ff" alt="license">
-	<img src="https://img.shields.io/github/last-commit/223MapAction/ML-Deploy.git?style=flat-square&logo=git&logoColor=white&color=0080ff" alt="last-commit">
-	<img src="https://img.shields.io/github/languages/top/223MapAction/ML-Deploy.git?style=flat-square&color=0080ff" alt="repo-top-language">
-	<img src="https://img.shields.io/github/languages/count/223MapAction/ML-Deploy.git?style=flat-square&color=0080ff" alt="repo-language-count">
+	<img src="https://img.shields.io/github/license/223MapAction/ML-Deploy.git?style=flat-square&amp;logo=opensourceinitiative&amp;logoColor=white&amp;color=0080ff" alt="license">
+	<img src="https://img.shields.io/github/last-commit/223MapAction/ML-Deploy.git?style=flat-square&amp;logo=git&amp;logoColor=white&amp;color=0080ff" alt="last-commit">
+	<img src="https://img.shields.io/github/languages/top/223MapAction/ML-Deploy.git?style=flat-square&amp;color=0080ff" alt="repo-top-language">
+	<img src="https://img.shields.io/github/languages/count/223MapAction/ML-Deploy.git?style=flat-square&amp;color=0080ff" alt="repo-language-count">
 <p>
 <p align="center">
 		<em>Developed with the software and tools below.</em>
 </p>
 <p align="center">
-	<img src="https://img.shields.io/badge/Streamlit-FF4B4B.svg?style=flat-square&logo=Streamlit&logoColor=white" alt="Streamlit">
-	<img src="https://img.shields.io/badge/Pydantic-E92063.svg?style=flat-square&logo=Pydantic&logoColor=white" alt="Pydantic">
-	<img src="https://img.shields.io/badge/YAML-CB171E.svg?style=flat-square&logo=YAML&logoColor=white" alt="YAML">
-	<img src="https://img.shields.io/badge/OpenAI-412991.svg?style=flat-square&logo=OpenAI&logoColor=white" alt="OpenAI">
-	<img src="https://img.shields.io/badge/Celery-37814A.svg?style=flat-square&logo=Celery&logoColor=white" alt="Celery">
-	<img src="https://img.shields.io/badge/Celery-37814A.svg?style=flat-square&logo=Celery&logoColor=white" alt="Celery">
+	<img src="https://img.shields.io/badge/Streamlit-FF4B4B.svg?style=flat-square&amp;logo=Streamlit&amp;logoColor=white" alt="Streamlit">
+	<img src="https://img.shields.io/badge/Pydantic-E92063.svg?style=flat-square&amp;logo=Pydantic&amp;logoColor=white" alt="Pydantic">
+	<img src="https://img.shields.io/badge/YAML-CB171E.svg?style=flat-square&amp;logo=YAML&amp;logoColor=white" alt="YAML">
+	<img src="https://img.shields.io/badge/OpenAI-412991.svg?style=flat-square&amp;logo=OpenAI&amp;logoColor=white" alt="OpenAI">
+	<img src="https://img.shields.io/badge/Celery-37814A.svg?style=flat-square&amp;logo=Celery&amp;logoColor=white" alt="Celery">
+	<img src="https://img.shields.io/badge/Celery-37814A.svg?style=flat-square&amp;logo=Celery&amp;logoColor=white" alt="Celery">
 	<br>
-	<img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat-square&logo=Python&logoColor=white" alt="Python">
-	<img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat-square&logo=Docker&logoColor=white" alt="Docker">
-	<img src="https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=flat-square&logo=GitHub-Actions&logoColor=white" alt="GitHub%20Actions">
-	<img src="https://img.shields.io/badge/Pytest-0A9EDC.svg?style=flat-square&logo=Pytest&logoColor=white" alt="Pytest">
-	<img src="https://img.shields.io/badge/FastAPI-009688.svg?style=flat-square&logo=FastAPI&logoColor=white" alt="FastAPI">
+	<img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat-square&amp;logo=Python&amp;logoColor=white" alt="Python">
+	<img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat-square&amp;logo=Docker&amp;logoColor=white" alt="Docker">
+	<img src="https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=flat-square&amp;logo=GitHub-Actions&amp;logoColor=white" alt="GitHub%20Actions">
+	<img src="https://img.shields.io/badge/Pytest-0A9EDC.svg?style=flat-square&amp;logo=Pytest&amp;logoColor=white" alt="Pytest">
+	<img src="https://img.shields.io/badge/FastAPI-009688.svg?style=flat-square&amp;logo=FastAPI&amp;logoColor=white" alt="FastAPI">
 </p>
 
 <br><!-- TABLE OF CONTENTS -->
@@ -179,7 +179,6 @@ This structure highlights the main components of the ML-Deploy project:
 
 | File                                                                                                                              | Summary                                                                                           |
 | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| [gpt_3_5_turbo.py](https://github.com/223MapAction/ML-Deploy.git/blob/master/app/services/llm/gpt_3_5_turbo.py)                   | Implements interaction with the GPT-3.5 Turbo model for generating context-aware responses.       |
 | [llm.py](https://github.com/223MapAction/ML-Deploy.git/blob/master/app/services/llm/llm.py)                                       | Contains core LLM functionality for processing queries and generating responses.                  |
 | [llm_preprocessing.py](https://github.com/223MapAction/ML-Deploy.git/blob/master/app/services/llm/llm_preprocessing.py)           | Handles data preprocessing for LLM input, including document loading and vector storage.          |
 | [pgml_llm_preprocessing.py](https://github.com/223MapAction/ML-Deploy.git/blob/master/app/services/llm/pgml_llm_preprocessing.py) | Implements preprocessing specific to PostgreSQL-based machine learning integration.               |
@@ -305,7 +304,7 @@ See our [Contribution Guidelines](https://github.com/223MapAction/.github/blob/m
 
 ## License
 
-This project is protected under the [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/) License. For more details, refer to the [LICENSE](https://choosealicense.com/licenses/) file.
+This project is licensed under the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/). For more details, refer to the [LICENSE](https://choosealicense.com/licenses/agpl-3.0/) file.
 
 ---
 
@@ -328,7 +327,7 @@ See our [Code of Conduct](https://github.com/223MapAction/.github/blob/main/CODE
 This project aims to comply with the Digital Public Goods Standard. Below is a summary of our current compliance status:
 
 1. Relevance to Sustainable Development Goals: [Brief explanation]
-2. Use of Approved Open License: Compliant (GPL-3.0 license)
+2. Use of Approved Open License: Compliant (AGPL-3.0 license)
 3. Clear Ownership: [Brief explanation]
 4. Platform Independence: [Brief explanation]
 5. Documentation: Largely compliant (see README and [link to developer docs])
