@@ -2,7 +2,7 @@ version: "3"
 
 services:
     nginx:
-        container_name: nginx-gateway
+        container_name: api-gateway
         image: nginx:alpine
         ports:
             - "443:443" # HTTPS port
