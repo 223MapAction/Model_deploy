@@ -2,6 +2,7 @@ import os
 import torch
 from app.services.cnn.cnn_preprocess import preprocess_image
 from app.services.cnn.cnn_model import m_a_model
+from app.services.cnn.environment_classifier import EnvironmentClassifier
 import logging
 
 # Set up logging
@@ -50,6 +51,9 @@ def load_model():
 # Initialize the model once
 model = load_model()
 
+# Add after model initialization
+environment_classifier = EnvironmentClassifier()
+
 tags = ["Caniveau obstrué", "Déchets", "Déforestation",
         "Feux de brousse", "Pollution de leau", "Pollution de lair", "Sécheresse", "Sol dégradé"]
 
@@ -63,8 +67,12 @@ def predict(image):
     Returns:
         tuple: A tuple containing a list of predicted tags and a list of probabilities.
     """
-    model.eval()  # Set model to evaluation mode to disable dropout and batch normalization layers.
-    input_data = preprocess_image(image)   # Preprocess the image to the format required by the model.
+    # First, check if the image is environment-related
+    if not environment_classifier.is_environment_related(image):
+        return [("Not an environmental issue", 1.0)], [1.0] + [0.0] * (len(tags) - 1)
+
+    model.eval()  # Set model to evaluation mode
+    input_data = preprocess_image(image)
 
     # Disable gradient computation to reduce memory usage and speed up computations during inference.
     with torch.no_grad():
