@@ -69,7 +69,7 @@ def predict(image):
     """
     # First, check if the image is environment-related
     if not environment_classifier.is_environment_related(image):
-        return [("Not an environmental issue", 1.0)], [1.0] + [0.0] * (len(tags) - 1)
+        return [("Aucun problème environnemental", 1.0)], [1.0] + [0.0] * (len(tags) - 1)
 
     model.eval()  # Set model to evaluation mode
     input_data = preprocess_image(image)
