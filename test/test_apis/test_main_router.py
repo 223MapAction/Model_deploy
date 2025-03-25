@@ -4,13 +4,15 @@ from unittest.mock import patch, MagicMock
 from httpx import AsyncClient
 from fastapi import HTTPException
 from fastapi.websockets import WebSocketDisconnect
-from app.apis.main_router import router, construct_image_url, fetch_image, sanitize_error_message, BASE_URL
-from app.models import ImageModel
-from app.main import app  # Add this import at the top of the file
 import os
-# import requests  # Add this import
+import json
 
+# Import only what is used in the tests we're running
+from app.apis.main_router import router, construct_image_url, sanitize_error_message
+# Define BASE_URL if it doesn't come from the import
+BASE_URL = os.getenv('SERVER_URL', 'http://example.com')
 
+# Create test client
 client = TestClient(router)
 
 def test_index():
@@ -80,16 +82,16 @@ def test_sanitize_error_message():
 #     mock_upload_blob.side_effect = ['url1', 'url2', 'url3']
 
 #     # Test data
-#     test_data = ImageModel(
-#         image_name="test.jpg",
-#         sensitive_structures=["structure1"],
-#         zone="Zone A",
-#         incident_id="123",
-#         latitude=0,
-#         longitude=0
-#     )
+#     test_data = {
+#         "image_name": "test.jpg",
+#         "sensitive_structures": ["structure1"],
+#         "zone": "Zone A",
+#         "incident_id": "123",
+#         "latitude": 0,
+#         "longitude": 0
+#     }
 
-#     response = client.post("/image/predict", json=test_data.dict())
+#     response = client.post("/image/predict", json=test_data)
     
 #     assert response.status_code == 200
 #     response_data = response.json()

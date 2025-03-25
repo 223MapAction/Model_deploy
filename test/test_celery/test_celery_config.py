@@ -1,5 +1,6 @@
 import os
 from unittest.mock import patch
+import pytest
 from app.services.celery.celery_config import make_celery
 
 def test_make_celery():

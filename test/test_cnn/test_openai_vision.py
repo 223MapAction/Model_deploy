@@ -2,11 +2,20 @@ import pytest
 from unittest.mock import patch, MagicMock
 import json
 import base64
-from app.services.cnn.openai_vision import predict, predict_structured, encode_image_to_base64
+import os
+from app.services.cnn.openai_vision import predict, predict_structured, encode_image_to_base64, ENVIRONMENTAL_TAGS
 
 @pytest.fixture
 def mock_image_bytes():
     return b"fake_image_data"
+
+@pytest.fixture
+def mock_openai_client():
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "fake-api-key"}):
+        with patch('app.services.cnn.openai_vision.openai.OpenAI') as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+            yield mock_client
 
 @pytest.fixture
 def mock_openai_response():
@@ -31,12 +40,9 @@ def test_encode_image_to_base64(mock_image_bytes):
     decoded = base64.b64decode(result)
     assert decoded == mock_image_bytes
 
-@patch('app.services.cnn.openai_vision.openai.OpenAI')
-def test_predict_with_successful_response(mock_openai, mock_image_bytes, mock_openai_response):
+def test_predict_with_successful_response(mock_openai_client, mock_image_bytes, mock_openai_response):
     # Set up the mock client
-    mock_client = MagicMock()
-    mock_client.responses.create.return_value = mock_openai_response
-    mock_openai.return_value = mock_client
+    mock_openai_client.responses.create.return_value = mock_openai_response
     
     # Call the function
     result, probabilities = predict(mock_image_bytes)
@@ -46,13 +52,12 @@ def test_predict_with_successful_response(mock_openai, mock_image_bytes, mock_op
     assert probabilities == [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     
     # Verify the API was called correctly
-    mock_client.responses.create.assert_called_once()
-    call_args = mock_client.responses.create.call_args[1]
+    mock_openai_client.responses.create.assert_called_once()
+    call_args = mock_openai_client.responses.create.call_args[1]
     assert call_args['model'] == "gpt-4o-mini"
     assert call_args['response_format'] == {"type": "json_object"}
 
-@patch('app.services.cnn.openai_vision.openai.OpenAI')
-def test_predict_with_no_issues(mock_openai, mock_image_bytes):
+def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     # Set up the mock client with a response that has no identified issues
     mock_response = MagicMock()
     mock_text = MagicMock()
@@ -62,9 +67,7 @@ def test_predict_with_no_issues(mock_openai, mock_image_bytes):
     })
     mock_response.content = [mock_text]
     
-    mock_client = MagicMock()
-    mock_client.responses.create.return_value = mock_response
-    mock_openai.return_value = mock_client
+    mock_openai_client.responses.create.return_value = mock_response
     
     # Call the function
     result, probabilities = predict(mock_image_bytes)
@@ -73,12 +76,9 @@ def test_predict_with_no_issues(mock_openai, mock_image_bytes):
     assert result == [("Aucun problème environnemental", 1.0)]
     assert probabilities == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-@patch('app.services.cnn.openai_vision.openai.OpenAI')
-def test_predict_with_api_error(mock_openai, mock_image_bytes):
+def test_predict_with_api_error(mock_openai_client, mock_image_bytes):
     # Set up the mock client to raise an exception
-    mock_client = MagicMock()
-    mock_client.responses.create.side_effect = Exception("API Error")
-    mock_openai.return_value = mock_client
+    mock_openai_client.responses.create.side_effect = Exception("API Error")
     
     # Call the function
     result, probabilities = predict(mock_image_bytes)
