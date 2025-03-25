@@ -7,7 +7,7 @@ fastapi==0.109.0
 langchain==0.1.5
 langchain-community==0.0.18
 nest-asyncio==1.6.0
-openai==1.11.1
+openai==1.14.0
 pgml==1.0.0
 pillow==10.2.0
 pydantic==2.5.3
