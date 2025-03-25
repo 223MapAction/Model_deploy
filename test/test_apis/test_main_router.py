@@ -8,9 +8,7 @@ import os
 import json
 
 # Import only what is used in the tests we're running
-from app.apis.main_router import router, construct_image_url, sanitize_error_message
-# Define BASE_URL if it doesn't come from the import
-BASE_URL = os.getenv('SERVER_URL', 'http://example.com')
+from app.apis.main_router import router, construct_image_url, sanitize_error_message, BASE_URL
 
 # Create test client
 client = TestClient(router)
