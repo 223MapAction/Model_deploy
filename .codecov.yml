@@ -2,7 +2,7 @@ coverage:
     status:
         project:
             default:
-                target: 5%
+                target: 40%
                 threshold: 1%
 
     precision: 2
