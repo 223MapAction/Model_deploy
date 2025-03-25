@@ -2,8 +2,12 @@
 *.pth
 .env
 train_resnet50.py
+<<<<<<< HEAD
 openai_agents_sdk.md.env
 notes.md
 */__pycache__/*
 *.pyc
 __pycache__
+=======
+openai_agents_sdk.md
+>>>>>>> e8cc30e (Switch to OpenAI Vision model for prediction)

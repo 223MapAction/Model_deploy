@@ -20,11 +20,7 @@ import uuid  # Import uuid for generating unique filenames
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# # Try to set locale to French
-# try:
-#     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
-# except locale.Error:
-#     pass
+
 
 # Ensure the plots directory exists
 plots_dir = os.path.join(os.path.dirname(__file__), '../../plots')
