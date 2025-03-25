@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import patch, MagicMock
-import torch
 from app.services.celery.celery_task import perform_prediction, fetch_contextual_information, analyze_incident_zone
 import pandas as pd
 import ee
