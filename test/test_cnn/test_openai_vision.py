@@ -1,0 +1,109 @@
+import pytest
+from unittest.mock import patch, MagicMock
+import json
+import base64
+from app.services.cnn.openai_vision import predict, predict_structured, encode_image_to_base64
+
+@pytest.fixture
+def mock_image_bytes():
+    return b"fake_image_data"
+
+@pytest.fixture
+def mock_openai_response():
+    mock_response = MagicMock()
+    
+    # Mock the content property to return a list with a text object
+    mock_text = MagicMock()
+    mock_text.text = json.dumps({
+        "identified_issues": [
+            {"tag": "Déchets", "probability": 0.9}
+        ],
+        "all_probabilities": [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    })
+    mock_response.content = [mock_text]
+    
+    return mock_response
+
+def test_encode_image_to_base64(mock_image_bytes):
+    result = encode_image_to_base64(mock_image_bytes)
+    assert isinstance(result, str)
+    # Try to decode it back to verify it's valid base64
+    decoded = base64.b64decode(result)
+    assert decoded == mock_image_bytes
+
+@patch('app.services.cnn.openai_vision.openai.OpenAI')
+def test_predict_with_successful_response(mock_openai, mock_image_bytes, mock_openai_response):
+    # Set up the mock client
+    mock_client = MagicMock()
+    mock_client.responses.create.return_value = mock_openai_response
+    mock_openai.return_value = mock_client
+    
+    # Call the function
+    result, probabilities = predict(mock_image_bytes)
+    
+    # Assert the results
+    assert result == [("Déchets", 0.9)]
+    assert probabilities == [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    
+    # Verify the API was called correctly
+    mock_client.responses.create.assert_called_once()
+    call_args = mock_client.responses.create.call_args[1]
+    assert call_args['model'] == "gpt-4o-mini"
+    assert call_args['response_format'] == {"type": "json_object"}
+
+@patch('app.services.cnn.openai_vision.openai.OpenAI')
+def test_predict_with_no_issues(mock_openai, mock_image_bytes):
+    # Set up the mock client with a response that has no identified issues
+    mock_response = MagicMock()
+    mock_text = MagicMock()
+    mock_text.text = json.dumps({
+        "identified_issues": [],
+        "all_probabilities": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    })
+    mock_response.content = [mock_text]
+    
+    mock_client = MagicMock()
+    mock_client.responses.create.return_value = mock_response
+    mock_openai.return_value = mock_client
+    
+    # Call the function
+    result, probabilities = predict(mock_image_bytes)
+    
+    # Assert the results - should return "Aucun problème environnemental" with probability 1.0
+    assert result == [("Aucun problème environnemental", 1.0)]
+    assert probabilities == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+@patch('app.services.cnn.openai_vision.openai.OpenAI')
+def test_predict_with_api_error(mock_openai, mock_image_bytes):
+    # Set up the mock client to raise an exception
+    mock_client = MagicMock()
+    mock_client.responses.create.side_effect = Exception("API Error")
+    mock_openai.return_value = mock_client
+    
+    # Call the function
+    result, probabilities = predict(mock_image_bytes)
+    
+    # Assert we get an error response
+    assert result == [("Error in prediction", 0.0)]
+    assert probabilities == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+@patch('app.services.cnn.openai_vision.predict')
+def test_predict_structured(mock_predict, mock_image_bytes):
+    # Set up the mock
+    mock_predict.return_value = (
+        [("Déchets", 0.9)], 
+        [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
+    
+    # Call the function
+    result = predict_structured(mock_image_bytes)
+    
+    # Assert the result is a PredictionResult
+    from app.services.cnn.models import PredictionResult
+    assert isinstance(result, PredictionResult)
+    
+    # Check the values
+    assert len(result.top_predictions) == 1
+    assert result.top_predictions[0].tag == "Déchets"
+    assert result.top_predictions[0].probability == 0.9
+    assert result.all_probabilities == [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] 

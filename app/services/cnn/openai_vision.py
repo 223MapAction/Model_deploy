@@ -72,7 +72,7 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
             raise ValueError("OPENAI_API_KEY is not set. Please set it in your environment.")
             
         client = openai.OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model="gpt-4o-mini",
             response_format={"type": "json_object"},
             messages=[
@@ -85,7 +85,7 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         )
         
         # Extract and parse the response
-        result = response.choices[0].message.content
+        result = response.content[0].text
         try:
             parsed_result = json.loads(result)
             
