@@ -2,3 +2,4 @@
 *.pth
 .env
 train_resnet50.py
+openai_agents_sdk.md
