@@ -11,38 +11,17 @@ from app.services.cnn.models import PredictionTag, PredictionResult
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Define the environmental issue tags and descriptions
-TAGS_WITH_DESCRIPTIONS = {
-    "Puits abîmé": "Puits effondré, pompe cassée, borne-fontaine non fonctionnelle",
-    "Fosse pleine": "Eaux noires visibles dans la rue ou près des maisons",
-    "Latrines bouchées": "Infrastructures sanitaires endommagées ou inutilisables",
-    "Eaux stagnantes": "Mares, flaques ou canaux immobiles favorisant les moustiques",
-    "Décharge illégale": "Accumulation visible de déchets dans un espace non autorisé",
-    "Déchets biomédicaux": "Sacs médicaux, seringues ou équipements jetés à l'air libre",
-    "Plastiques épars": "Sachets, bouteilles, bidons dans la nature",
-    "Feu déchets": "Brûlage à ciel ouvert de détritus",
-    "Ordures non collectées": "Poubelles non ramassées, amas de déchets en attente",
-    "Déchets électroniques": "Téléphones, ordinateurs, batteries jetés dans des lieux publics",
-    "Arbres coupés": "Troncs fraîchement coupés, zones déboisées illégalement",
-    "Feux de brousse": "Fumée, cendres, végétation brûlée",
-    "Sol Nu": "Sols nus, sans végétation, sable emporté par le vent",
-    "Sol érodé": "Fissures, ravines ou glissements visibles",
-    "Fumées industrielles": "Colonnes de fumée provenant de cheminées ou brûlis illégaux",
-    "Eaux sales": "Eaux souillées ou mousseuses rejetées dans les cours d'eau ou dans les zones urbaines",
-    "Pollution plastique": "Présence massive de plastique dans la nature ou les cours d'eau",
-    "Pollution visuelle": "Affiches anarchiques, véhicules abandonnés, murs sales",
-    "Inondation": "Rues, champs, maisons submergés par l'eau",
-    "Sécheresse": "Terres asséchées, végétation flétrie, fissures visibles",
-    "Glissement de terrain": "Sol effondré, routes ou maisons endommagées",
-    "Animal mort": "Carcasses de poissons, oiseaux ou autres espèces protégées",
-    "Zone humide agréssée": "Assèchement ou remblayage d'une zone végétalisée humide",
-    "Espèces invasives": "Plantes ou animaux non natifs envahissant l'espace local",
-    "Surpâturage": "Sols appauvris par la surconcentration de troupeaux",
-    "Caniveaux bouchés": "Tuyaux visibles, débordements d'eau usée, canaux d'écoulement bouchés ou dégradés",
-    "Équipement HS": "Site abandonné ou matériel détérioré",
-    "Déversement illégal": "Versement de carburant, d'huile ou de liquides toxiques dans la nature"
-}
-ENVIRONMENTAL_TAGS = list(TAGS_WITH_DESCRIPTIONS.keys())
+# Define the environmental issue tags
+ENVIRONMENTAL_TAGS = [
+    "Caniveau obstrué",  # Blocked drain/gutter
+    "Déchets",           # Waste
+    "Déforestation",     # Deforestation
+    "Feux de brousse",   # Bush fires
+    "Pollution de leau", # Water pollution
+    "Pollution de lair", # Air pollution
+    "Sécheresse",        # Drought
+    "Sol dégradé"        # Degraded soil
+]
 
 def encode_image_to_base64(image_bytes):
     """Convert image bytes to base64 encoding for OpenAI API."""
@@ -63,11 +42,17 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         base64_image = encode_image_to_base64(image_bytes)
         
         # Prepare the prompt for environmental issue classification
-        prompt_tags_with_desc = "\n".join([f"{i+1}. {tag}: {desc}" for i, (tag, desc) in enumerate(TAGS_WITH_DESCRIPTIONS.items())])
-        prompt = f"""
-        Analyze this image and identify if it contains any of the following environmental issues. Use the provided descriptions to help your analysis:
+        prompt = """
+        Analyze this image and identify if it contains any of the following environmental issues:
         
-{prompt_tags_with_desc}
+        1. Caniveau obstrué
+        2. Déchets
+        3. Déforestation
+        4. Feux de brousse
+        5. Pollution de leau
+        6. Pollution de lair 
+        7. Sécheresse
+        8. Sol dégradé
         
         If none of these environmental issues are present, respond with "Aucun problème environnemental" (No environmental problem).
         
@@ -76,8 +61,8 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         Limit your response to the top 3 most probable issues.
         
         Format your response as a JSON object with fields:
-        - identified_issues: array of objects with "tag" (use the exact tag name provided above) and "probability" fields
-        - all_probabilities: array of probability values for all {len(ENVIRONMENTAL_TAGS)} issues in the order listed above
+        - identified_issues: array of objects with "tag" and "probability" fields
+        - all_probabilities: array of probability values for all 8 issues in the order listed above
         """
         
         # Call the OpenAI API
@@ -87,46 +72,21 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
             raise ValueError("OPENAI_API_KEY is not set. Please set it in your environment.")
             
         client = openai.OpenAI(api_key=api_key)
-        response = client.responses.create(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
-            input=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "input_image",
-                            "image_url": f"data:image/jpeg;base64,{base64_image}"
-                        },
-                        {
-                            "type": "input_text",
-                            "text": prompt
-                        }
-                    ]
-                }
-            ],
-            text={
-                "format": {
-                    "type": "text"
-                }
-            },
-            reasoning={},
-            tools=[],
-            temperature=1,
-            max_output_tokens=2048,
-            top_p=1,
-            store=True
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": "You are an environmental issue detection assistant."},
+                {"role": "user", "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                ]}
+            ]
         )
         
         # Extract and parse the response
-        # The response structure has the output in response.output[0].content[0].text
-        result = response.output[0].content[0].text
+        result = response.choices[0].message.content
         try:
-            # Remove any markdown formatting if present (e.g., ```json\n...\n```)
-            if result.startswith('```json'):
-                result = result[7:-3]  # Remove ```json and ``` markers
-            elif result.startswith('```'):
-                result = result[3:-3]  # Remove ``` markers
-                
             parsed_result = json.loads(result)
             
             # Extract identified issues

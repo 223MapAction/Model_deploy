@@ -7,6 +7,7 @@ from app.services.cnn.models import PredictionResult
 logger = logging.getLogger(__name__)
 
 # Define the environmental issue tags
+<<<<<<< HEAD
 tags = [
     "Puits abîmé",
     "Fosse pleine",
@@ -37,6 +38,10 @@ tags = [
     "Équipement HS",
     "Déversement illégal"
 ]
+=======
+tags = ["Caniveau obstrué", "Déchets", "Déforestation",
+        "Feux de brousse", "Pollution de leau", "Pollution de lair", "Sécheresse", "Sol dégradé"]
+>>>>>>> e8cc30e (Switch to OpenAI Vision model for prediction)
 
 def predict(image):
     """
