@@ -21,15 +21,19 @@ def mock_openai_client():
 def mock_openai_response():
     mock_response = MagicMock()
     
-    # Mock the output property to return a list with a text object
-    mock_text = MagicMock()
-    mock_text.text = json.dumps({
-        "identified_issues": [
-            {"tag": "Déchets", "probability": 0.9}
-        ],
-        "all_probabilities": [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    })
-    mock_response.output = [mock_text]
+    # Create the nested structure matching the actual API response
+    mock_output_message = MagicMock()
+    mock_content = MagicMock()
+    mock_content.text = '''```json
+{
+    "identified_issues": [
+        {"tag": "Déchets", "probability": 0.9}
+    ],
+    "all_probabilities": [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+}
+```'''
+    mock_output_message.content = [mock_content]
+    mock_response.output = [mock_output_message]
     
     return mock_response
 
@@ -83,12 +87,16 @@ def test_predict_with_successful_response(mock_openai_client, mock_image_bytes, 
 def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     # Set up the mock client with a response that has no identified issues
     mock_response = MagicMock()
-    mock_text = MagicMock()
-    mock_text.text = json.dumps({
-        "identified_issues": [],
-        "all_probabilities": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-    })
-    mock_response.output = [mock_text]
+    mock_output_message = MagicMock()
+    mock_content = MagicMock()
+    mock_content.text = '''```json
+{
+    "identified_issues": [],
+    "all_probabilities": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+}
+```'''
+    mock_output_message.content = [mock_content]
+    mock_response.output = [mock_output_message]
     
     mock_openai_client.responses.create.return_value = mock_response
     
