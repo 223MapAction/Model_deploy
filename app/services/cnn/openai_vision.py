@@ -103,8 +103,15 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         )
         
         # Extract and parse the response
-        result = response.output[0].text
+        # The response structure has the output in response.output[0].content[0].text
+        result = response.output[0].content[0].text
         try:
+            # Remove any markdown formatting if present (e.g., ```json\n...\n```)
+            if result.startswith('```json'):
+                result = result[7:-3]  # Remove ```json and ``` markers
+            elif result.startswith('```'):
+                result = result[3:-3]  # Remove ``` markers
+                
             parsed_result = json.loads(result)
             
             # Extract identified issues
