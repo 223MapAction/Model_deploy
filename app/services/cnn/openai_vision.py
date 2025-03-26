@@ -103,7 +103,7 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         )
         
         # Extract and parse the response
-        result = response.content[0].text
+        result = response.output[0].text
         try:
             parsed_result = json.loads(result)
             

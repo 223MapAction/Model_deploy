@@ -21,7 +21,7 @@ def mock_openai_client():
 def mock_openai_response():
     mock_response = MagicMock()
     
-    # Mock the content property to return a list with a text object
+    # Mock the output property to return a list with a text object
     mock_text = MagicMock()
     mock_text.text = json.dumps({
         "identified_issues": [
@@ -29,7 +29,7 @@ def mock_openai_response():
         ],
         "all_probabilities": [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     })
-    mock_response.content = [mock_text]
+    mock_response.output = [mock_text]
     
     return mock_response
 
