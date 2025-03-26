@@ -77,7 +77,8 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
                 {"type": "text", "text": prompt},
                 {"type": "image", "image": {"base64": base64_image}}
             ],
-            model="gpt-4o-mini"
+            model="gpt-4o-mini",
+            response_format={"type": "json_object"}
         )
         
         # Extract and parse the response
