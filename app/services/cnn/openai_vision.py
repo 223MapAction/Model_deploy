@@ -73,11 +73,33 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
             
         client = openai.OpenAI(api_key=api_key)
         response = client.responses.create(
+            model="gpt-4o-mini",
             input=[
-                {"type": "text", "text": prompt},
-                {"type": "image", "image": {"base64": base64_image}}
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{base64_image}"
+                        },
+                        {
+                            "type": "input_text",
+                            "text": prompt
+                        }
+                    ]
+                }
             ],
-            model="gpt-4o-mini"
+            text={
+                "format": {
+                    "type": "text"
+                }
+            },
+            reasoning={},
+            tools=[],
+            temperature=1,
+            max_output_tokens=2048,
+            top_p=1,
+            store=True
         )
         
         # Extract and parse the response
