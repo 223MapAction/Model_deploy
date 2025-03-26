@@ -55,7 +55,9 @@ def test_predict_with_successful_response(mock_openai_client, mock_image_bytes, 
     mock_openai_client.responses.create.assert_called_once()
     call_args = mock_openai_client.responses.create.call_args[1]
     assert call_args['model'] == "gpt-4o-mini"
-    assert call_args['response_format'] == {"type": "json_object"}
+    assert len(call_args['input']) == 2
+    assert call_args['input'][0]['type'] == "text"
+    assert call_args['input'][1]['type'] == "image"
 
 def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     # Set up the mock client with a response that has no identified issues
