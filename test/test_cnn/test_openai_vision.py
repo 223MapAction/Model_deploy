@@ -88,7 +88,7 @@ def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
         "identified_issues": [],
         "all_probabilities": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     })
-    mock_response.content = [mock_text]
+    mock_response.output = [mock_text]
     
     mock_openai_client.responses.create.return_value = mock_response
     
