@@ -54,10 +54,31 @@ def test_predict_with_successful_response(mock_openai_client, mock_image_bytes, 
     # Verify the API was called correctly
     mock_openai_client.responses.create.assert_called_once()
     call_args = mock_openai_client.responses.create.call_args[1]
+    
+    # Check model and main parameters
     assert call_args['model'] == "gpt-4o-mini"
-    assert len(call_args['input']) == 2
-    assert call_args['input'][0]['type'] == "text"
-    assert call_args['input'][1]['type'] == "image"
+    assert call_args['temperature'] == 1
+    assert call_args['max_output_tokens'] == 2048
+    assert call_args['top_p'] == 1
+    assert call_args['store'] is True
+    
+    # Check input structure
+    assert len(call_args['input']) == 1
+    input_msg = call_args['input'][0]
+    assert input_msg['role'] == "user"
+    assert len(input_msg['content']) == 2
+    
+    # Check image input
+    assert input_msg['content'][0]['type'] == "input_image"
+    assert "data:image/jpeg;base64," in input_msg['content'][0]['image_url']
+    
+    # Check text input
+    assert input_msg['content'][1]['type'] == "input_text"
+    assert isinstance(input_msg['content'][1]['text'], str)
+    
+    # Check format settings
+    assert call_args['text'] == {"format": {"type": "text"}}
+    assert call_args['reasoning'] == {}
 
 def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     # Set up the mock client with a response that has no identified issues
