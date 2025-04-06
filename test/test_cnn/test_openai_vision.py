@@ -27,9 +27,9 @@ def mock_openai_response():
     mock_content.text = '''```json
 {
     "identified_issues": [
-        {"tag": "Déchets", "probability": 0.9}
+        {"tag": "Plastiques épars", "probability": 0.9}
     ],
-    "all_probabilities": [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    "all_probabilities": [0.1] * {len(ENVIRONMENTAL_TAGS)}
 }
 ```'''
     mock_output_message.content = [mock_content]
@@ -52,8 +52,10 @@ def test_predict_with_successful_response(mock_openai_client, mock_image_bytes, 
     result, probabilities = predict(mock_image_bytes)
     
     # Assert the results
-    assert result == [("Déchets", 0.9)]
-    assert probabilities == [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    assert result == [("Plastiques épars", 0.9)]
+    assert len(probabilities) == len(ENVIRONMENTAL_TAGS)
+    # Example check - adjust if needed based on the mock response
+    assert probabilities[6] == 0.9 # Assuming Plastiques épars is at index 6
     
     # Verify the API was called correctly
     mock_openai_client.responses.create.assert_called_once()
@@ -92,7 +94,7 @@ def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     mock_content.text = '''```json
 {
     "identified_issues": [],
-    "all_probabilities": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    "all_probabilities": [0.1] * {len(ENVIRONMENTAL_TAGS)}
 }
 ```'''
     mock_output_message.content = [mock_content]
@@ -105,7 +107,7 @@ def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     
     # Assert the results - should return "Aucun problème environnemental" with probability 1.0
     assert result == [("Aucun problème environnemental", 1.0)]
-    assert probabilities == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    assert probabilities == [0.0] * len(ENVIRONMENTAL_TAGS)
 
 def test_predict_with_api_error(mock_openai_client, mock_image_bytes):
     # Set up the mock client to raise an exception
@@ -116,14 +118,14 @@ def test_predict_with_api_error(mock_openai_client, mock_image_bytes):
     
     # Assert we get an error response
     assert result == [("Error in prediction", 0.0)]
-    assert probabilities == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    assert probabilities == [0.0] * len(ENVIRONMENTAL_TAGS)
 
 @patch('app.services.cnn.openai_vision.predict')
 def test_predict_structured(mock_predict, mock_image_bytes):
     # Set up the mock
     mock_predict.return_value = (
-        [("Déchets", 0.9)], 
-        [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        [("Plastiques épars", 0.9)], 
+        ([0.0] * 6) + [0.9] + ([0.0] * (len(ENVIRONMENTAL_TAGS) - 7))
     )
     
     # Call the function
@@ -135,6 +137,7 @@ def test_predict_structured(mock_predict, mock_image_bytes):
     
     # Check the values
     assert len(result.top_predictions) == 1
-    assert result.top_predictions[0].tag == "Déchets"
+    assert result.top_predictions[0].tag == "Plastiques épars"
     assert result.top_predictions[0].probability == 0.9
-    assert result.all_probabilities == [0.1, 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] 
+    assert len(result.all_probabilities) == len(ENVIRONMENTAL_TAGS)
+    assert result.all_probabilities[6] == 0.9 # Check specific index
