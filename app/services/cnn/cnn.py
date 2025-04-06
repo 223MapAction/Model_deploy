@@ -7,8 +7,36 @@ from app.services.cnn.models import PredictionResult
 logger = logging.getLogger(__name__)
 
 # Define the environmental issue tags
-tags = ["Caniveau obstrué", "Déchets", "Déforestation",
-        "Feux de brousse", "Pollution de leau", "Pollution de lair", "Sécheresse", "Sol dégradé"]
+tags = [
+    "Puits abîmé",
+    "Fosse pleine",
+    "Latrines bouchées",
+    "Eaux stagnantes",
+    "Décharge illégale",
+    "Déchets biomédicaux",
+    "Plastiques épars",
+    "Feu déchets",
+    "Ordures non collectées",
+    "Déchets électroniques",
+    "Arbres coupés",
+    "Feux de brousse",
+    "Sol Nu",
+    "Sol érodé",
+    "Fumées industrielles",
+    "Eaux sales",
+    "Pollution plastique",
+    "Pollution visuelle",
+    "Inondation",
+    "Sécheresse",
+    "Glissement de terrain",
+    "Animal mort",
+    "Zone humide agréssée",
+    "Espèces invasives",
+    "Surpâturage",
+    "Caniveaux bouchés",
+    "Équipement HS",
+    "Déversement illégal"
+]
 
 def predict(image):
     """
