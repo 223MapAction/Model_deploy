@@ -24,13 +24,16 @@ def mock_openai_response():
     # Create the nested structure matching the actual API response
     mock_output_message = MagicMock()
     mock_content = MagicMock()
-    mock_content.text = '''```json
-{
+    # Generate the probability list correctly
+    probabilities_json = json.dumps([0.1] * len(ENVIRONMENTAL_TAGS))
+    # Construct the full JSON string
+    mock_content.text = f'''```json
+{{
     "identified_issues": [
-        {"tag": "Plastiques épars", "probability": 0.9}
+        {{"tag": "Plastiques épars", "probability": 0.9}}
     ],
-    "all_probabilities": [0.1] * {len(ENVIRONMENTAL_TAGS)}
-}
+    "all_probabilities": {probabilities_json}
+}}
 ```'''
     mock_output_message.content = [mock_content]
     mock_response.output = [mock_output_message]
@@ -91,11 +94,14 @@ def test_predict_with_no_issues(mock_openai_client, mock_image_bytes):
     mock_response = MagicMock()
     mock_output_message = MagicMock()
     mock_content = MagicMock()
-    mock_content.text = '''```json
-{
+    # Generate the probability list correctly
+    probabilities_json = json.dumps([0.1] * len(ENVIRONMENTAL_TAGS))
+    # Construct the full JSON string
+    mock_content.text = f'''```json
+{{
     "identified_issues": [],
-    "all_probabilities": [0.1] * {len(ENVIRONMENTAL_TAGS)}
-}
+    "all_probabilities": {probabilities_json}
+}}
 ```'''
     mock_output_message.content = [mock_content]
     mock_response.output = [mock_output_message]
