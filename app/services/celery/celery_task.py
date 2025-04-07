@@ -12,13 +12,14 @@ from datetime import datetime, timedelta
 import os
 import base64
 
-# Add AWS SDK import for fetching the parameter
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+# Try to set locale to French
 try:
-    import boto3
-    AWS_AVAILABLE = True
-except ImportError:
-    AWS_AVAILABLE = False
-    logging.warning("boto3 not available, AWS Parameter Store access disabled")
+    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+except locale.Error:
+    pass
 
 def initialize_earth_engine():
     """
@@ -38,37 +39,14 @@ def initialize_earth_engine():
             # Ensure directory exists
             os.makedirs(os.path.dirname(key_file_path), exist_ok=True)
             
-            # Try to get credentials from AWS Parameter Store
-            ssm_param_name = os.environ.get('GEE_SSM_PARAMETER_NAME')
-            if AWS_AVAILABLE and ssm_param_name:
-                try:
-                    logging.info(f"Fetching GEE credentials from AWS Parameter Store: {ssm_param_name}")
-                    aws_region = os.environ.get('AWS_REGION', 'eu-west-3')
-                    ssm_client = boto3.client('ssm', region_name=aws_region)
-                    response = ssm_client.get_parameter(Name=ssm_param_name, WithDecryption=True)
-                    key_content = response['Parameter']['Value']
-                    with open(key_file_path, 'w') as f:
-                        f.write(key_content)
-                    logging.info(f"Created GEE service account key file from AWS Parameter Store at {key_file_path}")
-                except Exception as e:
-                    logging.error(f"Failed to fetch GEE credentials from AWS Parameter Store: {str(e)}")
-                    # Fall back to other methods
-            
-            # Fall back to direct environment variables if SSM failed or isn't available
-            if not os.path.exists(key_file_path):
-                if 'GEE_SERVICE_ACCOUNT_KEY_CONTENT_BASE64' in os.environ:
-                    # Decode the base64-encoded content
-                    key_content = base64.b64decode(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT_BASE64']).decode('utf-8')
-                    with open(key_file_path, 'w') as f:
-                        f.write(key_content)
-                    logging.info(f"Created GEE service account key file from base64 content at {key_file_path}")
-                elif 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
-                    # Use the raw content
-                    with open(key_file_path, 'w') as f:
-                        f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
-                    logging.info(f"Created GEE service account key file from raw content at {key_file_path}")
-                else:
-                    logging.warning(f"No GEE service account key content found in environment variables")
+            # Try to find the credentials in environment variables
+            if 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
+                # Use the raw content
+                with open(key_file_path, 'w') as f:
+                    f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
+                logging.info(f"Created GEE service account key file from environment variable at {key_file_path}")
+            else:
+                logging.warning(f"No GEE service account key content found in environment variables")
             
         # Initialize Earth Engine with credentials
         credentials = ee.ServiceAccountCredentials(
@@ -82,15 +60,6 @@ def initialize_earth_engine():
         raise
     
 initialize_earth_engine()
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-# Try to set locale to French
-try:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
-except locale.Error:
-    pass
 
 @celery_app.task
 def perform_prediction(image):
