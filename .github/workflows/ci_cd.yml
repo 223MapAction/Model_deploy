@@ -14,23 +14,11 @@ permissions:
     id-token: write
 
 env:
-    AWS_REGION: us-east-1 # Change to your AWS region
+    AWS_REGION: eu-west-3 # Change to your AWS region
 
 jobs:
-    cleanup:
-        runs-on: self-hosted
-        steps:
-            - name: Free up disk space
-              run: |
-                  sudo docker system prune -af
-                  sudo docker volume prune -f
-                  sudo apt-get clean
-                  sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-                  sudo df -h
-
     setup-and-test:
-        needs: cleanup
-        runs-on: self-hosted
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
@@ -40,21 +28,8 @@ jobs:
               with:
                   python-version: "3.10"
 
-            - name: Install Azure CLI
-              run: |
-                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-            - name: Login to Azure
-              uses: azure/login@v1
-              with:
-                  creds: ${{ secrets.AZURE_CREDENTIALS }}
-                  auth-type: IDENTITY
-                  allow-no-subscriptions: true
-
-            - name: Install Docker Compose
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y docker-compose
+            - name: Set up Docker
+              uses: docker/setup-buildx-action@v2
 
             - name: Create .cv_deploy.env
               run: |
@@ -106,7 +81,7 @@ jobs:
                   docker system prune -af
 
     deploy:
-        needs: [cleanup, setup-and-test]
+        needs: [setup-and-test]
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         runs-on: ubuntu-latest
         steps:
