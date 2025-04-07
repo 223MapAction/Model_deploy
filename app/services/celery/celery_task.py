@@ -15,6 +15,11 @@ def initialize_earth_engine():
     """
     Initialize Earth Engine with service account credentials.
     """
+    # Skip initialization if SKIP_GEE_INIT environment variable is set (for tests)
+    if os.environ.get('SKIP_GEE_INIT', '').lower() == 'true':
+        logging.info("Skipping Earth Engine initialization due to SKIP_GEE_INIT flag")
+        return
+        
     try:
         credentials = ee.ServiceAccountCredentials(
             email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],

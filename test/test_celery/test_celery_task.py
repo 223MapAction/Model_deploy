@@ -3,6 +3,19 @@ from unittest.mock import patch, MagicMock
 from app.services.celery.celery_task import perform_prediction, fetch_contextual_information, analyze_incident_zone
 import pandas as pd
 import ee
+import os
+from test.utils.mock_ee import setup_ee_mock, get_ee_mock
+
+# Set environment variable to skip Earth Engine initialization
+os.environ['SKIP_GEE_INIT'] = 'true'
+
+# Set up Earth Engine mock
+setup_ee_mock()
+
+@pytest.fixture
+def mock_ee():
+    with get_ee_mock() as mock:
+        yield mock
 
 @pytest.fixture
 def mock_predict():

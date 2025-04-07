@@ -4,6 +4,13 @@ import json
 import base64
 import os
 from app.services.cnn.openai_vision import predict, predict_structured, encode_image_to_base64, ENVIRONMENTAL_TAGS
+from test.utils.mock_ee import setup_ee_mock
+
+# Set up Earth Engine mock
+setup_ee_mock()
+
+# Set environment variable to skip Earth Engine initialization
+os.environ['SKIP_GEE_INIT'] = 'true'
 
 @pytest.fixture
 def mock_image_bytes():

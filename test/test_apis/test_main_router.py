@@ -6,9 +6,16 @@ from fastapi import HTTPException
 from fastapi.websockets import WebSocketDisconnect
 import os
 import json
+from test.utils.mock_ee import setup_ee_mock
 
 # Import only what is used in the tests we're running
 from app.apis.main_router import router, construct_image_url, sanitize_error_message, BASE_URL
+
+# Set environment variable to skip Earth Engine initialization
+os.environ['SKIP_GEE_INIT'] = 'true'
+
+# Set up Earth Engine mock
+setup_ee_mock()
 
 # Create test client
 client = TestClient(router)
