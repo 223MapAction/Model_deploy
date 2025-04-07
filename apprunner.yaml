@@ -1,5 +1,5 @@
 version: 1.0
-runtime: python311 # managed runtime name
+runtime: python310 # managed runtime name
 
 build:
     commands:
