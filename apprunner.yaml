@@ -1,19 +1,17 @@
 version: 1.0
-runtime: python311 # ← use “python311” (no dot)
+runtime: python311 # managed runtime name
 
 build:
     commands:
         pre-build:
-            # App Runner’s build image is Amazon Linux, so use yum
             - yum install -y gcc libffi-devel openssl-devel
         build:
             - pip install --upgrade pip
             - pip install --no-cache-dir -r requirements.txt
 
 run:
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8080
-    port: 8080
-    environment:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 # your start cmd
+    env: # <-- rename & keep same list
         - name: MODEL_PATH
           value: ${MODEL_PATH}
         - name: OPENAI_API_KEY
