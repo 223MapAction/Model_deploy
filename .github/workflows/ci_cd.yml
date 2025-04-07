@@ -141,26 +141,40 @@ jobs:
                           "Port": "8080",
                           "PreBuildCommand": "mkdir -p cv_model local_uploads",
                           "RuntimeEnvironmentVariables": {
-                            "MODEL_PATH":                 "${{ secrets.MODEL_PATH }}",
-                            "OPENAI_API_KEY":             "${{ secrets.OPENAI_API_KEY }}",
-                            "REDIS_URL":                  "${{ secrets.REDIS_URL }}",
-                            "REDIS_HOST":                 "${{ secrets.REDIS_HOST }}",
-                            "REDIS_PORT":                 "${{ secrets.REDIS_PORT }}",
-                            "REDIS_PASSWORD":             "${{ secrets.REDIS_PASSWORD }}",
-                            "POSTGRES_URL":               "${{ secrets.POSTGRES_URL }}",
-                            "GEE_SERVICE_ACCOUNT_EMAIL":  "${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}",
-                            "GEE_SERVICE_ACCOUNT_KEY_FILE":"${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}",
-                            "GEE_SERVICE_ACCOUNT_KEY_CONTENT":"${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}",
-                            "BLOB_ACCOUNT_URL":           "${{ secrets.BLOB_ACCOUNT_URL }}",
-                            "BLOB_CONTAINER_NAME":        "${{ secrets.BLOB_CONTAINER_NAME }}",
-                            "SERVER_URL":                 "${{ secrets.SERVER_URL }}",
-                            "BLOB_SAS_TOKEN":             "${{ secrets.BLOB_SAS_TOKEN }}"
+                            "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
+                            "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
+                            "REDIS_URL": "${{ secrets.REDIS_URL }}",
+                            "REDIS_HOST": "${{ secrets.REDIS_HOST }}",
+                            "REDIS_PORT": "${{ secrets.REDIS_PORT }}",
+                            "REDIS_PASSWORD": "${{ secrets.REDIS_PASSWORD }}",
+                            "POSTGRES_URL": "${{ secrets.POSTGRES_URL }}",
+                            "GEE_SERVICE_ACCOUNT_EMAIL": "${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}",
+                            "GEE_SERVICE_ACCOUNT_KEY_FILE": "${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
                           }
                         }
                       }
                     }
                   }
                   EOF
+
+            - name: Add GEE key content to config
+              shell: bash
+              run: |
+                  # Use a safer approach with base64 encoding to handle JSON content
+                  echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' | base64 > gee_key_base64.txt
+                  jq --arg content "$(cat gee_key_base64.txt)" '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.GEE_SERVICE_ACCOUNT_KEY_CONTENT_BASE64 = $content' source.json > source_updated.json
+                  mv source_updated.json source.json
+                  rm gee_key_base64.txt
+
+                  # Add remaining environment variables
+                  jq '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.BLOB_ACCOUNT_URL = "${{ secrets.BLOB_ACCOUNT_URL }}"' source.json > source_updated.json
+                  mv source_updated.json source.json
+                  jq '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.BLOB_CONTAINER_NAME = "${{ secrets.BLOB_CONTAINER_NAME }}"' source.json > source_updated.json
+                  mv source_updated.json source.json
+                  jq '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.SERVER_URL = "${{ secrets.SERVER_URL }}"' source.json > source_updated.json
+                  mv source_updated.json source.json
+                  jq '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.BLOB_SAS_TOKEN = "${{ secrets.BLOB_SAS_TOKEN }}"' source.json > source_updated.json
+                  mv source_updated.json source.json
 
             # -------------------------------------------------------------------
             # Create or update the service

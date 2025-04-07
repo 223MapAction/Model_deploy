@@ -10,6 +10,7 @@ import logging
 import locale
 from datetime import datetime, timedelta
 import os
+import base64
 
 def initialize_earth_engine():
     """
@@ -25,15 +26,24 @@ def initialize_earth_engine():
         key_file_path = os.environ.get('GEE_SERVICE_ACCOUNT_KEY_FILE')
         
         # Check if we need to create the key file from environment variable content
-        if not os.path.exists(key_file_path) and 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
+        if not os.path.exists(key_file_path):
             # Ensure directory exists
             os.makedirs(os.path.dirname(key_file_path), exist_ok=True)
             
-            # Create the key file from environment variable
-            with open(key_file_path, 'w') as f:
-                f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
-            
-            logging.info(f"Created GEE service account key file at {key_file_path}")
+            # Create the key file from environment variable - try both formats
+            if 'GEE_SERVICE_ACCOUNT_KEY_CONTENT_BASE64' in os.environ:
+                # Decode the base64-encoded content
+                key_content = base64.b64decode(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT_BASE64']).decode('utf-8')
+                with open(key_file_path, 'w') as f:
+                    f.write(key_content)
+                logging.info(f"Created GEE service account key file from base64 content at {key_file_path}")
+            elif 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
+                # Use the raw content
+                with open(key_file_path, 'w') as f:
+                    f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
+                logging.info(f"Created GEE service account key file from raw content at {key_file_path}")
+            else:
+                logging.warning(f"No GEE service account key content found in environment variables")
             
         # Initialize Earth Engine with credentials
         credentials = ee.ServiceAccountCredentials(
