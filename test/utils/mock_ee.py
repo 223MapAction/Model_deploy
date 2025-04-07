@@ -1,6 +1,7 @@
 """Utilities for mocking Google Earth Engine in tests"""
 import os
 from unittest.mock import patch, MagicMock
+from contextlib import contextmanager
 
 def setup_ee_mock():
     """
@@ -10,6 +11,7 @@ def setup_ee_mock():
     # Set environment variable to skip Earth Engine initialization
     os.environ['SKIP_GEE_INIT'] = 'true'
     
+@contextmanager
 def get_ee_mock():
     """
     Create a patch for Earth Engine to be used in tests.
@@ -34,7 +36,8 @@ def get_ee_mock():
     mock = ee_patch.start()
     _setup_mock(mock)
     
-    yield mock
-    
-    # Clean up
-    ee_patch.stop() 
+    try:
+        yield mock
+    finally:
+        # Clean up
+        ee_patch.stop() 
