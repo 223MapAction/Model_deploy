@@ -95,6 +95,16 @@ jobs:
               with:
                   files: ./coverage/coverage.xml
 
+            - name: Tear down testing environment
+              if: always() # Ensure this runs even if previous steps fail
+              run: |
+                  docker-compose -f _ci_pipeline.yml down --volumes --remove-orphans
+
+            - name: Prune Docker resources (testing)
+              if: always() # Ensure this runs even if previous steps fail
+              run: |
+                  docker system prune -af
+
     deploy:
         needs: [cleanup, setup-and-test]
         runs-on: self-hosted
