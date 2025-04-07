@@ -23,7 +23,7 @@ def display_chat_history(messages):
 
 def get_assistant_response(messages):
     """
-    Sends the current chat history to the OpenAI API to generate a response from the assistant using GPT-4o-mini.
+    Sends the current chat history to the OpenAI API to generate a response from the assistant using GPT-4o-mini via the Responses API.
 
     Args:
         messages (list of dict): The current chat history as a list of message dictionaries.
@@ -35,16 +35,38 @@ def get_assistant_response(messages):
         Exception: Prints an error message if the API call fails and returns a default error response.
     """
     try:
-        r = client.chat.completions.create(
-            model="gpt-4o-mini",  # The model version to use for generating responses
-            messages=[{"role": m["role"], "content": m["content"]} for m in messages],
-            temperature=1,  # Adjust the temperature if needed
-            max_tokens=1080,  # Adjust as needed
+        # Map messages to the 'input' format for the Responses API
+        # Assuming the API accepts roles similar to chat completions within the input list
+        api_input = []
+        for m in messages:
+             # Simple mapping, might need adjustment based on exact API requirements for roles within input
+             # The example uses role: user -> content: [{type: input_text, text: ...}]
+             # Let's adapt to a simpler text content structure if possible for general chat
+             # Or structure more formally if needed. For now, map directly.
+             api_input.append({
+                 "role": m["role"],
+                 "content": [{"type": "input_text", "text": m["content"]}] # Structure based on vision example
+             })
+
+        r = client.responses.create(
+            model="gpt-4o-mini",
+            input=api_input,
+            temperature=1,
+            max_output_tokens=1080, # Renamed from max_tokens
             top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
+            # frequency_penalty and presence_penalty might not be direct params, check API docs if needed
+            # Using standard params from the vision example
+             text={
+                "format": {
+                    "type": "text"
+                }
+            },
+            reasoning={},
+            tools=[],
+            store=True # Assuming we want to store responses like in the vision example
         )
-        response = r.choices[0].message.content
+        # Update response parsing for the Responses API structure
+        response = r.output[0].content[0].text
         return response
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -109,7 +131,7 @@ def chat_response(prompt: str, context: str = "", chat_history: list = [], impac
     impact_summary = context_obj.get('impact_summary', 'Non spécifié')
 
     # Update the system message to include the impact summary
-    system_message = f"""
+    system_prompt_content = f"""
     <system>
         <role>assistant AI</role>
         <task>analyse des incidents environnementaux</task>
@@ -124,6 +146,8 @@ def chat_response(prompt: str, context: str = "", chat_history: list = [], impac
             <instruction>Adaptez vos réponses au contexte spécifique de l'incident.</instruction>
             <instruction>Utilisez les informations de contexte pour enrichir vos explications.</instruction>
             <instruction>Intégrez les données sur la zone d'impact dans vos analyses lorsque c'est pertinent.</instruction>
+            <instruction>Analysez et mentionnez spécifiquement l'impact de l'incident sur les enfants et les populations vulnérables lorsque cela est pertinent.</instruction>
+            <instruction>Votre réponse doit clairement mentionner et se focaliser sur le type d'incident spécifique ({incident_type}) fourni dans le contexte.</instruction>
             <instruction>Si la question dépasse le contexte fourni, mentionnez clairement que vous répondez de manière générale.</instruction>
             <instruction>Priorisez les réponses concises et orientées sur la résolution du problème.</instruction>
             <instruction>Ne déviez pas de la tâche principale et évitez les réponses non pertinentes.</instruction>
@@ -180,24 +204,37 @@ def chat_response(prompt: str, context: str = "", chat_history: list = [], impac
     </system>
     """
 
-    # Build the list of messages for the conversation with roles defined for each message
-    messages = [
-        {"role": "system", "content": system_message},
-    ] + chat_history + [{"role": "user", "content": prompt}]
+    # Build the input list for the Responses API
+    api_input = [
+        {"role": "system", "content": [{"type": "input_text", "text": system_prompt_content}]}
+    ]
+    # Add chat history
+    for msg in chat_history:
+        api_input.append({"role": msg["role"], "content": [{"type": "input_text", "text": msg["content"]}]})
+    # Add current user prompt
+    api_input.append({"role": "user", "content": [{"type": "input_text", "text": prompt}]})
+
 
     try:
-        # Get the assistant's response
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Ensure the model is available and correctly specified
-            messages=messages,
-            temperature=0.5,  # Reduce temperature for more focused and grounded responses
-            max_tokens=1080,
-            top_p=0.8,  # Encourage more reliable answers by modifying top_p
-            frequency_penalty=0.3,  # Penalize repetition for more diverse outputs
-            presence_penalty=0.0  # Remove presence penalty to avoid deviation from the task
+        response = client.responses.create(
+            model="gpt-4o-mini",
+            input=api_input,
+            temperature=0.5,
+            max_output_tokens=1080, # Renamed
+            top_p=0.8,
+            # frequency_penalty=0.3, # Check if supported or map to other params
+            # presence_penalty=0.0,  # Check if supported
+             text={
+                "format": {
+                    "type": "text"
+                }
+            },
+            reasoning={},
+            tools=[],
+            store=True # Assuming default behavior
         )
 
-        assistant_response = response.choices[0].message.content
+        assistant_response = response.output[0].content[0].text
         return assistant_response
 
     except Exception as e:
@@ -229,7 +266,7 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
         "dominant_cover_percentage": landcover_data[max(landcover_data, key=landcover_data.get)] / sum(landcover_data.values()) * 100
     }
 
-    system_message = f"""
+    system_prompt_content = f"""
     <system>
         <role>assistant AI spécialisé en analyse environnementale</role>
         <task>analyse des données satellitaires pour incidents environnementaux avec formatage markdown</task>
@@ -269,23 +306,31 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
 
     user_prompt = f"Analysez les données satellitaires pour l'incident de type '{incident_type}' et fournissez un rapport détaillé formaté en markdown."
 
-    messages = [
-        {"role": "system", "content": system_message},
-        {"role": "user", "content": user_prompt}
+    api_input = [
+        {"role": "system", "content": [{"type": "input_text", "text": system_prompt_content}]},
+        {"role": "user", "content": [{"type": "input_text", "text": user_prompt}]}
     ]
 
     try:
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model="gpt-4o-mini",
-            messages=messages,
+            input=api_input,
             temperature=0.7,
-            max_tokens=2000,
+            max_output_tokens=2000, # Renamed
             top_p=0.9,
-            frequency_penalty=0.3,
-            presence_penalty=0.0
+            # frequency_penalty=0.3, # Check if supported
+            # presence_penalty=0.0, # Check if supported
+             text={
+                "format": {
+                    "type": "text" # Expecting markdown, but API might just support 'text' or 'json'
+                }
+            },
+            reasoning={},
+            tools=[],
+            store=True # Assuming default behavior
         )
 
-        analysis = response.choices[0].message.content
+        analysis = response.output[0].content[0].text
         return analysis
 
     except Exception as e:
