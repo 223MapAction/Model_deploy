@@ -21,9 +21,24 @@ def initialize_earth_engine():
         return
         
     try:
+        # Get the key file path from environment
+        key_file_path = os.environ.get('GEE_SERVICE_ACCOUNT_KEY_FILE')
+        
+        # Check if we need to create the key file from environment variable content
+        if not os.path.exists(key_file_path) and 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(key_file_path), exist_ok=True)
+            
+            # Create the key file from environment variable
+            with open(key_file_path, 'w') as f:
+                f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
+            
+            logging.info(f"Created GEE service account key file at {key_file_path}")
+            
+        # Initialize Earth Engine with credentials
         credentials = ee.ServiceAccountCredentials(
             email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
-            key_file=os.environ['GEE_SERVICE_ACCOUNT_KEY_FILE']
+            key_file=key_file_path
         )
         ee.Initialize(credentials)
         logging.info("Earth Engine initialized successfully.")

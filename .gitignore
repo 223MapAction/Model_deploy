@@ -3,3 +3,7 @@
 .env
 train_resnet50.py
 openai_agents_sdk.md
+
+# Google Earth Engine credentials
+*spatialproject*.json
+cv_model/*.json

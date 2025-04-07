@@ -62,6 +62,7 @@ jobs:
                     echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}"
                     echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
                     echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
+                    echo "GEE_SERVICE_ACCOUNT_KEY_CONTENT=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}"
                     echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}"
                     echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}"
                     echo "SERVER_URL=${{ secrets.SERVER_URL }}"
@@ -139,6 +140,7 @@ jobs:
                           "BuildCommand": "pip install --upgrade pip && pip install -r requirements.txt",
                           "StartCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080",
                           "Port": "8080",
+                          "PreBuildCommand": "mkdir -p cv_model local_uploads",
                           "RuntimeEnvironmentVariables": {
                             "MODEL_PATH":                 "${{ secrets.MODEL_PATH }}",
                             "OPENAI_API_KEY":             "${{ secrets.OPENAI_API_KEY }}",
@@ -149,6 +151,7 @@ jobs:
                             "POSTGRES_URL":               "${{ secrets.POSTGRES_URL }}",
                             "GEE_SERVICE_ACCOUNT_EMAIL":  "${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}",
                             "GEE_SERVICE_ACCOUNT_KEY_FILE":"${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}",
+                            "GEE_SERVICE_ACCOUNT_KEY_CONTENT":"${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}",
                             "BLOB_ACCOUNT_URL":           "${{ secrets.BLOB_ACCOUNT_URL }}",
                             "BLOB_CONTAINER_NAME":        "${{ secrets.BLOB_CONTAINER_NAME }}",
                             "SERVER_URL":                 "${{ secrets.SERVER_URL }}",
