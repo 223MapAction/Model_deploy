@@ -24,8 +24,13 @@ def mock_openai_response():
     # Create the nested structure matching the actual API response
     mock_output_message = MagicMock()
     mock_content = MagicMock()
-    # Generate the probability list correctly
-    probabilities_json = json.dumps([0.1] * len(ENVIRONMENTAL_TAGS))
+    
+    # Generate the probability list correctly, matching the identified issue
+    # Plastiques épars is at index 6
+    probabilities_list = [0.1] * len(ENVIRONMENTAL_TAGS)
+    probabilities_list[6] = 0.9
+    probabilities_json = json.dumps(probabilities_list)
+    
     # Construct the full JSON string
     mock_content.text = f'''```json
 {{
