@@ -1,5 +1,6 @@
 version: 1.0
-runtime: python3
+runtime: python3.11
+
 build:
     commands:
         pre-build:
@@ -7,13 +8,11 @@ build:
         build:
             - pip install --upgrade pip
             - pip install --no-cache-dir -r requirements.txt
+
 run:
-    runtime-version: 3.11
     command: uvicorn app.main:app --host 0.0.0.0 --port 8080
-    network:
-        port: 8080
-        env: PORT
-    env:
+    port: 8080
+    environment:
         - name: MODEL_PATH
           value: ${MODEL_PATH}
         - name: OPENAI_API_KEY
@@ -40,6 +39,5 @@ run:
           value: ${SERVER_URL}
         - name: BLOB_SAS_TOKEN
           value: ${BLOB_SAS_TOKEN}
-    # Create required directories
     pre-run:
         - mkdir -p local_uploads && chmod 777 local_uploads
