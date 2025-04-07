@@ -62,8 +62,6 @@ jobs:
                     echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}"
                     echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
                     echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
-                    # Skip the problematic JSON content for now in CI
-                    # echo "GEE_SERVICE_ACCOUNT_KEY_CONTENT=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}"
                     echo "SKIP_GEE_INIT=true"
                     echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}"
                     echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}"
