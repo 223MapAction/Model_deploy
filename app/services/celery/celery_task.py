@@ -82,7 +82,7 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
         system_message = f"""
         <system>
             <role>assistant AI</role>
-            <task>analyse des incidents environnementaux avec formatage markdown</task>
+            <task>analyse des incidents environnementaux avec formatage markdown, **incluant une évaluation spécifique de l'impact sur les enfants et populations vulnérables**</task>
             <location>Mali</location>
             <incident>
                 <type>{prediction}</type>
@@ -90,6 +90,7 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
                 <sensitive_structures>{', '.join(sensitive_structures)}</sensitive_structures>
             </incident>
             <instructions>
+                <instruction>**IMPÉRATIF : Votre analyse DOIT inclure une section spécifique évaluant l'impact de l'incident sur les enfants et les populations vulnérables.**</instruction>
                 <instruction>Analysez la nature du problème et ses conséquences immédiates dans la zone spécifiée.</instruction>
                 <instruction>Identifiez les risques spécifiques aux infrastructures locales (routes, hôpitaux, écoles) dans la zone indiquée.</instruction>
                 <instruction>Évaluez les conséquences environnementales dans la zone, telles que la pollution, la contamination des eaux, et la perte de biodiversité.</instruction>
@@ -107,6 +108,7 @@ def fetch_contextual_information(prediction, sensitive_structures, zone):
                 <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>
                 <formatting_rule>Donnez des informations essentielles en utilisant un langage direct et précis.</formatting_rule>
                 <formatting_rule>Si une recommandation est faite, assurez-vous qu'elle est faisable et contextualisée pour la zone en question.</formatting_rule>
+                <formatting_rule>**Structure Requise :** Incluez impérativement une section intitulée '**Impact sur les Enfants et Populations Vulnérables**'.</formatting_rule>
             </response_formatting>
             <examples>
                 <example>
@@ -125,6 +127,10 @@ La pollution de l'eau dans la région de Bamako affecte directement les infrastr
 - ***Écoles et hôpitaux*** : Dépendance à l'eau contaminée, nécessitant une intervention rapide
 - ***Systèmes de distribution*** : Détérioration accélérée due aux polluants
 
+** Impact sur les Enfants et Populations Vulnérables **
+
+Les enfants sont particulièrement exposés aux risques de maladies hydriques comme la diarrhée et la typhoïde. Les femmes enceintes et les personnes âgées souffrent davantage des effets de la contamination, avec des conséquences potentiellement graves pour leur santé.
+
 Une action immédiate est nécessaire pour éviter des conséquences sanitaires graves et des coûts à long terme pour la municipalité.
                     </response>
                 </example>
@@ -135,13 +141,14 @@ Une action immédiate est nécessaire pour éviter des conséquences sanitaires 
         solution_prompt = f"""
         <system>
             <role>assistant AI</role>
-            <task>recommandations de solutions pour des incidents environnementaux avec formatage markdown</task>
+            <task>recommandations de solutions pour des incidents environnementaux avec formatage markdown, **incluant des mesures spécifiques pour protéger les enfants et populations vulnérables**</task>
             <incident>
                 <type>{prediction}</type>
                 <zone>{zone}</zone>
                 <sensitive_structures>{', '.join(sensitive_structures)}</sensitive_structures>
             </incident>
             <instructions>
+                <instruction>**IMPÉRATIF : Vos recommandations DOIVENT inclure des mesures spécifiques pour protéger les enfants et les populations vulnérables des impacts de l'incident.**</instruction>
                 <instruction>Recommandez des solutions spécifiques en tenant compte du type de terrain, des infrastructures à proximité, et des écosystèmes sensibles dans la zone spécifiée.</instruction>
                 <instruction>Proposez des mesures préventives et curatives adaptées à la zone pour éviter que le problème ne se reproduise.</instruction>
                 <instruction>Suggérez des collaborations entre les autorités locales, les ONG, et les entreprises pour mettre en œuvre les solutions dans la zone concernée.</instruction>
@@ -155,6 +162,7 @@ Une action immédiate est nécessaire pour éviter des conséquences sanitaires 
                 <formatting_rule>Structurez la réponse en sections claires avec des titres appropriés.</formatting_rule>
                 <formatting_rule>Commencez par la solution la plus immédiate et pertinente pour la zone spécifiée.</formatting_rule>
                 <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>
+                <formatting_rule>**Structure Requise :** Incluez impérativement une section intitulée '**Mesures de Protection pour les Enfants et Populations Vulnérables**'.</formatting_rule>
             </response_formatting>
             <examples>
                 <example>
@@ -171,6 +179,12 @@ Une action immédiate est nécessaire pour éviter des conséquences sanitaires 
 
 - ***Campagnes d'information*** sur l'importance des forêts pour les communautés locales
 - Promotion de l'***agroforesterie*** comme alternative durable
+
+** Mesures de Protection pour les Enfants et Populations Vulnérables **
+
+- Création de ***zones tampons*** autour des écoles et centres de santé pour maintenir la couverture végétale
+- Organisation de ***programmes éducatifs*** dans les écoles sur la protection de l'environnement
+- Mise en place de ***systèmes d'alerte*** pour prévenir des risques sanitaires liés à la déforestation
 
 ** Partenariats et reboisement **
 
