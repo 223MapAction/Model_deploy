@@ -135,7 +135,7 @@ jobs:
                       "CodeConfiguration": {
                         "ConfigurationSource": "API",
                         "CodeConfigurationValues": {
-                          "Runtime": "python3.10",
+                          "Runtime": "PYTHON_3",
                           "BuildCommand": "pip install --upgrade pip && pip install -r requirements.txt",
                           "StartCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080",
                           "Port": "8080",
