@@ -23,7 +23,7 @@ app = FastAPI(
 # Adjust `allow_origins` to specify the exact origins allowed in production for better security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific origins like ["https://yourdomain.com"] in production
+    allow_origins=["https://app.map-action.com", "https://www.map-action.com", "http://localhost", "http://localhost:3000"],  # Replace "*" with specific origins like ["https://yourdomain.com"] in production
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods; restrict if necessary
     allow_headers=["*"],  # Allow all headers; restrict if necessary
