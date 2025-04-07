@@ -5,6 +5,10 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.CI
+            args:
+                - PIP_NO_CACHE_DIR=1
+                - BUILDKIT_INLINE_CACHE=0
+            shm_size: "2gb"
         command:
             [
                 "pytest",

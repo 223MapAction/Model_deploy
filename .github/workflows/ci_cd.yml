@@ -15,6 +15,7 @@ permissions:
 
 env:
     AWS_REGION: eu-west-3 # Change to your AWS region
+    DOCKER_BUILDKIT: 1
 
 jobs:
     setup-and-test:
@@ -30,6 +31,18 @@ jobs:
 
             - name: Set up Docker
               uses: docker/setup-buildx-action@v3
+
+            - name: Free up disk space
+              run: |
+                  # Remove unnecessary large packages
+                  sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+                  sudo apt-get clean
+                  sudo docker system prune -af
+                  sudo docker volume prune -f
+                  # Clear pip cache
+                  rm -rf ~/.cache/pip
+                  # Display available disk space
+                  df -h
 
             - name: Install Docker Compose
               run: |
@@ -60,6 +73,11 @@ jobs:
 
             - name: Run Tests
               run: |
+                  # Set Docker pip environment variables to reduce cache usage
+                  export DOCKER_BUILDKIT=1
+                  export PIP_NO_CACHE_DIR=1
+                  export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
                   docker-compose -f _ci_pipeline.yml up --build -d
                   docker-compose -f _ci_pipeline.yml run --rm -v ${{ github.workspace }}/coverage:/app/coverage testing
 
