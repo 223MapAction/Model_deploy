@@ -14,7 +14,7 @@ permissions:
     id-token: write
 
 env:
-    AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    AWS_REGION: us-east-1 # Change to your AWS region
 
 jobs:
     cleanup:
@@ -107,47 +107,60 @@ jobs:
 
     deploy:
         needs: [cleanup, setup-and-test]
-        runs-on: self-hosted
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
 
-            - name: Install Azure CLI
-              run: |
-                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-            - name: Login to Azure
-              uses: azure/login@v1
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v2
               with:
-                  creds: ${{ secrets.AZURE_CREDENTIALS }}
-                  auth-type: IDENTITY
-                  allow-no-subscriptions: true
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: ${{ env.AWS_REGION }}
 
-            - name: Create .cv_deploy.env
+            - name: Set environment variables in AWS App Runner
               run: |
-                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
-                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
-                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
-                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
-                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
-                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
-                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
-                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
-                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-                  echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
+                  # Create a JSON file with environment variables
+                  cat > env-vars.json << EOF
+                  {
+                    "Variables": {
+                      "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
+                      "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
+                      "REDIS_URL": "${{ secrets.REDIS_URL }}",
+                      "REDIS_HOST": "${{ secrets.REDIS_HOST }}",
+                      "REDIS_PORT": "${{ secrets.REDIS_PORT }}",
+                      "REDIS_PASSWORD": "${{ secrets.REDIS_PASSWORD }}",
+                      "POSTGRES_URL": "${{ secrets.POSTGRES_URL }}",
+                      "GEE_SERVICE_ACCOUNT_EMAIL": "${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}",
+                      "GEE_SERVICE_ACCOUNT_KEY_FILE": "${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}",
+                      "BLOB_ACCOUNT_URL": "${{ secrets.BLOB_ACCOUNT_URL }}",
+                      "BLOB_CONTAINER_NAME": "${{ secrets.BLOB_CONTAINER_NAME }}",
+                      "SERVER_URL": "${{ secrets.SERVER_URL }}",
+                      "BLOB_SAS_TOKEN": "${{ secrets.BLOB_SAS_TOKEN }}"
+                    }
+                  }
+                  EOF
 
-            - name: Build and Deploy Docker Image
+            - name: Deploy to AWS App Runner
               run: |
-                  docker-compose -f _cd_pipeline.yaml build
-                  docker-compose -f _cd_pipeline.yaml down --remove-orphans
-                  docker-compose -f _cd_pipeline.yaml up --build -d
+                  # Get service ID (assuming you've already created the service)
+                  SERVICE_ID=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='map-action-api'].ServiceId" --output text)
 
-            - name: Post-deployment cleanup
-              if: always()
-              run: |
-                  docker system prune -af --volumes
-                  docker image prune -af
-                  docker volume prune -f
+                  if [ -z "$SERVICE_ID" ]; then
+                    echo "Creating new App Runner service..."
+                    # Create a new service if it doesn't exist
+                    aws apprunner create-service \
+                      --service-name map-action-api \
+                      --source-configuration '{"AuthenticationConfiguration":{"ConnectionArn":"${{ secrets.AWS_CONNECTION_ARN }}"},"AutoDeploymentsEnabled":false,"CodeRepository":{"RepositoryUrl":"${{ github.repository }}","SourceCodeVersion":{"Type":"BRANCH","Value":"main"},"CodeConfiguration":{"ConfigurationSource":"REPOSITORY"}}}' \
+                      --instance-configuration '{"Cpu":"1 vCPU","Memory":"2 GB"}' \
+                      --environment-variables file://env-vars.json
+                  else
+                    echo "Updating existing App Runner service..."
+                    # Start a new deployment if the service exists
+                    aws apprunner start-deployment \
+                      --service-id $SERVICE_ID
+                  fi
+
+                  echo "Deployment initiated successfully."

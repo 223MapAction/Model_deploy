@@ -1,0 +1,45 @@
+version: 1.0
+runtime: python3
+build:
+    commands:
+        pre-build:
+            - apt-get update && apt-get install -y --no-install-recommends build-essential gcc libffi-dev libssl-dev
+        build:
+            - pip install --upgrade pip
+            - pip install -r requirements.txt
+run:
+    runtime-version: 3.10
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080
+    network:
+        port: 8080
+        env: PORT
+    env:
+        - name: MODEL_PATH
+          value: ${MODEL_PATH}
+        - name: OPENAI_API_KEY
+          value: ${OPENAI_API_KEY}
+        - name: REDIS_URL
+          value: ${REDIS_URL}
+        - name: REDIS_HOST
+          value: ${REDIS_HOST}
+        - name: REDIS_PORT
+          value: ${REDIS_PORT}
+        - name: REDIS_PASSWORD
+          value: ${REDIS_PASSWORD}
+        - name: POSTGRES_URL
+          value: ${POSTGRES_URL}
+        - name: GEE_SERVICE_ACCOUNT_EMAIL
+          value: ${GEE_SERVICE_ACCOUNT_EMAIL}
+        - name: GEE_SERVICE_ACCOUNT_KEY_FILE
+          value: ${GEE_SERVICE_ACCOUNT_KEY_FILE}
+        - name: BLOB_ACCOUNT_URL
+          value: ${BLOB_ACCOUNT_URL}
+        - name: BLOB_CONTAINER_NAME
+          value: ${BLOB_CONTAINER_NAME}
+        - name: SERVER_URL
+          value: ${SERVER_URL}
+        - name: BLOB_SAS_TOKEN
+          value: ${BLOB_SAS_TOKEN}
+    # Create required directories
+    pre-run:
+        - mkdir -p local_uploads && chmod 777 local_uploads
