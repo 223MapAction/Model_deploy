@@ -62,12 +62,13 @@ jobs:
                     echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}"
                     echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
                     echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
-                    echo "GEE_SERVICE_ACCOUNT_KEY_CONTENT=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}"
+                    # Skip the problematic JSON content for now in CI
+                    # echo "GEE_SERVICE_ACCOUNT_KEY_CONTENT=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}"
+                    echo "SKIP_GEE_INIT=true"
                     echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}"
                     echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}"
                     echo "SERVER_URL=${{ secrets.SERVER_URL }}"
                     echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}"
-                    echo "SKIP_GEE_INIT=true"
                   } >> .cv_deploy.env
 
             - name: Create coverage directory
