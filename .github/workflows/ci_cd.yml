@@ -117,6 +117,66 @@ jobs:
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: ${{ env.AWS_REGION }}
 
+            # Store GEE credentials in Parameter Store
+            - name: Store GEE credentials in Parameter Store
+              shell: bash
+              run: |
+                  # First check if parameter already exists
+                  if ! aws ssm get-parameter --name "/map-action-api/GEE_SERVICE_ACCOUNT_KEY" --with-decryption 2>/dev/null; then
+                    echo "Storing GEE credentials in Parameter Store..."
+                    aws ssm put-parameter \
+                      --name "/map-action-api/GEE_SERVICE_ACCOUNT_KEY" \
+                      --value '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' \
+                      --type "SecureString" \
+                      --overwrite
+                  fi
+
+            # Create or ensure IAM role for App Runner
+            - name: Setup IAM role for App Runner
+              shell: bash
+              run: |
+                  # Check if role exists
+                  ROLE_ARN=$(aws iam list-roles --query "Roles[?RoleName=='AppRunnerSSMRole'].Arn" --output text)
+
+                  if [ -z "$ROLE_ARN" ] || [ "$ROLE_ARN" == "None" ]; then
+                    echo "Creating new IAM role for App Runner..."
+                    
+                    # Create trust policy document
+                    cat > trust-policy.json <<EOF
+                    {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "tasks.apprunner.amazonaws.com"
+                          },
+                          "Action": "sts:AssumeRole"
+                        }
+                      ]
+                    }
+                    EOF
+                    
+                    # Create role
+                    ROLE_ARN=$(aws iam create-role \
+                      --role-name AppRunnerSSMRole \
+                      --assume-role-policy-document file://trust-policy.json \
+                      --query "Role.Arn" \
+                      --output text)
+                    
+                    # Attach SSM policy
+                    aws iam attach-role-policy \
+                      --role-name AppRunnerSSMRole \
+                      --policy-arn arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
+                    
+                    echo "Created IAM role with ARN: $ROLE_ARN"
+                  else
+                    echo "Using existing IAM role with ARN: $ROLE_ARN"
+                  fi
+
+                  # Store role ARN for use in App Runner config
+                  echo "APP_RUNNER_ROLE_ARN=$ROLE_ARN" >> $GITHUB_ENV
+
             # -------------------------------------------------------------------
             # Build source configuration JSON (includes env‑vars)
             # -------------------------------------------------------------------
@@ -148,7 +208,9 @@ jobs:
                             "REDIS_PASSWORD": "${{ secrets.REDIS_PASSWORD }}",
                             "POSTGRES_URL": "${{ secrets.POSTGRES_URL }}",
                             "GEE_SERVICE_ACCOUNT_EMAIL": "${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}",
-                            "GEE_SERVICE_ACCOUNT_KEY_FILE": "${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
+                            "GEE_SERVICE_ACCOUNT_KEY_FILE": "${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}",
+                            "GEE_SSM_PARAMETER_NAME": "/map-action-api/GEE_SERVICE_ACCOUNT_KEY",
+                            "AWS_REGION": "${{ env.AWS_REGION }}"
                           }
                         }
                       }
@@ -156,16 +218,9 @@ jobs:
                   }
                   EOF
 
-            - name: Add GEE key content to config
+            - name: Add remaining environment variables
               shell: bash
               run: |
-                  # Use a safer approach with base64 encoding to handle JSON content
-                  echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' | base64 > gee_key_base64.txt
-                  jq --arg content "$(cat gee_key_base64.txt)" '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.GEE_SERVICE_ACCOUNT_KEY_CONTENT_BASE64 = $content' source.json > source_updated.json
-                  mv source_updated.json source.json
-                  rm gee_key_base64.txt
-
-                  # Add remaining environment variables
                   jq '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.BLOB_ACCOUNT_URL = "${{ secrets.BLOB_ACCOUNT_URL }}"' source.json > source_updated.json
                   mv source_updated.json source.json
                   jq '.CodeRepository.CodeConfiguration.CodeConfigurationValues.RuntimeEnvironmentVariables.BLOB_CONTAINER_NAME = "${{ secrets.BLOB_CONTAINER_NAME }}"' source.json > source_updated.json
@@ -190,12 +245,14 @@ jobs:
                     aws apprunner create-service \
                       --service-name map-action-api \
                       --source-configuration file://source.json \
-                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB
+                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB \
+                      --access-role-arn ${{ env.APP_RUNNER_ROLE_ARN }}
                   else
                     echo "Updating existing App Runner service…"
                     aws apprunner update-service \
                       --service-id "$SERVICE_ID" \
-                      --source-configuration file://source.json
+                      --source-configuration file://source.json \
+                      --access-role-arn ${{ env.APP_RUNNER_ROLE_ARN }}
                   fi
 
                   echo "Deployment initiated successfully."
