@@ -16,6 +16,40 @@ class DummyCelery:
             return func
         return decorator
 
+# For test compatibility - add back the original function
+def make_celery():
+    """
+    Create and configure a Celery application instance with Redis as the message broker and backend.
+    
+    This function sets up Celery with Redis, specifying the same URI for both the backend and broker. 
+    This configuration is necessary for task queueing and result storage for distributed task processing.
+
+    Returns:
+        Celery: A Celery application instance configured to use Redis for queuing tasks and storing results.
+    """
+    # Try to import Celery if not already imported
+    try:
+        from celery import Celery
+    except ImportError:
+        logger.warning("Celery not installed, returning dummy Celery instance")
+        return DummyCelery('map_action_api')
+        
+    # Retrieve Redis connection details from environment variables 
+    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+
+    celery = Celery(
+        'worker',  # Name of the worker
+        backend=redis_url,  # Use Redis URL from environment 
+        broker=redis_url    # Use Redis URL from environment
+    )
+    
+    # Configure serialization (previous version used json)
+    celery.conf.task_serializer = 'json'
+    celery.conf.result_serializer = 'json'
+    celery.conf.accept_content = ['json']
+    
+    return celery
+
 # Try to import the real Celery
 try:
     from celery import Celery
