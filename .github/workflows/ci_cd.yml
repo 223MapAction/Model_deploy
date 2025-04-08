@@ -137,7 +137,7 @@ jobs:
                         "CodeConfigurationValues": {
                           "Runtime": "PYTHON_3",
                           "BuildCommand": "set -ex && mkdir -p cv_model local_uploads && python -m pip install --no-cache-dir --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
-                          "StartCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug",
+                          "StartCommand": "python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug",
                           "Port": "8080",
                           "RuntimeEnvironmentVariables": {
                             "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
