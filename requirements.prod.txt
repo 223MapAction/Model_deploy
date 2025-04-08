@@ -28,7 +28,7 @@ pandas
 
 # The following packages are commented out as they might require system dependencies
 # Uncomment if you can install the system dependencies in your environment
-# geopandas==1.0.1
+geopandas==1.0.1
 # rasterio==1.4.1
 # psycopg2-binary
 # seaborn
