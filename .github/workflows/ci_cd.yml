@@ -178,7 +178,7 @@ jobs:
                     aws apprunner create-service \
                       --service-name map-action-api \
                       --source-configuration file://source.json \
-                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB
+                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}
                   else
                     echo "Updating existing App Runner service…"
                     # Get the full ARN for the service
@@ -188,7 +188,8 @@ jobs:
                     
                     aws apprunner update-service \
                       --service-arn "$SERVICE_ARN" \
-                      --source-configuration file://source.json
+                      --source-configuration file://source.json \
+                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}
                   fi
 
                   echo "Deployment initiated successfully."
