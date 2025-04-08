@@ -39,8 +39,16 @@ def initialize_earth_engine():
             # Ensure directory exists
             os.makedirs(os.path.dirname(key_file_path), exist_ok=True)
             
-            # Try to find the credentials in environment variables
-            if 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
+            # First, check if the key JSON is provided by AWS Secrets Manager
+            if 'GEE_KEY_JSON' in os.environ:
+                logging.info("Getting GEE credentials from AWS Secrets Manager")
+                # AWS Secrets Manager automatically injects the secret value into this env var
+                gee_key_json = os.environ['GEE_KEY_JSON']
+                with open(key_file_path, 'w') as f:
+                    f.write(gee_key_json)
+                logging.info(f"Created GEE service account key file from AWS Secrets Manager at {key_file_path}")
+            # Fall back to regular environment variable if not found
+            elif 'GEE_SERVICE_ACCOUNT_KEY_CONTENT' in os.environ:
                 # Use the raw content
                 with open(key_file_path, 'w') as f:
                     f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
