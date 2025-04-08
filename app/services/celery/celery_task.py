@@ -1,5 +1,16 @@
 # app/services/celery/celery_task.py
 
+import logging
+import locale
+from datetime import datetime, timedelta
+import os
+import base64
+import time
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from app.services.celery.celery_config import celery_app
 from app.services.cnn import predict
 from app.services.llm import get_response
@@ -18,16 +29,6 @@ except ImportError:
     logging.warning("Earth Engine package not installed - GEE features will be disabled")
     EARTH_ENGINE_AVAILABLE = False
 
-import logging
-import locale
-from datetime import datetime, timedelta
-import os
-import base64
-import time
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 # Try to set locale to French
 try:
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
