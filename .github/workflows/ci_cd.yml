@@ -154,7 +154,7 @@ jobs:
                             "SERVER_URL": "${{ secrets.SERVER_URL }}",
                             "BLOB_SAS_TOKEN": "${{ secrets.BLOB_SAS_TOKEN }}"
                           },
-                          "Secrets": {
+                          "RuntimeEnvironmentSecrets": {
                             "GEE_KEY_JSON": "${{ secrets.GEE_SECRET_ARN }}"
                           }
                         }

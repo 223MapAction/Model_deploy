@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Always use web search for updated information on librairies, frameworks adn SDKs you are using before implementation. Gather a knowledge base on them and write/cache them to an .md file for later use to avoid web search all the time. Do not use anything blindly
+
+
