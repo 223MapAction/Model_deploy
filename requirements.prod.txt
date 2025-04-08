@@ -28,12 +28,12 @@ pandas
 
 # The following packages are commented out as they might require system dependencies
 # Uncomment if you can install the system dependencies in your environment
-geopandas==1.0.1
-# rasterio==1.4.1
-# psycopg2-binary
-# seaborn
-# scipy
-# azure-storage-blob
-# azure-identity
-# langchain==0.1.5
-# langchain-community==0.0.18 
+geopandas==0.13.2
+rasterio==1.3.9
+psycopg2-binary==2.9.10
+seaborn==0.13.2
+scipy==1.15.2
+azure-storage-blob==12.25.1
+azure-identity==1.21.0
+langchain==0.3.20
+langchain-community==0.3.19 
