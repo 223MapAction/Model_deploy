@@ -11,6 +11,7 @@ import locale
 from datetime import datetime, timedelta
 import os
 import base64
+import time
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,9 +34,13 @@ def initialize_earth_engine():
     try:
         # Get the key file path from environment
         key_file_path = os.environ.get('GEE_SERVICE_ACCOUNT_KEY_FILE')
+        if not key_file_path:
+            logging.warning("GEE_SERVICE_ACCOUNT_KEY_FILE environment variable not set, using default path")
+            key_file_path = "/tmp/gee_key.json"
         
         # Check if we need to create the key file from environment variable content
         if not os.path.exists(key_file_path):
+            logging.info(f"Key file {key_file_path} does not exist, attempting to create it")
             # Ensure directory exists
             os.makedirs(os.path.dirname(key_file_path), exist_ok=True)
             
@@ -54,18 +59,42 @@ def initialize_earth_engine():
                     f.write(os.environ['GEE_SERVICE_ACCOUNT_KEY_CONTENT'])
                 logging.info(f"Created GEE service account key file from environment variable at {key_file_path}")
             else:
-                logging.warning(f"No GEE service account key content found in environment variables")
+                logging.warning(f"No GEE service account key content found in environment variables - Earth Engine functionality will be limited")
+        
+        # Check if the key file exists now
+        if not os.path.exists(key_file_path):
+            logging.error(f"GEE service account key file does not exist at {key_file_path} and could not be created")
+            return
+        
+        # Check if GEE_SERVICE_ACCOUNT_EMAIL is set
+        if 'GEE_SERVICE_ACCOUNT_EMAIL' not in os.environ:
+            logging.error("GEE_SERVICE_ACCOUNT_EMAIL environment variable not set")
+            return
             
         # Initialize Earth Engine with credentials
+        logging.info(f"Initializing Earth Engine with key file {key_file_path} and service account {os.environ['GEE_SERVICE_ACCOUNT_EMAIL']}")
         credentials = ee.ServiceAccountCredentials(
             email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
             key_file=key_file_path
         )
-        ee.Initialize(credentials)
-        logging.info("Earth Engine initialized successfully.")
+        
+        # Retry Earth Engine initialization up to 3 times with exponential backoff
+        for attempt in range(3):
+            try:
+                ee.Initialize(credentials)
+                logging.info("Earth Engine initialized successfully.")
+                return
+            except Exception as e:
+                backoff_time = 2 ** attempt
+                logging.warning(f"Earth Engine initialization attempt {attempt+1} failed: {str(e)}. Retrying in {backoff_time} seconds...")
+                time.sleep(backoff_time)
+        
+        # If we get here, all retries failed
+        logging.error("All Earth Engine initialization attempts failed")
+        
     except Exception as e:
         logging.error(f"Failed to initialize Earth Engine: {str(e)}")
-        raise
+        logging.warning("Application will continue without Earth Engine functionality")
     
 initialize_earth_engine()
 

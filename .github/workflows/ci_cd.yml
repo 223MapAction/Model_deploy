@@ -136,8 +136,8 @@ jobs:
                         "ConfigurationSource": "API",
                         "CodeConfigurationValues": {
                           "Runtime": "PYTHON_3",
-                          "BuildCommand": "set -x && apt-get update && apt-get install -y --no-install-recommends build-essential gdal-bin libgdal-dev python3-gdal proj-bin libproj-dev python3-pip && export CPLUS_INCLUDE_PATH=/usr/include/gdal && export C_INCLUDE_PATH=/usr/include/gdal && mkdir -p cv_model local_uploads && pip install --upgrade pip setuptools wheel && pip install -r requirements.txt 2>&1 | tee /tmp/pip_install.log || { cat /tmp/pip_install.log; exit 1; }",
-                          "StartCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080",
+                          "BuildCommand": "set -ex && apt-get update && apt-get install -y --no-install-recommends build-essential python3-dev python3-pip && mkdir -p cv_model local_uploads && pip install --no-cache-dir --upgrade pip setuptools wheel && pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
+                          "StartCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug",
                           "Port": "8080",
                           "RuntimeEnvironmentVariables": {
                             "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
@@ -152,7 +152,9 @@ jobs:
                             "BLOB_ACCOUNT_URL": "${{ secrets.BLOB_ACCOUNT_URL }}",
                             "BLOB_CONTAINER_NAME": "${{ secrets.BLOB_CONTAINER_NAME }}",
                             "SERVER_URL": "${{ secrets.SERVER_URL }}",
-                            "BLOB_SAS_TOKEN": "${{ secrets.BLOB_SAS_TOKEN }}"
+                            "BLOB_SAS_TOKEN": "${{ secrets.BLOB_SAS_TOKEN }}",
+                            "INSTALL_ADDITIONAL_PACKAGES": "true",
+                            "DEBUG": "true"
                           },
                           "RuntimeEnvironmentSecrets": {
                             "GEE_KEY_JSON": "${{ secrets.GEE_SECRET_ARN }}"

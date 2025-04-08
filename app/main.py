@@ -1,7 +1,10 @@
 # main.py
 
 import logging
-from fastapi import FastAPI, Request, HTTPException
+import os
+import subprocess
+import sys
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.apis import main_router  # Ensure this path is correct based on your project structure
@@ -124,6 +127,44 @@ async def health_check():
         dict: A status message indicating health.
     """
     return {"status": "healthy"}
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Runs when the application starts.
+    Install additional dependencies if needed and setup directories.
+    """
+    logging.info("Starting application setup...")
+    
+    # Create required directories
+    os.makedirs("cv_model", exist_ok=True)
+    os.makedirs("local_uploads", exist_ok=True)
+    
+    # Check if we need to install additional packages
+    if os.environ.get("INSTALL_ADDITIONAL_PACKAGES", "").lower() == "true":
+        logging.info("Installing additional packages...")
+        try:
+            # Install additional requirements
+            additional_packages = [
+                "scipy",
+                "shapely",
+                "matplotlib",
+                "azure-storage-blob",
+                "azure-identity",
+                "langchain==0.1.5",
+                "langchain-community==0.0.18"
+            ]
+            
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "--no-cache-dir"
+            ] + additional_packages)
+            
+            logging.info("Additional packages installed successfully")
+        except Exception as e:
+            logging.error(f"Failed to install additional packages: {str(e)}")
+            # Continue anyway - the core app should still work
+    
+    logging.info("Application setup complete")
 
 # If running this file directly, start the Uvicorn server
 if __name__ == "__main__":
