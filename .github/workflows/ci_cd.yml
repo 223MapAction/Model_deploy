@@ -136,7 +136,7 @@ jobs:
                         "ConfigurationSource": "API",
                         "CodeConfigurationValues": {
                           "Runtime": "PYTHON_3",
-                          "BuildCommand": "set -ex && apt-get update && apt-get install -y --no-install-recommends build-essential python3-dev python3-pip && mkdir -p cv_model local_uploads && pip install --no-cache-dir --upgrade pip setuptools wheel && pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
+                          "BuildCommand": "set -ex && mkdir -p cv_model local_uploads && python -m pip install --no-cache-dir --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
                           "StartCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug",
                           "Port": "8080",
                           "RuntimeEnvironmentVariables": {

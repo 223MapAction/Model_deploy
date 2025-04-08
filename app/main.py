@@ -140,29 +140,79 @@ async def startup_event():
     os.makedirs("cv_model", exist_ok=True)
     os.makedirs("local_uploads", exist_ok=True)
     
+    # Show environment information for debugging
+    logging.info(f"Python version: {sys.version}")
+    logging.info(f"Current working directory: {os.getcwd()}")
+    logging.info(f"Environment variables: {', '.join(f'{k}' for k in os.environ.keys())}")
+    
     # Check if we need to install additional packages
     if os.environ.get("INSTALL_ADDITIONAL_PACKAGES", "").lower() == "true":
         logging.info("Installing additional packages...")
-        try:
-            # Install additional requirements
-            additional_packages = [
-                "scipy",
-                "shapely",
-                "matplotlib",
-                "azure-storage-blob",
-                "azure-identity",
-                "langchain==0.1.5",
-                "langchain-community==0.0.18"
-            ]
+        
+        # First tier - packages that are likely to work without system dependencies
+        simple_packages = [
+            "redis",
+            "pillow",
+            "python-dotenv",
+            "openai"
+        ]
+        
+        # Second tier - packages that might need system dependencies but are important
+        tier2_packages = [
+            "databases",
+            "asyncpg",
+            "matplotlib"
+        ]
+        
+        # Third tier - packages that definitely need system dependencies
+        complex_packages = [
+            "psycopg2-binary",
+            "earthengine-api",
+            "shapely",
+            "langchain==0.1.5",
+            "langchain-community==0.0.18"
+        ]
+        
+        # Very complex packages - often fail on restricted environments
+        very_complex_packages = [
+            "scipy",
+            "rasterio",
+            "geopandas",
+            "azure-storage-blob",
+            "azure-identity"
+        ]
+        
+        # Function to safely install packages
+        def install_packages(package_list, tier_name):
+            success_count = 0
+            for pkg in package_list:
+                try:
+                    logging.info(f"Installing {pkg}...")
+                    subprocess.check_call([
+                        sys.executable, "-m", "pip", "install", "--no-cache-dir", pkg
+                    ])
+                    success_count += 1
+                except Exception as e:
+                    logging.warning(f"Failed to install {pkg}: {str(e)}")
             
-            subprocess.check_call([
-                sys.executable, "-m", "pip", "install", "--no-cache-dir"
-            ] + additional_packages)
+            return success_count
+        
+        # Install packages in order of complexity
+        simple_success = install_packages(simple_packages, "basic")
+        logging.info(f"Successfully installed {simple_success}/{len(simple_packages)} basic packages")
+        
+        tier2_success = install_packages(tier2_packages, "tier2")
+        logging.info(f"Successfully installed {tier2_success}/{len(tier2_packages)} tier 2 packages")
+        
+        # Only try complex packages if we had success with simpler ones
+        if tier2_success > 0:
+            complex_success = install_packages(complex_packages, "complex")
+            logging.info(f"Successfully installed {complex_success}/{len(complex_packages)} complex packages")
             
-            logging.info("Additional packages installed successfully")
-        except Exception as e:
-            logging.error(f"Failed to install additional packages: {str(e)}")
-            # Continue anyway - the core app should still work
+            # Only try very complex packages if at least some complex ones worked
+            if complex_success > 0:
+                very_complex_success = install_packages(very_complex_packages, "very complex")
+                logging.info(f"Successfully installed {very_complex_success}/{len(very_complex_packages)} very complex packages")
     
     logging.info("Application setup complete")
 
