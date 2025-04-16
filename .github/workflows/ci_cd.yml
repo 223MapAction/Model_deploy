@@ -215,8 +215,8 @@ jobs:
                         "ConfigurationSource": "API",
                         "CodeConfigurationValues": {
                           "Runtime": "PYTHON_3",
-                          "BuildCommand": "set -ex && mkdir -p cv_model local_uploads && python -m pip install --no-cache-dir --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
-                          "StartCommand": "bash -c 'python -m uvicorn app.services.celery.health:app --host 0.0.0.0 --port 8080 & celery -A app.services.celery.celery_config.celery_app worker --loglevel=info & wait'",
+                          "BuildCommand": "set -ex && mkdir -p cv_model local_uploads && python -m pip install --no-cache-dir --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.prod.txt && echo '#!/bin/bash' > start-worker.sh && echo 'set -ex' >> start-worker.sh && echo 'python -m uvicorn app.services.celery.health:app --host 0.0.0.0 --port 8080 &' >> start-worker.sh && echo 'celery -A app.services.celery.celery_config.celery_app worker --loglevel=info &' >> start-worker.sh && echo 'wait -n' >> start-worker.sh && chmod +x start-worker.sh && echo 'Build succeeded!'",
+                          "StartCommand": "bash start-worker.sh",
                           "Port": "8080",
                           "RuntimeEnvironmentVariables": {
                             "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
@@ -250,23 +250,24 @@ jobs:
             - name: Deploy / update Celery workers App Runner service
               shell: bash
               run: |
-                  CELERY_SERVICE_ID=$(aws apprunner list-services \
-                      --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceId" \
+                  CELERY_SERVICE_ID=$(aws apprunner list-services \\
+                      --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceId" \\
                       --output text)
 
-                  # Define Health Check Configuration
                   HEALTH_CHECK_CONFIG="Protocol=HTTP,Path=/health,Interval=10,Timeout=5,HealthyThreshold=1,UnhealthyThreshold=5"
+                  # Define Network Configuration - uses the new secret
+                  NETWORK_CONFIG="IngressConfiguration={IsPubliclyAccessible=false},EgressConfiguration={EgressType=VPC,VpcConnectorArn=${{ secrets.APP_RUNNER_VPC_CONNECTOR_ARN }}}"
 
                   if [ -z "$CELERY_SERVICE_ID" ] || [ "$CELERY_SERVICE_ID" == "None" ]; then
                     echo "Creating new Celery workers App Runner service…"
-                    aws apprunner create-service --service-name map-action-celery-workers --source-configuration file://celery_source.json --instance-configuration "Cpu=1 vCPU,Memory=2 GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}" --health-check-configuration $HEALTH_CHECK_CONFIG
+                    aws apprunner create-service --service-name map-action-celery-workers --source-configuration file://celery_source.json --instance-configuration "Cpu=1 vCPU,Memory=2 GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}" --health-check-configuration $HEALTH_CHECK_CONFIG --network-configuration $NETWORK_CONFIG
                   else
                     echo "Updating existing Celery workers App Runner service…"
                     CELERY_SERVICE_ARN=$(aws apprunner list-services \\
                       --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceArn" \\
                       --output text)
 
-                    aws apprunner update-service --service-arn "$CELERY_SERVICE_ARN" --source-configuration file://celery_source.json --instance-configuration "Cpu=1 vCPU,Memory=2 GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}" --health-check-configuration $HEALTH_CHECK_CONFIG
+                    aws apprunner update-service --service-arn "$CELERY_SERVICE_ARN" --source-configuration file://celery_source.json --instance-configuration "Cpu=1 vCPU,Memory=2 GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}" --health-check-configuration $HEALTH_CHECK_CONFIG --network-configuration $NETWORK_CONFIG
                   fi
 
                   echo "Celery workers deployment initiated successfully."
