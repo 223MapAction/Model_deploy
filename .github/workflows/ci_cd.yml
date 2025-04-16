@@ -259,21 +259,21 @@ jobs:
 
                   if [ -z "$CELERY_SERVICE_ID" ] || [ "$CELERY_SERVICE_ID" == "None" ]; then
                     echo "Creating new Celery workers App Runner service…"
-                    aws apprunner create-service \
-                      --service-name map-action-celery-workers \
-                      --source-configuration file://celery_source.json \
-                      --instance-configuration Cpu=1\\ vCPU,Memory=2\\ GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }} \
+                    aws apprunner create-service \\
+                      --service-name map-action-celery-workers \\
+                      --source-configuration file://celery_source.json \\
+                      --instance-configuration "Cpu=1 vCPU,Memory=2 GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}" \\
                       --health-check-configuration $HEALTH_CHECK_CONFIG
                   else
                     echo "Updating existing Celery workers App Runner service…"
-                    CELERY_SERVICE_ARN=$(aws apprunner list-services \
-                      --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceArn" \
+                    CELERY_SERVICE_ARN=$(aws apprunner list-services \\
+                      --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceArn" \\
                       --output text)
 
-                    aws apprunner update-service \
-                      --service-arn "$CELERY_SERVICE_ARN" \
-                      --source-configuration file://celery_source.json \
-                      --instance-configuration Cpu=1\\ vCPU,Memory=2\\ GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }} \
+                    aws apprunner update-service \\
+                      --service-arn "$CELERY_SERVICE_ARN" \\
+                      --source-configuration file://celery_source.json \\
+                      --instance-configuration "Cpu=1 vCPU,Memory=2 GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}" \\
                       --health-check-configuration $HEALTH_CHECK_CONFIG
                   fi
 
