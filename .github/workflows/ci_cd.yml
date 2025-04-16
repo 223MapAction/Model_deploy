@@ -195,3 +195,82 @@ jobs:
                   fi
 
                   echo "Deployment initiated successfully."
+
+            # -------------------------------------------------------------------
+            # Build Celery workers source configuration JSON
+            # -------------------------------------------------------------------
+            - name: Build App Runner source config for Celery workers
+              shell: bash
+              run: |
+                  cat > celery_source.json <<'EOF'
+                  {
+                    "AuthenticationConfiguration": {
+                      "ConnectionArn": "${{ secrets.AWS_CONNECTION_ARN }}"
+                    },
+                    "AutoDeploymentsEnabled": false,
+                    "CodeRepository": {
+                      "RepositoryUrl": "https://github.com/${{ github.repository }}",
+                      "SourceCodeVersion": { "Type": "BRANCH", "Value": "main" },
+                      "CodeConfiguration": {
+                        "ConfigurationSource": "API",
+                        "CodeConfigurationValues": {
+                          "Runtime": "PYTHON_3",
+                          "BuildCommand": "set -ex && mkdir -p cv_model local_uploads && python -m pip install --no-cache-dir --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
+                          "StartCommand": "python -m uvicorn app.services.celery.health:app --host 0.0.0.0 --port 8080 & celery -A app.services.celery.celery_config.celery_app worker --loglevel=info",
+                          "Port": "8080",
+                          "RuntimeEnvironmentVariables": {
+                            "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
+                            "OPENAI_API_KEY": "${{ secrets.OPENAI_API_KEY }}",
+                            "REDIS_URL": "${{ secrets.REDIS_URL }}",
+                            "REDIS_HOST": "${{ secrets.REDIS_HOST }}",
+                            "REDIS_PORT": "${{ secrets.REDIS_PORT }}",
+                            "REDIS_PASSWORD": "${{ secrets.REDIS_PASSWORD }}",
+                            "POSTGRES_URL": "${{ secrets.POSTGRES_URL }}",
+                            "GEE_SERVICE_ACCOUNT_EMAIL": "${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}",
+                            "GEE_SERVICE_ACCOUNT_KEY_FILE": "/tmp/gee_key.json",
+                            "BLOB_ACCOUNT_URL": "${{ secrets.BLOB_ACCOUNT_URL }}",
+                            "BLOB_CONTAINER_NAME": "${{ secrets.BLOB_CONTAINER_NAME }}",
+                            "SERVER_URL": "${{ secrets.SERVER_URL }}",
+                            "BLOB_SAS_TOKEN": "${{ secrets.BLOB_SAS_TOKEN }}",
+                            "INSTALL_ADDITIONAL_PACKAGES": "true",
+                            "DEBUG": "true"
+                          },
+                          "RuntimeEnvironmentSecrets": {
+                            "GEE_KEY_JSON": "${{ secrets.GEE_SECRET_ARN }}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                  EOF
+
+            # -------------------------------------------------------------------
+            # Deploy Celery workers service
+            # -------------------------------------------------------------------
+            - name: Deploy / update Celery workers App Runner service
+              shell: bash
+              run: |
+                  CELERY_SERVICE_ID=$(aws apprunner list-services \
+                      --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceId" \
+                      --output text)
+
+                  if [ -z "$CELERY_SERVICE_ID" ] || [ "$CELERY_SERVICE_ID" == "None" ]; then
+                    echo "Creating new Celery workers App Runner service…"
+                    aws apprunner create-service \
+                      --service-name map-action-celery-workers \
+                      --source-configuration file://celery_source.json \
+                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}
+                  else
+                    echo "Updating existing Celery workers App Runner service…"
+                    # Get the full ARN for the service
+                    CELERY_SERVICE_ARN=$(aws apprunner list-services \
+                      --query "ServiceSummaryList[?ServiceName=='map-action-celery-workers'].ServiceArn" \
+                      --output text)
+                    
+                    aws apprunner update-service \
+                      --service-arn "$CELERY_SERVICE_ARN" \
+                      --source-configuration file://celery_source.json \
+                      --instance-configuration Cpu=1\ vCPU,Memory=2\ GB,InstanceRoleArn=${{ secrets.APP_RUNNER_INSTANCE_ROLE_ARN }}
+                  fi
+
+                  echo "Celery workers deployment initiated successfully."

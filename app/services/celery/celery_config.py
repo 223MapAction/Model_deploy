@@ -1,5 +1,6 @@
 import logging
 import os
+from urllib.parse import quote_plus
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +17,6 @@ class DummyCelery:
             return func
         return decorator
 
-# For test compatibility - add back the original function
 def make_celery():
     """
     Create and configure a Celery application instance with Redis as the message broker and backend.
@@ -34,37 +34,55 @@ def make_celery():
         logger.warning("Celery not installed, returning dummy Celery instance")
         return DummyCelery('map_action_api')
         
-    # Retrieve Redis connection details from environment variables 
-    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    # Retrieve Redis connection details from environment variables
+    redis_url = os.getenv('REDIS_URL')
+    
+    if not redis_url:
+        # Construct Redis URL from individual components if REDIS_URL is not provided
+        redis_host = os.getenv('REDIS_HOST', 'localhost')
+        redis_port = os.getenv('REDIS_PORT', '6379')
+        redis_password = os.getenv('REDIS_PASSWORD')
+        
+        if redis_password:
+            redis_password = quote_plus(redis_password)
+            redis_url = f'redis://:{redis_password}@{redis_host}:{redis_port}/0'
+        else:
+            redis_url = f'redis://{redis_host}:{redis_port}/0'
+
+    logger.info(f"Configuring Celery with Redis URL: {redis_url.replace(redis_password if redis_password else '', '***')}")
 
     celery = Celery(
-        'worker',  # Name of the worker
-        backend=redis_url,  # Use Redis URL from environment 
-        broker=redis_url    # Use Redis URL from environment
+        'worker',
+        backend=redis_url,
+        broker=redis_url
     )
     
-    # Configure serialization (previous version used json)
-    celery.conf.task_serializer = 'json'
-    celery.conf.result_serializer = 'json'
-    celery.conf.accept_content = ['json']
+    # Configure Celery
+    celery.conf.update(
+        task_serializer='json',
+        result_serializer='json',
+        accept_content=['json'],
+        broker_connection_retry=True,
+        broker_connection_max_retries=10,
+        broker_connection_retry_on_startup=True,
+        broker_transport_options={
+            'visibility_timeout': 3600,  # 1 hour
+            'socket_timeout': 30,        # 30 seconds
+            'socket_connect_timeout': 30,
+        },
+        result_backend_transport_options={
+            'socket_timeout': 30,
+            'socket_connect_timeout': 30,
+        }
+    )
     
     return celery
 
 # Try to import the real Celery
 try:
     from celery import Celery
-    
-    # Create Celery instance
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-    celery_app = Celery('map_action_api', broker=redis_url, backend=redis_url)
-    
-    # Configure Celery
-    celery_app.conf.task_serializer = 'pickle'
-    celery_app.conf.result_serializer = 'pickle'
-    celery_app.conf.accept_content = ['pickle', 'json']
-    
-    logger.info(f"Celery initialized with Redis URL: {redis_url}")
-    
+    celery_app = make_celery()
+    logger.info("Celery initialized successfully")
 except ImportError:
     logger.warning("Celery module not found. Using dummy implementation.")
     Celery = DummyCelery
