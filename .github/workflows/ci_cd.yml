@@ -216,7 +216,7 @@ jobs:
                         "CodeConfigurationValues": {
                           "Runtime": "PYTHON_3",
                           "BuildCommand": "set -ex && mkdir -p cv_model local_uploads && python -m pip install --no-cache-dir --upgrade pip setuptools wheel && python -m pip install --no-cache-dir -r requirements.prod.txt && echo 'Build succeeded!'",
-                          "StartCommand": "python -m uvicorn app.services.celery.health:app --host 0.0.0.0 --port 8080 & celery -A app.services.celery.celery_config.celery_app worker --loglevel=info",
+                          "StartCommand": "bash -c \"python -m uvicorn app.services.celery.health:app --host 0.0.0.0 --port 8080 & celery -A app.services.celery.celery_config.celery_app worker --loglevel=info & wait\"",
                           "Port": "8080",
                           "RuntimeEnvironmentVariables": {
                             "MODEL_PATH": "${{ secrets.MODEL_PATH }}",
