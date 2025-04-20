@@ -49,6 +49,9 @@ jobs:
 
             - name: Build and Deploy Docker Image
               run: |
+                  docker-compose -f _cd_pipeline.yaml build
+                  docker-compose -f _cd_pipeline.yaml down --remove-orphans
+                  docker-compose -f _cd_pipeline.yaml up --build -d
 
             - name: Post-deployment cleanup
               if: always()
