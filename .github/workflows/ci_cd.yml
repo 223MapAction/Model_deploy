@@ -13,9 +13,6 @@ permissions:
     pages: write
     id-token: write
 
-env:
-    AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-
 jobs:
     cleanup:
         runs-on: self-hosted
@@ -28,101 +25,12 @@ jobs:
                   sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
                   sudo df -h
 
-    # setup-and-test:
-    #     needs: cleanup
-    #     runs-on: self-hosted
-    #     steps:
-    #         - name: Checkout Repository
-    #           uses: actions/checkout@v3
-
-    #         - name: Set up Python
-    #           uses: actions/setup-python@v3
-    #           with:
-    #               python-version: "3.10"
-
-    #         - name: Install Azure CLI
-    #           run: |
-    #               curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-    #         - name: Login to Azure
-    #           uses: azure/login@v1
-    #           with:
-    #               creds: ${{ secrets.AZURE_CREDENTIALS }}
-    #               auth-type: IDENTITY
-    #               allow-no-subscriptions: true
-
-    #         - name: Install Docker Compose
-    #           run: |
-    #               sudo apt-get update
-    #               sudo apt-get install -y docker-compose
-
-    #         - name: Create .cv_deploy.env
-    #           run: |
-    #               echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
-    #               echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
-    #               echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
-    #               echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
-    #               echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
-    #               echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
-    #               echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-    #               echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
-    #               echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-    #               echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
-    #               echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
-    #               echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-    #               echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
-    #           shell: bash
-
-    #         - name: Create coverage directory
-    #           run: mkdir -p coverage
-
-    #         - name: Run Tests
-    #           run: |
-    #               docker-compose -f _ci_pipeline.yml up --build -d
-    #               docker-compose -f _ci_pipeline.yml run --rm -v ${{ github.workspace }}/coverage:/app/coverage testing
-
-    #         - name: Check for coverage file
-    #           run: |
-    #               if [ ! -f ./coverage/coverage.xml ]; then
-    #                 echo "Coverage file not found!"
-    #                 exit 1
-    #               fi
-
-    #         - name: Upload coverage reports to Codecov
-    #           uses: codecov/codecov-action@v4
-    #           env:
-    #               CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    #           with:
-    #               files: ./coverage/coverage.xml
-
-    #         - name: Tear down testing environment
-    #           if: always() # Ensure this runs even if previous steps fail
-    #           run: |
-    #               docker-compose -f _ci_pipeline.yml down --volumes --remove-orphans
-
-    #         - name: Prune Docker resources (testing)
-    #           if: always() # Ensure this runs even if previous steps fail
-    #           run: |
-    #               docker system prune -af
-
     deploy:
-        # needs: [cleanup, setup-and-test]
         needs: cleanup
         runs-on: self-hosted
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
-
-            - name: Install Azure CLI
-              run: |
-                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-            - name: Login to Azure
-              uses: azure/login@v1
-              with:
-                  creds: ${{ secrets.AZURE_CREDENTIALS }}
-                  auth-type: IDENTITY
-                  allow-no-subscriptions: true
 
             - name: Create .cv_deploy.env
               run: |
@@ -135,16 +43,12 @@ jobs:
                   echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
                   echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
                   echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
-                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
                   echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-                  echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
+                  echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .cv_deploy.env
+                  echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .cv_deploy.env
 
             - name: Build and Deploy Docker Image
               run: |
-                  docker-compose -f _cd_pipeline.yaml build
-                  docker-compose -f _cd_pipeline.yaml down --remove-orphans
-                  docker-compose -f _cd_pipeline.yaml up --build -d
 
             - name: Post-deployment cleanup
               if: always()

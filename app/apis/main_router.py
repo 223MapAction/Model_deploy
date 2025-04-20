@@ -19,7 +19,7 @@ from ..services import (
     celery_app,
     analyze_incident_zone,
 )
-from ..services.azure_blob_storage import upload_file_to_blob  # Import the Azure Blob Storage function
+from ..services.aws_s3_storage import upload_file_to_s3 # Import the AWS S3 storage function
 
 import numpy as np
 from ..models import ImageModel
@@ -156,13 +156,33 @@ async def predict_incident_type(data: ImageModel):
         # Add satellite analysis to the existing analysis
         analysis += "\n\n" + satellite_analysis['textual_analysis']
 
-        # Upload plots to Azure Blob Storage
-        container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
+        # Upload plots to AWS S3
+        # container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        region_name = os.environ.get('AWS_REGION')
+
+        if not bucket_name:
+             logger.error("S3_BUCKET_NAME environment variable is not set.")
+             # Handle the error appropriately, maybe raise HTTPException or return an error response
+             raise HTTPException(status_code=500, detail="S3 bucket name not configured.")
 
 
-        ndvi_ndwi_plot_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'])
-        ndvi_heatmap_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
-        landcover_plot_url = upload_file_to_blob(container_name, satellite_analysis['landcover_plot'])
+        # ndvi_ndwi_plot_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'])
+        # ndvi_heatmap_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
+        # landcover_plot_url = upload_file_to_blob(container_name, satellite_analysis['landcover_plot'])
+        
+        ndvi_ndwi_plot_url = upload_file_to_s3(bucket_name, satellite_analysis['ndvi_ndwi_plot'], region_name)
+        ndvi_heatmap_url = upload_file_to_s3(bucket_name, satellite_analysis['ndvi_heatmap'], region_name)
+        landcover_plot_url = upload_file_to_s3(bucket_name, satellite_analysis['landcover_plot'], region_name)
+        
+        # Check if uploads were successful (returned a URL)
+        if not all([ndvi_ndwi_plot_url, ndvi_heatmap_url, landcover_plot_url]):
+            # Log the specific failures if needed (the upload function logs errors)
+            logger.error("One or more plot uploads to S3 failed.")
+            # Decide how to handle partial failure - raise error or continue with missing URLs?
+            # For now, raising an error might be safer.
+            raise HTTPException(status_code=500, detail="Failed to upload analysis plots.")
+
 
         # Prepare the response
         response = {
