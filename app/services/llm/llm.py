@@ -112,58 +112,68 @@ import json
 def chat_response(prompt: str, context: str = "", chat_history: list = [], impact_area: str = "Non spécifié"):
     """
     Processes a user's prompt to generate the assistant's response using GPT-4o-mini,
-    with context about the environmental incident.
-
-    Args:
-        prompt (str): The user's message to which the assistant should respond.
-        context (str): A JSON string containing context about the incident.
-        chat_history (list): The existing chat history for this session.
-        impact_area (str): The area impacted by the incident.
-
-    Returns:
-        str: The assistant's response.
-
-    Examples:
-        >>> context = '{"type_incident": "Déforestation", "analysis": "La déforestation affecte la biodiversité locale.", "piste_solution": "Reforestation et éducation communautaire."}'
-        >>> prompt = "Quels sont les impacts de la déforestation dans cette zone ?"
-        >>> chat_response(prompt, context)
-        'La déforestation affecte la biodiversité locale en réduisant les habitats naturels des espèces. Pour remédier à cela, la reforestation et l'éducation communautaire sont des pistes de solution envisageables.'
-
-        >>> context = '{"type_incident": "Pollution de l'eau", "analysis": "Les rejets industriels ont contaminé la rivière.", "piste_solution": "Installation de stations de traitement des eaux."}'
-        >>> prompt = "Comment pouvons-nous améliorer la qualité de l'eau ?"
-        >>> chat_response(prompt, context)
-        'Les rejets industriels ont contaminé la rivière. Pour améliorer la qualité de l'eau, l'installation de stations de traitement des eaux est recommandée.'
+    strictly focusing on the provided environmental incident context.
     """
-
     context_obj = json.loads(context)
     incident_type = context_obj.get('type_incident', 'Inconnu')
     analysis = context_obj.get('analysis', 'Non spécifié')
     piste_solution = context_obj.get('piste_solution', 'Non spécifié')
-    impact_summary = context_obj.get('impact_summary', 'Non spécifié')
+    # impact_summary = context_obj.get('impact_summary', 'Non spécifié') # Removed as it's not fetched/passed
 
-    # System prompt content remains the same
-    system_prompt_content = f"""\n    <system>\n        <role>assistant AI</role>
-        <task>analyse des incidents environnementaux</task>
-        <location>Mali</location>\n        <incident>\n            <type>{incident_type}</type>\n            <analysis>{analysis}</analysis>\n            <solution_tracks>{piste_solution}</solution_tracks>\n            <impact_summary>{impact_summary}</impact_summary>\n        </incident>\n        <instructions>\n            <instruction>Adaptez vos réponses au contexte spécifique de l'incident.</instruction>\n            <instruction>Utilisez les informations de contexte pour enrichir vos explications.</instruction>\n            <instruction>Intégrez les données sur la zone d'impact dans vos analyses lorsque c'est pertinent.</instruction>\n            <instruction>Votre réponse doit clairement mentionner et se focaliser sur le type d'incident spécifique ({incident_type}) fourni dans le contexte.</instruction>\n            <instruction>Si la question dépasse le contexte fourni, mentionnez clairement que vous répondez de manière générale.</instruction>\n            <instruction>Priorisez les réponses concises et orientées sur la résolution du problème.</instruction>\n            <instruction>Ne déviez pas de la tâche principale et évitez les réponses non pertinentes.</instruction>\n            <response_formatting>\n                <formatting_rule>Répondez de manière concise, avec une longueur de réponse idéale de 2 à 3 phrases par section, sauf pour l'analyse d'impact détaillée.</formatting_rule>\n                <formatting_rule>Fournissez une réponse structurée : commencez par le problème principal, suivez avec la solution proposée.</formatting_rule>\n                <formatting_rule>Utilisez des mots simples et clairs, évitez le jargon technique inutile.</formatting_rule>\n                <formatting_rule>Donnez des informations essentielles en utilisant un langage direct et précis.</formatting_rule>\n                <formatting_rule>Si une recommandation est faite, assurez-vous qu'elle est faisable et contextualisée.</formatting_rule>\n            </response_formatting>\n        </instructions>\n        <examples>\n            <example>\n                <prompt>Quels sont les impacts de la déforestation dans cette zone ?</prompt>\n                <response>La déforestation affecte la biodiversité locale en réduisant les habitats naturels des espèces. Pour remédier à cela, la reforestation et l\'éducation communautaire sont des pistes de solution envisageables.</response>\n            </example>\n            <example>\n                <prompt>Quelle est l\'étendue de la zone touchée par cet incident ?</prompt>\n                <response>L\'analyse des données satellitaires montre que la zone impactée par cet incident couvre environ {impact_area} kilomètres carrés. Cette information nous aide à mieux comprendre l\'ampleur du problème et à planifier des interventions appropriées.</response>\n            </example>\n        </examples>\n    </system>\n    """
+    # --- Modified System Prompt ---
+    system_prompt_content = f"""
+    <system>
+        <role>Spécialiste IA d'analyse d'incidents environnementaux pour Map Action</role>
+        <objective>Votre unique objectif est d'analyser et de discuter de l'incident environnemental spécifique fourni dans le contexte. Ne déviez PAS de ce sujet.</objective>
 
-    # Build the input list for the Responses API, excluding the system message
+        <context_incident>
+            <type_incident>{incident_type}</type_incident>
+            <analyse_initiale>{analysis}</analyse_initiale>
+            <pistes_solution_initiales>{piste_solution}</pistes_solution_initiales>
+            <zone_impact>{impact_area}</zone_impact>
+        </context_incident>
+
+        <instructions>
+            <instruction>**MISSION PRINCIPALE** : Répondez aux questions de l'utilisateur EN VOUS BASANT STRICTEMENT sur le <context_incident> fourni. Utilisez les détails (type, analyse, solutions, zone) pour formuler vos réponses.</instruction>
+            <instruction>**FOCALISATION** : Concentrez-vous UNIQUEMENT sur l'incident '{incident_type}'. Ne discutez pas d'autres sujets.</instruction>
+            <instruction>**GESTION DES QUESTIONS GÉNÉRIQUES** : Si l'utilisateur pose des questions sur votre identité ("Qui es-tu?", "Que peux-tu faire?") ou des questions hors sujet, répondez très brièvement que vous êtes un assistant focalisé sur l'incident actuel et réorientez immédiatement la conversation vers l'incident '{incident_type}'. Par exemple: "Je suis une IA dédiée à l'analyse de l'incident actuel ({incident_type}). Comment puis-je vous aider concernant cet incident spécifique ?"</instruction>
+            <instruction>**TON ET STYLE** : Soyez factuel, concis et orienté solution. Évitez les salutations génériques répétitives.</instruction>
+            <instruction>Si la question dépasse le contexte fourni, mentionnez que l'information n'est pas disponible dans le contexte actuel de l'incident '{incident_type}'.</instruction>
+            <instruction>Ne spéculez pas au-delà des informations fournies.</instruction>
+            <response_formatting>
+                <formatting_rule>Répondez de manière concise (2-3 phrases idéalement).</formatting_rule>
+                <formatting_rule>Utilisez des mots simples et clairs.</formatting_rule>
+                <formatting_rule>Donnez des informations essentielles en langage direct.</formatting_rule>
+            </response_formatting>
+        </instructions>
+
+        <example_handling_generic_query>
+            <user_prompt>Que peux-tu faire ?</user_prompt>
+            <assistant_response>Je suis une IA spécialisée dans l'analyse de l'incident '{incident_type}'. Avez-vous des questions spécifiques sur l'analyse, les solutions proposées ou l'impact dans la zone de '{impact_area}' ?</assistant_response>
+        </example_handling_generic_query>
+
+    </system>
+    """
+    # --- End of Modified System Prompt ---
+
+
+    # ... (Build api_input list - remains the same) ...
     api_input = []
     # Add chat history
     for msg in chat_history:
-        # Use 'output_text' for assistant, 'input_text' for user
         content_type = "output_text" if msg["role"] == "assistant" else "input_text"
         api_input.append({"role": msg["role"], "content": [{"type": content_type, "text": msg["content"]}]})
     # Add current user prompt
     api_input.append({"role": "user", "content": [{"type": "input_text", "text": prompt}]})
 
     try:
-        # Prepare parameters
+        # ... (Prepare response_params - remains the same) ...
         response_params = {
             "model": "gpt-4o-mini",
             "input": api_input,
             "instructions": system_prompt_content, # Pass system prompt via instructions
-            "temperature": 0.5,
-            "max_output_tokens": 1080,
+            "temperature": 0.5, # Lower temperature might help stay on topic
+            "max_output_tokens": 500, # Reduced max tokens slightly, chat doesn't need huge responses
             "top_p": 0.8,
              "text":{
                 "format": {
@@ -183,8 +193,10 @@ def chat_response(prompt: str, context: str = "", chat_history: list = [], impac
         return assistant_response
 
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return "Désolé, je ne peux pas traiter votre demande pour le moment."
+        # Use logger instead of print for consistency
+        logger.error(f"OpenAI API call failed in chat_response.")
+        logger.exception(e)
+        return "Désolé, je ne peux pas traiter votre demande pour le moment." # Keep French error message
 
 def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_type):
     """
