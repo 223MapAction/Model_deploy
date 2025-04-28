@@ -1,6 +1,10 @@
 import os
 import json
 from openai import OpenAI
+import logging
+
+# Initialize logging
+logger = logging.getLogger(__name__)
 
 # Initialize the OpenAI client with an API key from environment variables
 client = OpenAI(
@@ -75,7 +79,9 @@ def get_assistant_response(messages):
         return response
         
     except Exception as e:
-        print(f"An error occurred: {e}")
+        # Log the specific error type and message
+        logger.error(f"OpenAI API call failed in get_assistant_response.")
+        logger.exception(e)
         return "Sorry, I can't process your request right now."
 
 def get_response(prompt: str):
