@@ -224,10 +224,14 @@ async def predict_incident_type(data: ImageModel):
 
         try:
             await database.execute(query=query, values=values)
-            logger.info("Database insertion successful")
+            logger.info(f"Database insertion successful for incident_id {data.incident_id}")
         except Exception as e:
-            logger.error(f"Database error: {e}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            # Log the specific database error and traceback
+            logger.error(f"Database insertion failed for incident_id {data.incident_id}.")
+            logger.exception(e)
+            # Re-raise HTTPException with a generic message, hiding internal details from the client
+            # but ensuring the detailed error is logged internally.
+            raise HTTPException(status_code=500, detail="An internal error occurred while saving the prediction results.")
 
         return JSONResponse(content=response)
 
