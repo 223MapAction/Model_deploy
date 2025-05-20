@@ -20,3 +20,4 @@ services:
             - ~/cv_model:/app/cv_model
             - ./app:/app/app
             - ./local_uploads:/app/local_uploads
+            - ./test:/app/test

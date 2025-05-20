@@ -37,16 +37,12 @@ jobs:
               with:
                   python-version: "3.10"
 
-            - name: Install Azure CLI
-              run: |
-                  curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-            - name: Login to Azure
-              uses: azure/login@v1
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
               with:
-                  creds: ${{ secrets.AZURE_CREDENTIALS }}
-                  auth-type: IDENTITY
-                  allow-no-subscriptions: true
+                  aws-region: ${{ secrets.AWS_REGION }}
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
             - name: Install Docker Compose
               run: |
@@ -64,10 +60,9 @@ jobs:
                   echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
                   echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
                   echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-                  echo "BLOB_ACCOUNT_URL=${{ secrets.BLOB_ACCOUNT_URL }}" >> .cv_deploy.env
-                  echo "BLOB_CONTAINER_NAME=${{ secrets.BLOB_CONTAINER_NAME }}" >> .cv_deploy.env
                   echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-                  echo "BLOB_SAS_TOKEN=${{ secrets.BLOB_SAS_TOKEN }}" >> .cv_deploy.env
+                  echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .cv_deploy.env
+                  echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .cv_deploy.env
               shell: bash
 
             - name: Create coverage directory
@@ -103,7 +98,7 @@ jobs:
                   docker system prune -af
 
     deploy:
-        needs: cleanup
+        needs: setup-and-test
         runs-on: self-hosted
         steps:
             - name: Checkout Repository

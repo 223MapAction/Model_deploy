@@ -26,17 +26,18 @@ def upload_file_to_s3(bucket_name: str, file_path: str, region_name: str = None)
         return None
         
     # Determine region
-    effective_region = region_name or os.environ.get('AWS_REGION') or boto3.Session().region_name
+    session = boto3.Session()  # Create session once to ensure we use the same session for region detection and client creation
+    effective_region = region_name or os.environ.get('AWS_REGION') or session.region_name
     if not effective_region:
-        logger.warning("AWS region could not be determined. S3 URL might be incorrect or operations might fail if not us-east-1.")
-        # Defaulting, but this might not be correct for all buckets
+        logger.warning("AWS region could not be determined. Using us-east-1 as default.")
+        # Defaulting to us-east-1 for consistency with tests
         effective_region = 'us-east-1' 
 
     # Extract the base filename to use as the S3 object key
     object_key = os.path.basename(file_path)
 
-    # Create an S3 client
-    s3_client = boto3.client('s3', region_name=effective_region)
+    # Create an S3 client using the same session for consistency
+    s3_client = session.client('s3', region_name=effective_region)
 
     try:
         # Upload the file
