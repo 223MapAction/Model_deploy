@@ -36,6 +36,13 @@ jobs:
               uses: actions/setup-python@v3
               with:
                   python-version: "3.10"
+              continue-on-error: true
+            - name: Fallback Check for Python Versions
+              if: failure()
+              run: |
+                  echo "Checking available Python versions..."
+                  curl -s https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json | jq '.[] | .version'
+                  exit 1
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -52,6 +59,7 @@ jobs:
 
             - name: Create .cv_deploy.env
               run: |
+                  touch .cv_deploy.env
                   echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
                   echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
                   echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
