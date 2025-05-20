@@ -88,7 +88,8 @@ def sanitize_error_message(message: str, sensitive_structures: List[str]) -> str
     """
     sanitized_message = message
     for structure in sensitive_structures:
-        sanitized_message = sanitized_message.replace(structure, "***")
+        # Simple string replacement to match exact test cases
+        sanitized_message = sanitized_message.replace(structure, "[REDACTED]")
     return sanitized_message
 
 @router.get("/")

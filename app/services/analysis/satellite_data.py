@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import json
 import numpy as np
 import logging
+import rasterio
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
