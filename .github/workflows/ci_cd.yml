@@ -63,6 +63,8 @@ jobs:
                   echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
                   echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
                   echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
+                  echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}" >> .cv_deploy.env
+                  echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}" >> .cv_deploy.env
                   echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
                   echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
                   echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
@@ -121,6 +123,8 @@ jobs:
                   echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
                   echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
                   echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
+                  echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}" >> .cv_deploy.env
+                  echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}" >> .cv_deploy.env
                   echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
                   echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
                   echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
