@@ -221,8 +221,11 @@ def test_download_sentinel_data_search_error(mock_client, mock_oauth, mock_geojs
     # Assertions
     assert len(result) == 0
 
-@patch.dict(os.environ, {})
-def test_download_sentinel_data_missing_credentials(mock_geojson_point, tmp_path):
+def test_download_sentinel_data_missing_credentials(mock_geojson_point, tmp_path, monkeypatch):
+    # Explicitly remove the environment variables
+    monkeypatch.delenv('COPERNICUS_CLIENT_ID', raising=False)
+    monkeypatch.delenv('COPERNICUS_CLIENT_SECRET', raising=False)
+    
     # Call the function with missing credentials
     output_dir = str(tmp_path)
     
