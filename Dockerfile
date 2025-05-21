@@ -11,7 +11,11 @@ RUN apt-get update && \
         build-essential \
         gcc \
         libffi-dev \
-        libssl-dev && \
+        libssl-dev \
+        libexpat1 \
+        libgdal-dev \
+        libproj-dev \
+        libspatialindex-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
