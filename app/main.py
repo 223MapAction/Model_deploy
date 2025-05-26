@@ -20,13 +20,20 @@ app = FastAPI(
 )
 
 # CORS middleware configuration
-# Adjust `allow_origins` to specify the exact origins allowed in production for better security
+# Explicitly list allowed origins for security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific origins like ["https://yourdomain.com"] in production
+    allow_origins=[
+        "https://app.map-action.com",
+        "http://app.map-action.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        # Add any other domains that need access
+    ],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods; restrict if necessary
-    allow_headers=["*"],  # Allow all headers; restrict if necessary
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
+    expose_headers=["Content-Type"]
 )
 
 # Custom exception handler to sanitize error messages
