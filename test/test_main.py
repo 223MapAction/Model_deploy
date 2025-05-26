@@ -56,18 +56,24 @@ class TestMain:
         assert any(call.args[0] == "Failed to disconnect from the database: Disconnection failed" for call in mock_logger.error.call_args_list)
 
     def test_cors_middleware(self, client):
-        # Test preflight request
+        # Test preflight request with an allowed origin
         response = client.options("/health", headers={
-            "Origin": "https://testorigin.com",
+            "Origin": "https://app.map-action.com",
             "Access-Control-Request-Method": "GET",
             "Access-Control-Request-Headers": "Content-Type"
         })
         assert response.status_code == 200
         assert "access-control-allow-origin" in response.headers
-        # When allow_credentials=True is set with allow_origins=["*"], 
-        # the middleware actually returns the specific origin instead of "*"
-        # This is correct behavior according to the CORS spec for requests with credentials
-        assert response.headers["access-control-allow-origin"] == "https://testorigin.com"
+        # The middleware should return the specific origin since it's in our allowed list
+        assert response.headers["access-control-allow-origin"] == "https://app.map-action.com"
+        
+        # Also test with a disallowed origin - should return 400 Bad Request
+        response = client.options("/health", headers={
+            "Origin": "https://unauthorized-origin.com",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "Content-Type"
+        })
+        assert response.status_code == 400  # Preflight request should fail
 
     @patch('app.main.logger')
     def test_log_requests_middleware(self, mock_logger, client):
