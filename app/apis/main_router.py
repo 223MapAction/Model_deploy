@@ -121,7 +121,14 @@ async def predict_incident_type(data: ImageModel):
             f"Received request for image: {data.image_name} with sensitive structures: {data.sensitive_structures}, incident_id: {data.incident_id} in zone: {data.zone}"
         )
 
-        image_url = construct_image_url(data.image_name)
+        # Handle Supabase URLs directly, otherwise use the old construct_image_url logic
+        if data.image_name.startswith('https://') and 'supabase.co' in data.image_name:
+            image_url = data.image_name  # Use Supabase URL as-is
+            logger.info(f"Using Supabase URL directly: {image_url}")
+        else:
+            image_url = construct_image_url(data.image_name)  # Legacy server-based images
+            logger.info(f"Constructed legacy server URL: {image_url}")
+        
         image = await fetch_image(image_url)
 
         # Perform prediction asynchronously using Celery
