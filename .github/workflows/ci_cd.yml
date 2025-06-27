@@ -29,6 +29,17 @@ jobs:
         needs: cleanup
         runs-on: self-hosted
         steps:
+            - name: Clean up root-owned files
+              run: |
+                  # Clean up any root-owned files that might prevent checkout
+                  if [ -d "/home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy" ]; then
+                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy -type f -name "*.png" -exec sudo rm -f {} \; || true
+                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/app/plots -type f -exec sudo rm -f {} \; || true
+                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/local_uploads -type f -exec sudo rm -f {} \; || true
+                      sudo chmod -R 755 /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy || true
+                  fi
+              continue-on-error: true
+
             - name: Checkout Repository
               uses: actions/checkout@v3
 
