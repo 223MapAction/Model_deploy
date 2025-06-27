@@ -4,3 +4,6 @@
 train_resnet50.py
 openai_agents_sdk.md.env
 notes.md
+*/__pycache__/*
+*.pyc
+__pycache__
