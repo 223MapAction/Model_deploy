@@ -17,8 +17,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Supabase configuration
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://nwzsmdbyjmjzhruguwrb.supabase.co')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNtZGJ5am1qemhydWd1d3JiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NTU5NDIsImV4cCI6MjA2NTIzMTk0Mn0.QV6VF7Sx1XqHMnxrpgfWLFOdSaDT1xrCcbFIbqak93g')
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 SUPABASE_BUCKET = os.getenv('SUPABASE_BUCKET', 'images')
 
 
