@@ -122,6 +122,17 @@ jobs:
         needs: setup-and-test
         runs-on: self-hosted
         steps:
+            - name: Clean up root-owned files
+              run: |
+                  # Clean up any root-owned files that might prevent checkout
+                  if [ -d "/home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy" ]; then
+                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy -type f -name "*.png" -exec sudo rm -f {} \; || true
+                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/app/plots -type f -exec sudo rm -f {} \; || true
+                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/local_uploads -type f -exec sudo rm -f {} \; || true
+                      sudo chmod -R 755 /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy || true
+                  fi
+              continue-on-error: true
+
             - name: Checkout Repository
               uses: actions/checkout@v3
 
@@ -129,6 +140,13 @@ jobs:
               run: |
                   echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
                   echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
+                  echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .cv_deploy.env
+                  echo "SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .cv_deploy.env
+                  echo "USE_SUPABASE_STORAGE=${{ secrets.USE_SUPABASE_STORAGE }}" >> .cv_deploy.env
+                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .cv_deploy.env
+                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
+                  echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .cv_deploy.env
+                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .cv_deploy.env
                   echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
                   echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}" >> .cv_deploy.env
                   echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}" >> .cv_deploy.env
