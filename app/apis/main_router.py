@@ -19,11 +19,11 @@ from ..services import (
     celery_app,
     analyze_incident_zone,
 )
-from ..services.aws_s3_storage import upload_file_to_s3 # Import the AWS S3 storage function
+from ..services.supabase_storage import upload_plot_to_supabase  # Import the Supabase storage function
 
 import numpy as np
 from ..models import ImageModel
-from ..database import database
+from ..database import database, execute_with_retry, fetch_with_retry, fetch_one_with_retry
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -134,7 +134,7 @@ async def predict_incident_type(data: ImageModel):
         # Perform prediction asynchronously using Celery
         prediction_task = perform_prediction.delay(image)
         try:
-            prediction, probabilities = prediction_task.get(timeout=120)
+            prediction, probabilities = prediction_task.get(timeout=600)  # Increased to 10 minutes
             logger.info(f"Prediction successful: {prediction} with probabilities: {probabilities}")
             if isinstance(probabilities, np.ndarray):
                 probabilities = probabilities.tolist()
@@ -145,7 +145,7 @@ async def predict_incident_type(data: ImageModel):
         # Fetch contextual information asynchronously using Celery
         context_task = fetch_contextual_information.delay(prediction, data.sensitive_structures, data.zone)
         try:
-            analysis, piste_solution = context_task.get(timeout=120)
+            analysis, piste_solution = context_task.get(timeout=600)  # Increased to 10 minutes
             logger.info(f"Context fetching successful: {analysis}, {piste_solution}")
         except Exception as e:
             logger.error(f"Error during context fetching task: {e}")
@@ -156,7 +156,7 @@ async def predict_incident_type(data: ImageModel):
         end_date = datetime.now().strftime("%Y%m%d")
         satellite_analysis_task = analyze_incident_zone.delay(data.latitude, data.longitude, data.zone, prediction, start_date, end_date)
         try:
-            satellite_analysis = satellite_analysis_task.get(timeout=120)
+            satellite_analysis = satellite_analysis_task.get(timeout=600)  # Increased to 10 minutes
         except Exception as e:
             logger.error(f"Error during satellite analysis task: {e}")
             raise HTTPException(status_code=500, detail=f"Error during satellite analysis: {str(e)}")
@@ -164,29 +164,27 @@ async def predict_incident_type(data: ImageModel):
         # Add satellite analysis to the existing analysis
         analysis += "\n\n" + satellite_analysis['textual_analysis']
 
-        # Upload plots to AWS S3
-        # container_name = os.environ['BLOB_CONTAINER_NAME']  # Replace with your actual container name
-        bucket_name = os.environ.get('S3_BUCKET_NAME')
-        region_name = os.environ.get('AWS_REGION')
-
-        if not bucket_name:
-             logger.error("S3_BUCKET_NAME environment variable is not set.")
-             # Handle the error appropriately, maybe raise HTTPException or return an error response
-             raise HTTPException(status_code=500, detail="S3 bucket name not configured.")
-
-
-        # ndvi_ndwi_plot_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_ndwi_plot'])
-        # ndvi_heatmap_url = upload_file_to_blob(container_name, satellite_analysis['ndvi_heatmap'])
-        # landcover_plot_url = upload_file_to_blob(container_name, satellite_analysis['landcover_plot'])
-        
-        ndvi_ndwi_plot_url = upload_file_to_s3(bucket_name, satellite_analysis['ndvi_ndwi_plot'], region_name)
-        ndvi_heatmap_url = upload_file_to_s3(bucket_name, satellite_analysis['ndvi_heatmap'], region_name)
-        landcover_plot_url = upload_file_to_s3(bucket_name, satellite_analysis['landcover_plot'], region_name)
+        # Upload plots to Supabase
+        ndvi_ndwi_plot_url = upload_plot_to_supabase(
+            satellite_analysis['ndvi_ndwi_plot'], 
+            'ndvi_ndwi', 
+            data.incident_id
+        )
+        ndvi_heatmap_url = upload_plot_to_supabase(
+            satellite_analysis['ndvi_heatmap'], 
+            'ndvi_heatmap', 
+            data.incident_id
+        )
+        landcover_plot_url = upload_plot_to_supabase(
+            satellite_analysis['landcover_plot'], 
+            'landcover', 
+            data.incident_id
+        )
         
         # Check if uploads were successful (returned a URL)
         if not all([ndvi_ndwi_plot_url, ndvi_heatmap_url, landcover_plot_url]):
             # Log the specific failures if needed (the upload function logs errors)
-            logger.error("One or more plot uploads to S3 failed.")
+            logger.error("One or more plot uploads to Supabase failed.")
             # Decide how to handle partial failure - raise error or continue with missing URLs?
             # For now, raising an error might be safer.
             raise HTTPException(status_code=500, detail="Failed to upload analysis plots.")
@@ -231,7 +229,7 @@ async def predict_incident_type(data: ImageModel):
         }
 
         try:
-            await database.execute(query=query, values=values)
+            await execute_with_retry(query=query, values=values)
             logger.info(f"Database insertion successful for incident_id {data.incident_id}")
         except Exception as e:
             # Log the specific database error and traceback
@@ -310,7 +308,7 @@ async def chat_endpoint(websocket: WebSocket):
                 """
                 values = {"session_id": chat_key}
                 try:
-                    await database.execute(query=query, values=values)
+                    await execute_with_retry(query=query, values=values)
                     logger.info(f"Chat history deleted for session {chat_key}")
 
                     # Clear in-memory chat history
@@ -330,7 +328,7 @@ async def chat_endpoint(websocket: WebSocket):
                 WHERE incident_id = :incident_id;
                 """
                 values = {"incident_id": incident_id}
-                result = await database.fetch_one(query=query, values=values)
+                result = await fetch_one_with_retry(query=query, values=values)
 
                 if result:
                     context_obj = {
@@ -358,7 +356,7 @@ async def chat_endpoint(websocket: WebSocket):
                     ORDER BY id ASC;
                     """
                     history_values = {"session_id": chat_key}
-                    history_results = await database.fetch_all(query=history_query, values=history_values)
+                    history_results = await fetch_with_retry(query=history_query, values=history_values)
                     chat_histories[chat_key] = [
                         {"role": "user", "content": record["question"]}
                         for record in history_results
@@ -420,7 +418,7 @@ async def save_chat_history(chat_key: str, question: str, answer: str):
         "answer": answer,
     }
     try:
-        await database.execute(query=query, values=values)
+        await execute_with_retry(query=query, values=values)
         logger.info(f"Chat history saved for session {chat_key}")
     except Exception as e:
         logger.error(f"Error saving chat history: {e}")
@@ -447,7 +445,7 @@ async def get_chat_history(chat_key: str):
     """
     values = {"session_id": chat_key}
     try:
-        results = await database.fetch_all(query=query, values=values)
+        results = await fetch_with_retry(query=query, values=values)
         # Format the results to interleave user and assistant messages
         formatted_history = []
         for record in results:
@@ -462,5 +460,3 @@ async def get_chat_history(chat_key: str):
 async def expire_impact_area(incident_id: str, delay: int):
     await asyncio.sleep(delay)
     impact_area_storage.pop(incident_id, None)
-
-
