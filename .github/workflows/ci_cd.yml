@@ -1,185 +1,216 @@
 name: CI/CD Pipeline
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
-    contents: write
-    pages: write
-    id-token: write
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
-    cleanup:
-        runs-on: self-hosted
-        steps:
-            - name: Free up disk space
-              run: |
-                  sudo docker system prune -af
-                  sudo docker volume prune -f
-                  sudo apt-get clean
-                  sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-                  sudo df -h
+  cleanup:
+    runs-on: self-hosted
+    steps:
+      - name: Free up disk space
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # Docker cleanup (if Docker is available)
+          if command -v docker >/dev/null 2>&1; then
+            sudo docker system prune -af || true
+            sudo docker volume prune -f || true
+          fi
 
-    setup-and-test:
-        needs: cleanup
-        runs-on: self-hosted
-        steps:
-            - name: Clean up root-owned files
-              run: |
-                  # Clean up any root-owned files that might prevent checkout
-                  if [ -d "/home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy" ]; then
-                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy -type f -name "*.png" -exec sudo rm -f {} \; || true
-                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/app/plots -type f -exec sudo rm -f {} \; || true
-                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/local_uploads -type f -exec sudo rm -f {} \; || true
-                      sudo chmod -R 755 /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy || true
-                  fi
-              continue-on-error: true
+          # Debian/Ubuntu cleanup
+          if command -v apt-get >/dev/null 2>&1; then
+            sudo apt-get clean || true
+          fi
 
-            - name: Checkout Repository
-              uses: actions/checkout@v3
+          # Remove large preinstalled folders (safe if missing)
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
 
-            - name: Set up Python
-              uses: actions/setup-python@v3
-              with:
-                  python-version: "3.10"
-              continue-on-error: true
-            - name: Fallback Check for Python Versions
-              if: failure()
-              run: |
-                  echo "Checking available Python versions..."
-                  curl -s https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json | jq '.[] | .version'
-                  exit 1
+          sudo df -h
 
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
-              with:
-                  aws-region: ${{ secrets.AWS_REGION }}
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  setup-and-test:
+    needs: cleanup
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            # Skip Docker Compose installation as it should be available on self-hosted runner
-            - name: Check Docker and Docker Compose versions
-              run: |
-                  docker --version
-                  docker-compose --version
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          check-latest: true
 
-            - name: Create .cv_deploy.env
-              run: |
-                  touch .cv_deploy.env
-                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
-                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
-                  echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .cv_deploy.env
-                  echo "SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .cv_deploy.env
-                  echo "USE_SUPABASE_STORAGE=${{ secrets.USE_SUPABASE_STORAGE }}" >> .cv_deploy.env
-                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .cv_deploy.env
-                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .cv_deploy.env
-                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .cv_deploy.env
-                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
-                  echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}" >> .cv_deploy.env
-                  echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}" >> .cv_deploy.env
-                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
-                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
-                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
-                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-                  echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .cv_deploy.env
-                  echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .cv_deploy.env
-              shell: bash
+      - name: Show Python
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python --version
+          pip --version
 
-            - name: Create coverage directory
-              run: mkdir -p coverage
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-            - name: Run Tests
-              run: |
-                  # Verify the .cv_deploy.env file exists
-                  ls -la .cv_deploy.env
-                  # Run the tests
-                  docker-compose -f _ci_pipeline.yml up --build -d
-                  docker-compose -f _ci_pipeline.yml run --rm -v ${{ github.workspace }}/coverage:/app/coverage testing
+      - name: Check Docker and Docker Compose
+        shell: bash
+        run: |
+          set -euxo pipefail
+          docker --version
+          docker compose version
 
-            - name: Check for coverage file
-              run: |
-                  if [ ! -f ./coverage/coverage.xml ]; then
-                    echo "Coverage file not found!"
-                    exit 1
-                  fi
+          # Ensure Docker daemon is reachable (use sudo to avoid group timing issues)
+          sudo docker info >/dev/null
 
-            - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4
-              env:
-                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-              with:
-                  files: ./coverage/coverage.xml
+      - name: Create env file (.cv_deploy.env)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -f .cv_deploy.env
+          {
+            echo "MODEL_PATH=${{ secrets.MODEL_PATH }}"
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}"
+            echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}"
+            echo "SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
+            echo "USE_SUPABASE_STORAGE=${{ secrets.USE_SUPABASE_STORAGE }}"
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
+            echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}"
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}"
+            echo "REDIS_URL=${{ secrets.REDIS_URL }}"
+            echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}"
+            echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}"
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}"
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}"
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
+            echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
+            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
+            echo "SERVER_URL=${{ secrets.SERVER_URL }}"
+            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
+            echo "AWS_REGION=${{ secrets.AWS_REGION }}"
+          } >> .cv_deploy.env
 
-            - name: Tear down testing environment
-              if: always() # Ensure this runs even if previous steps fail
-              run: |
-                  docker-compose -f _ci_pipeline.yml down --volumes --remove-orphans
+          # sanity check (do not print secrets)
+          test -s .cv_deploy.env
+          echo ".cv_deploy.env created with $(wc -l < .cv_deploy.env) lines."
 
-            - name: Prune Docker resources (testing)
-              if: always() # Ensure this runs even if previous steps fail
-              run: |
-                  docker system prune -af
+      - name: Create coverage directory
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p "${{ github.workspace }}/coverage"
 
-    deploy:
-        needs: setup-and-test
-        runs-on: self-hosted
-        steps:
-            - name: Clean up root-owned files
-              run: |
-                  # Clean up any root-owned files that might prevent checkout
-                  if [ -d "/home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy" ]; then
-                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy -type f -name "*.png" -exec sudo rm -f {} \; || true
-                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/app/plots -type f -exec sudo rm -f {} \; || true
-                      sudo find /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy/local_uploads -type f -exec sudo rm -f {} \; || true
-                      sudo chmod -R 755 /home/ec2-user/actions-runner/_work/Model_deploy/Model_deploy || true
-                  fi
-              continue-on-error: true
+      - name: Run Tests (Docker Compose)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          ls -la .cv_deploy.env
 
-            - name: Checkout Repository
-              uses: actions/checkout@v3
+          # Bring up services
+          sudo docker compose -f _ci_pipeline.yml up --build -d
 
-            - name: Create .cv_deploy.env
-              run: |
-                  echo "MODEL_PATH=${{ secrets.MODEL_PATH }}" >> .cv_deploy.env
-                  echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .cv_deploy.env
-                  echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .cv_deploy.env
-                  echo "SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .cv_deploy.env
-                  echo "USE_SUPABASE_STORAGE=${{ secrets.USE_SUPABASE_STORAGE }}" >> .cv_deploy.env
-                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .cv_deploy.env
-                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .cv_deploy.env
-                  echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .cv_deploy.env
-                  echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .cv_deploy.env
-                  echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}" >> .cv_deploy.env
-                  echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}" >> .cv_deploy.env
-                  echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .cv_deploy.env
-                  echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .cv_deploy.env
-                  echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .cv_deploy.env
-                  echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}" >> .cv_deploy.env
-                  echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE}}" >> .cv_deploy.env
-                  echo "SERVER_URL=${{ secrets.SERVER_URL }}" >> .cv_deploy.env
-                  echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .cv_deploy.env
-                  echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .cv_deploy.env
+          # Run tests and write coverage into mounted folder
+          sudo docker compose -f _ci_pipeline.yml run --rm \
+            -v "${{ github.workspace }}/coverage:/app/coverage" \
+            testing
 
-            - name: Build and Deploy Docker Image
-              run: |
-                  docker-compose -f _cd_pipeline.yaml build
-                  docker-compose -f _cd_pipeline.yaml down --remove-orphans
-                  docker-compose -f _cd_pipeline.yaml up --build -d
+      - name: Check for coverage file
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if [ ! -f "${{ github.workspace }}/coverage/coverage.xml" ]; then
+            echo "Coverage file not found at ${{ github.workspace }}/coverage/coverage.xml"
+            ls -la "${{ github.workspace }}/coverage" || true
+            exit 1
+          fi
 
-            - name: Post-deployment cleanup
-              if: always()
-              run: |
-                  docker system prune -af --volumes
-                  docker image prune -af
-                  docker volume prune -f
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ${{ github.workspace }}/coverage/coverage.xml
+
+      - name: Tear down testing environment
+        if: always()
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo docker compose -f _ci_pipeline.yml down --volumes --remove-orphans || true
+
+      - name: Prune Docker resources (testing)
+        if: always()
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo docker system prune -af || true
+
+  deploy:
+    needs: setup-and-test
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Docker and Docker Compose
+        shell: bash
+        run: |
+          set -euxo pipefail
+          docker --version
+          docker compose version
+          sudo docker info >/dev/null
+
+      - name: Create env file (.cv_deploy.env)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -f .cv_deploy.env
+          {
+            echo "MODEL_PATH=${{ secrets.MODEL_PATH }}"
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}"
+            echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}"
+            echo "SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
+            echo "USE_SUPABASE_STORAGE=${{ secrets.USE_SUPABASE_STORAGE }}"
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
+            echo "POSTGRES_URL=${{ secrets.POSTGRES_URL }}"
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}"
+            echo "REDIS_URL=${{ secrets.REDIS_URL }}"
+            echo "COPERNICUS_CLIENT_ID=${{ secrets.COPERNICUS_CLIENT_ID }}"
+            echo "COPERNICUS_CLIENT_SECRET=${{ secrets.COPERNICUS_CLIENT_SECRET }}"
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}"
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}"
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
+            echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
+            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
+            echo "SERVER_URL=${{ secrets.SERVER_URL }}"
+            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
+            echo "AWS_REGION=${{ secrets.AWS_REGION }}"
+          } >> .cv_deploy.env
+
+          test -s .cv_deploy.env
+
+      - name: Build and Deploy (Docker Compose)
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo docker compose -f _cd_pipeline.yaml build
+          sudo docker compose -f _cd_pipeline.yaml down --remove-orphans || true
+          sudo docker compose -f _cd_pipeline.yaml up --build -d
+
+      - name: Post-deployment cleanup
+        if: always()
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo docker system prune -af --volumes || true
+          sudo docker image prune -af || true
+          sudo docker volume prune -f || true
