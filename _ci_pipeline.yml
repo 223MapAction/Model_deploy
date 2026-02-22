@@ -21,3 +21,4 @@ services:
             - ./app:/app/app
             - ./local_uploads:/app/local_uploads
             - ./test:/app/test
+            - ./gee-credentials.json:/app/gee-credentials.json
