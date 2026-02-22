@@ -88,7 +88,7 @@ jobs:
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}"
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
             echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
-            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
+            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=/app/gee-credentials.json"
             echo "SERVER_URL=${{ secrets.SERVER_URL }}"
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
             echo "AWS_REGION=${{ secrets.AWS_REGION }}"
@@ -103,6 +103,14 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p "${{ github.workspace }}/coverage"
+
+      - name: Create GEE credentials file
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # Create the credentials file from the secret
+          echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' > gee-credentials.json
+          echo "GEE credentials file created"
 
       - name: Run Tests (Docker Compose)
         shell: bash
@@ -185,13 +193,21 @@ jobs:
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}"
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
             echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
-            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=${{ secrets.GEE_SERVICE_ACCOUNT_KEY_FILE }}"
+            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=/app/gee-credentials.json"
             echo "SERVER_URL=${{ secrets.SERVER_URL }}"
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
             echo "AWS_REGION=${{ secrets.AWS_REGION }}"
           } >> .cv_deploy.env
 
           test -s .cv_deploy.env
+
+      - name: Create GEE credentials file for deployment
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # Create the credentials file from the secret
+          echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' > gee-credentials.json
+          echo "GEE credentials file created for deployment"
 
       - name: Build and Deploy (Docker Compose)
         shell: bash
