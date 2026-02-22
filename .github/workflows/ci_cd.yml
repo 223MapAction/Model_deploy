@@ -42,18 +42,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          check-latest: true
 
-      - name: Show Python
+      - name: Show system Python (informational)
         shell: bash
         run: |
           set -euxo pipefail
-          python --version
-          pip --version
+          python3 --version
+          python3 -m pip --version || true
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
