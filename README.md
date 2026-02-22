@@ -65,6 +65,7 @@ The system uses FastAPI endpoints to make predictions using computer vision mode
 
 ![System Architecture Diagram](system_arch.png)
 
+
 ---
 
 ## How it works
