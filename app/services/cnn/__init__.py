@@ -1,2 +1,2 @@
-from .cnn import predict, predict_structured
+from .cnn import predict, predict_structured, tags, ENVIRONMENTAL_TAGS
 from .models import PredictionResult, PredictionTag

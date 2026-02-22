@@ -13,14 +13,34 @@ logger = logging.getLogger(__name__)
 
 # Define the environmental issue tags
 ENVIRONMENTAL_TAGS = [
-    "Caniveau obstrué",  # Blocked drain/gutter
-    "Déchets",           # Waste
-    "Déforestation",     # Deforestation
-    "Feux de brousse",   # Bush fires
-    "Pollution de leau", # Water pollution
-    "Pollution de lair", # Air pollution
-    "Sécheresse",        # Drought
-    "Sol dégradé"        # Degraded soil
+    "Puits abîmé",
+    "Fosse pleine",
+    "Latrines bouchées",
+    "Eaux stagnantes",
+    "Décharge illégale",
+    "Déchets biomédicaux",
+    "Plastiques épars",
+    "Feu déchets",
+    "Ordures non collectées",
+    "Déchets électroniques",
+    "Arbres coupés",
+    "Feux de brousse",
+    "Sol Nu",
+    "Sol érodé",
+    "Fumées industrielles",
+    "Eaux sales",
+    "Pollution plastique",
+    "Pollution visuelle",
+    "Inondation",
+    "Sécheresse",
+    "Glissement de terrain",
+    "Animal mort",
+    "Zone humide agréssée",
+    "Espèces invasives",
+    "Surpâturage",
+    "Caniveaux bouchés",
+    "Équipement HS",
+    "Déversement illégal"
 ]
 
 def encode_image_to_base64(image_bytes):
@@ -42,27 +62,20 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         base64_image = encode_image_to_base64(image_bytes)
         
         # Prepare the prompt for environmental issue classification
-        prompt = """
+        prompt = f"""
         Analyze this image and identify if it contains any of the following environmental issues:
-        
-        1. Caniveau obstrué
-        2. Déchets
-        3. Déforestation
-        4. Feux de brousse
-        5. Pollution de leau
-        6. Pollution de lair 
-        7. Sécheresse
-        8. Sol dégradé
-        
+
+        {chr(10).join([f"{i+1}. {tag}" for i, tag in enumerate(ENVIRONMENTAL_TAGS)])}
+
         If none of these environmental issues are present, respond with "Aucun problème environnemental" (No environmental problem).
-        
+
         For each identified issue, assign a probability between 0 and 1 indicating your confidence.
         Only return issues with a probability greater than 0.4.
         Limit your response to the top 3 most probable issues.
-        
+
         Format your response as a JSON object with fields:
         - identified_issues: array of objects with "tag" and "probability" fields
-        - all_probabilities: array of probability values for all 8 issues in the order listed above
+        - all_probabilities: array of probability values for all {len(ENVIRONMENTAL_TAGS)} issues in the order listed above
         """
         
         # Call the OpenAI API
