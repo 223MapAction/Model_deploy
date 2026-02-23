@@ -73,7 +73,7 @@ def test_predict_with_successful_response(mock_openai_client, mock_image_bytes, 
     assert call_args['temperature'] == 1
     assert call_args['max_output_tokens'] == 2048
     assert call_args['top_p'] == 1
-    assert call_args['text'] == {"format": {"type": "json"}}
+    assert call_args['text'] == {"format": {"type": "json_object"}}
     assert call_args['reasoning'] == {}
     assert call_args['store'] is True
 

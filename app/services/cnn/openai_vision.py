@@ -108,7 +108,7 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
             "temperature": 1,
             "max_output_tokens": 2048,
             "top_p": 1,
-            "text": {"format": {"type": "json"}},
+            "text": {"format": {"type": "json_object"}},
             "reasoning": {},
             "store": True
         }
