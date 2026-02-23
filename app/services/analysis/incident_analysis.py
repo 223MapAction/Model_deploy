@@ -36,6 +36,17 @@ def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
                      .filterDate(start_date, end_date)
                      .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', 20)))
 
+    # Check if collection is empty
+    collection_size = s2_collection.size().getInfo()
+    if collection_size == 0:
+        logger.warning(f"No Sentinel-2 imagery found for the specified area and time period ({start_date} to {end_date})")
+        # Return empty dataframes with proper structure
+        empty_df = pd.DataFrame({'Date': pd.date_range(start=start_date, end=end_date, periods=3),
+                                 'NDVI': [0.0, 0.0, 0.0]})
+        empty_df_ndwi = pd.DataFrame({'Date': pd.date_range(start=start_date, end=end_date, periods=3),
+                                      'NDWI': [0.0, 0.0, 0.0]})
+        return empty_df[['Date', 'NDVI']], empty_df_ndwi[['Date', 'NDWI']]
+
     # Calculate NDVI and NDWI
     def get_ndvi(image):
         return image.normalizedDifference(['B8', 'B4']).rename('NDVI').copyProperties(image, ['system:time_start'])

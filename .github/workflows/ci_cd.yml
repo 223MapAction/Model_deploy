@@ -19,20 +19,49 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
+
+          echo "=== Initial disk usage ==="
+          sudo df -h
+
           # Docker cleanup (if Docker is available)
           if command -v docker >/dev/null 2>&1; then
-            sudo docker system prune -af || true
+            echo "=== Stopping all running containers ==="
+            sudo docker stop $(sudo docker ps -aq) 2>/dev/null || true
+
+            echo "=== Removing all containers ==="
+            sudo docker rm -f $(sudo docker ps -aq) 2>/dev/null || true
+
+            echo "=== Pruning Docker system ==="
+            sudo docker system prune -af --volumes || true
+
+            echo "=== Removing dangling images ==="
+            sudo docker image prune -af || true
+
+            echo "=== Removing unused volumes ==="
             sudo docker volume prune -f || true
+
+            echo "=== Removing unused networks ==="
+            sudo docker network prune -f || true
           fi
 
           # Debian/Ubuntu cleanup
           if command -v apt-get >/dev/null 2>&1; then
+            echo "=== Cleaning apt cache ==="
             sudo apt-get clean || true
+            sudo apt-get autoclean || true
+            sudo apt-get autoremove -y || true
           fi
 
           # Remove large preinstalled folders (safe if missing)
+          echo "=== Removing unnecessary system folders ==="
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
 
+          # Clear temporary files
+          echo "=== Clearing temporary files ==="
+          sudo rm -rf /tmp/* || true
+          sudo rm -rf /var/tmp/* || true
+
+          echo "=== Final disk usage ==="
           sudo df -h
 
   setup-and-test:
@@ -163,6 +192,27 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Pre-deployment cleanup
+        shell: bash
+        run: |
+          set -euxo pipefail
+          echo "=== Pre-deployment disk usage ==="
+          sudo df -h
+
+          echo "=== Stopping old deployment containers ==="
+          sudo docker compose -f _cd_pipeline.yaml down --remove-orphans || true
+
+          echo "=== Cleaning up test containers ==="
+          sudo docker stop $(sudo docker ps -aq) 2>/dev/null || true
+          sudo docker rm -f $(sudo docker ps -aq) 2>/dev/null || true
+
+          echo "=== Pruning Docker system before deployment ==="
+          sudo docker system prune -af --volumes || true
+          sudo docker image prune -af || true
+
+          echo "=== Disk usage after cleanup ==="
+          sudo df -h
 
       - name: Check Docker and Docker Compose
         shell: bash
