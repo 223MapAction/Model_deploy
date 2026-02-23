@@ -83,22 +83,40 @@ def predict(image_bytes) -> Tuple[List[Tuple[str, float]], List[float]]:
         if not api_key:
             logger.error("OPENAI_API_KEY is not set in the environment")
             raise ValueError("OPENAI_API_KEY is not set. Please set it in your environment.")
-            
+
         client = openai.OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": "You are an environmental issue detection assistant."},
-                {"role": "user", "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                ]}
-            ]
-        )
-        
+
+        # Prepare parameters for the API call - consistent with llm.py pattern
+        response_params = {
+            "model": "gpt-4o-mini",
+            "input": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": prompt,
+                        },
+                        {
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{base64_image}",
+                        },
+                    ],
+                }
+            ],
+            "instructions": "You are an environmental issue detection assistant.",
+            "temperature": 1,
+            "max_output_tokens": 2048,
+            "top_p": 1,
+            "text": {"format": {"type": "json"}},
+            "reasoning": {},
+            "store": True
+        }
+
+        response = client.responses.create(**response_params)
+
         # Extract and parse the response
-        result = response.choices[0].message.content
+        result = response.output[0].content[0].text
         try:
             parsed_result = json.loads(result)
             
