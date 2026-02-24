@@ -212,15 +212,37 @@ def generate_satellite_analysis(ndvi_data, ndwi_data, landcover_data, incident_t
     Returns:
         str: Detailed analysis of the satellite data, formatted in markdown
     """
+    # Check for empty data and handle gracefully
+    if ndvi_data.empty or len(ndvi_data) < 2:
+        ndvi_mean = 0.0
+        ndvi_trend = 'données insuffisantes'
+    else:
+        ndvi_mean = ndvi_data['NDVI'].mean()
+        ndvi_trend = 'augmentation' if ndvi_data['NDVI'].iloc[-1] > ndvi_data['NDVI'].iloc[0] else 'diminution'
+
+    if ndwi_data.empty or len(ndwi_data) < 2:
+        ndwi_mean = 0.0
+        ndwi_trend = 'données insuffisantes'
+    else:
+        ndwi_mean = ndwi_data['NDWI'].mean()
+        ndwi_trend = 'augmentation' if ndwi_data['NDWI'].iloc[-1] > ndwi_data['NDWI'].iloc[0] else 'diminution'
+
+    if not landcover_data or len(landcover_data) == 0:
+        dominant_cover = 'données non disponibles'
+        dominant_cover_percentage = 0.0
+    else:
+        dominant_cover = max(landcover_data, key=landcover_data.get)
+        dominant_cover_percentage = landcover_data[dominant_cover] / sum(landcover_data.values()) * 100
+
     # Prepare the context
     context = {
         "type_incident": incident_type,
-        "ndvi_mean": ndvi_data['NDVI'].mean(),
-        "ndvi_trend": 'augmentation' if ndvi_data['NDVI'].iloc[-1] > ndvi_data['NDVI'].iloc[0] else 'diminution',
-        "ndwi_mean": ndwi_data['NDWI'].mean(),
-        "ndwi_trend": 'augmentation' if ndwi_data['NDWI'].iloc[-1] > ndwi_data['NDWI'].iloc[0] else 'diminution',
-        "dominant_cover": max(landcover_data, key=landcover_data.get),
-        "dominant_cover_percentage": landcover_data[max(landcover_data, key=landcover_data.get)] / sum(landcover_data.values()) * 100
+        "ndvi_mean": ndvi_mean,
+        "ndvi_trend": ndvi_trend,
+        "ndwi_mean": ndwi_mean,
+        "ndwi_trend": ndwi_trend,
+        "dominant_cover": dominant_cover,
+        "dominant_cover_percentage": dominant_cover_percentage
     }
 
     # System prompt content remains the same
