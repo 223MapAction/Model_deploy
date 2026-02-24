@@ -68,6 +68,19 @@ jobs:
     needs: cleanup
     runs-on: self-hosted
     steps:
+      - name: Clean up orphaned files with permission issues
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # Remove plot files created by Docker containers
+          sudo rm -rf "${{ github.workspace }}/app/plots/*.png" 2>/dev/null || true
+          sudo rm -rf "${{ github.workspace }}/local_uploads" 2>/dev/null || true
+          sudo rm -f "${{ github.workspace }}/.cv_deploy.env" 2>/dev/null || true
+          sudo rm -f "${{ github.workspace }}/gee-credentials.json" 2>/dev/null || true
+
+          # Fix permissions on the workspace
+          sudo chown -R admin:admin "${{ github.workspace }}" 2>/dev/null || true
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
