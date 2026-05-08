@@ -1,13 +1,31 @@
-.cv_deploy.env
-*.pth
+# Environnement
 .env
-train_resnet50.py
-<<<<<<< HEAD
+.env.example
+.cv_deploy.env
 openai_agents_sdk.md.env
-notes.md
-*/__pycache__/*
+
+# Python
+__pycache__/
 *.pyc
-__pycache__
-=======
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+myenv/
+.venv/
+
+# Modèles et Données
+*.pth
+*.model
+*.weights
+train_resnet50.py
+
+# Divers
+.DS_Store
+notes.md
 openai_agents_sdk.md
->>>>>>> e8cc30e (Switch to OpenAI Vision model for prediction)
+coverage/
+.coverage
+# Clés de service
+gee-key.json
