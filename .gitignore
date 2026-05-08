@@ -1,9 +1,10 @@
 .cv_deploy.env
+.env
+.env.example
 openai_agents_sdk.md.env
 
-
-# Python
 __pycache__/
+__pycache__
 *.pyc
 *.pyo
 *.pyd
@@ -13,21 +14,15 @@ venv/
 myenv/
 .venv/
 
-# Modèles et Données
 *.pth
-.env
+*.model
+*.weights
 train_resnet50.py
 
-openai_agents_sdk.md.env
+.DS_Store
 notes.md
-*/__pycache__/*
-*.pyc
-__pycache__
-
-openai_agents_sdk.md
 coverage/
 .coverage
-# Clés de service
+
 gee-key.json
-
-
+gee-credentials.json

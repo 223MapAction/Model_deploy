@@ -3,9 +3,10 @@ import os
 import logging
 import requests
 import numpy as np
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
-from fastapi.responses import JSONResponse
-from typing import Dict, List
+import time
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status, UploadFile, File, Form
+from fastapi.responses import JSONResponse, StreamingResponse
+from typing import Dict, List, Optional
 import json
 import asyncio
 from datetime import datetime, timedelta
@@ -20,6 +21,22 @@ from ..services import (
     analyze_incident_zone,
 )
 from ..services.supabase_storage import upload_plot_to_supabase  # Import the Supabase storage function
+
+# Import pour le Moteur d'Impact
+from ..services.ai_service import analyze_image_with_gemini, analyze_image_bytes_with_gemini, call_deepseek_chat
+from ..services.spatial_calculator import (
+    get_slope_data, 
+    get_osm_data, 
+    get_weather_data,
+    filter_osm_by_radius,
+    calculate_social_vulnerability,
+    calculate_human_impact,
+    get_satellite_analysis,
+    get_geocoding_context
+)
+from ..impact_logic import calculate_dynamic_radius, calculate_global_impact
+from ..schemas import AnalyzeRequest, AnalyzeResponse, SpatialData, SatelliteData, HumanImpact, ChatRequest
+from ..config import settings
 
 import numpy as np
 from ..models import ImageModel
@@ -460,3 +477,156 @@ async def get_chat_history(chat_key: str):
 async def expire_impact_area(incident_id: str, delay: int):
     await asyncio.sleep(delay)
     impact_area_storage.pop(incident_id, None)
+
+
+# ============================================================
+# MOTEUR D'IMPACT - Intégration
+# ============================================================
+
+async def _run_analysis(ai_data, latitude: float, longitude: float, incident_id: str = None) -> AnalyzeResponse:
+    """Logique d'analyse partagée entre les endpoints URL et Upload."""
+    
+    # 1. Phase 1 : Collecte du contexte Macro (Rayon fixe 5km pour OSM)
+    slope_result, osm_macro_result, sat_result, weather_result, geo_context = await asyncio.gather(
+        asyncio.to_thread(get_slope_data, latitude, longitude),
+        asyncio.to_thread(get_osm_data, latitude, longitude, 5000), # 5km macro scan
+        asyncio.to_thread(get_satellite_analysis, latitude, longitude),
+        asyncio.to_thread(get_weather_data, latitude, longitude),
+        asyncio.to_thread(get_geocoding_context, latitude, longitude)
+    )
+
+    spatial_data = {
+        "elevation": 0.0,
+        "slope_percent": slope_result,
+        "wind_speed": weather_result["wind_speed"],
+        "precipitation": weather_result["precipitation"],
+        "temperature_celsius": weather_result["temperature_celsius"]
+    }
+
+    # 2. Phase 2 : Calcul dynamique du rayon final (Analyse Croisée)
+    radius_data = calculate_dynamic_radius(
+        ai_data=ai_data,
+        spatial_data=spatial_data,
+        macro_osm_counts=osm_macro_result["counts"],
+        sat_data=sat_result
+    )
+    final_radius = radius_data["final_radius"]
+    radius_exp = radius_data.get("radius_explanation", "")
+
+    # 3. Phase 3 : Calcul des scores sociaux et humains
+    osm_micro_counts = filter_osm_by_radius(osm_macro_result, latitude, longitude, final_radius)
+    social_data = calculate_social_vulnerability(osm_micro_counts, land_use=sat_result.get("land_use", "Inconnu"))
+    social_score = social_data["score"]
+    is_probabilistic = social_data["is_probabilistic"]
+    estimated_buildings = social_data.get("estimated_buildings", 0)
+    human_impact_data = calculate_human_impact(osm_micro_counts, estimated_buildings=estimated_buildings)
+
+    # 4. Phase 4 : Calcul du risque potentiel (Si détecté)
+    potential_risk_data = radius_data.get("potential_risk")
+    if potential_risk_data:
+        pot_radius = potential_risk_data["potential_radius"]
+        osm_pot_counts = filter_osm_by_radius(osm_macro_result, latitude, longitude, pot_radius)
+        social_pot = calculate_social_vulnerability(osm_pot_counts, land_use=sat_result.get("land_use", "Inconnu"))
+        human_pot = calculate_human_impact(osm_pot_counts, estimated_buildings=social_pot.get("estimated_buildings"))
+        
+        potential_risk_data["stats"] = {
+            "total_pop": human_pot["total_population_exposed"],
+            "infrastructures": sum(v for k,v in osm_pot_counts.items() if k != "residential_buildings")
+        }
+
+    # 5. Phase 5 : Calcul du score d'impact global et réponse
+    impact_data = calculate_global_impact(
+        ai_data=ai_data,
+        sat_data=sat_result,
+        spatial_data=spatial_data,
+        social_score=social_score
+    )
+
+    return AnalyzeResponse(
+        incident_id=incident_id,
+        latitude=latitude,
+        longitude=longitude,
+        ai_analysis=ai_data,
+        topography=SpatialData(**spatial_data),
+        satellite=SatelliteData(**sat_result),
+        social_data=osm_micro_counts,
+        social_vulnerability_score=social_score,
+        is_social_probabilistic=is_probabilistic,
+        human_impact=HumanImpact(**human_impact_data),
+        impact_radius_meters=final_radius,
+        radius_explanation=radius_exp,
+        global_impact_score=impact_data["impact_score"],
+        base_severity=settings.INCIDENT_TAXONOMY.get(ai_data.macro_category, {}).get(ai_data.sub_category, {}).get("base_severity", 5),
+        impact_tags=settings.INCIDENT_TAXONOMY.get(ai_data.macro_category, {}).get(ai_data.sub_category, {}).get("impact_tags", []),
+        geocoding=geo_context,
+        potential_risk=potential_risk_data,
+        recommendation=f"Intervention recommandée dans un rayon de {final_radius}m. Score de gravité: {impact_data['impact_score']}/10."
+    )
+
+
+@router.post("/analyze", response_model=AnalyzeResponse)
+async def analyze_incident(request: AnalyzeRequest):
+    """Endpoint pour analyser un incident via URL d'image."""
+    start_time = time.time()
+    logger.info(f"Analyse via URL pour incident: {request.incident_id}")
+
+    ai_data = await asyncio.to_thread(analyze_image_with_gemini, request.image_url)
+    result = await _run_analysis(ai_data, request.latitude, request.longitude, request.incident_id)
+
+    logger.info(f"Analyse terminée en {time.time() - start_time:.2f}s")
+    return result
+
+
+@router.post("/analyze/upload", response_model=AnalyzeResponse)
+async def analyze_incident_upload(
+    image: UploadFile = File(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    incident_id: Optional[str] = Form(None)
+):
+    """Endpoint pour analyser un incident via upload direct d'image."""
+    start_time = time.time()
+    logger.info(f"Analyse via Upload pour ({latitude}, {longitude})")
+
+    image_bytes = await image.read()
+    mime_type = image.content_type or "image/jpeg"
+
+    ai_data = await asyncio.to_thread(analyze_image_bytes_with_gemini, image_bytes, mime_type)
+    result = await _run_analysis(ai_data, latitude, longitude, incident_id)
+
+    logger.info(f"Analyse terminée en {time.time() - start_time:.2f}s")
+    return result
+
+
+@router.post("/chat")
+async def chat_with_assistant(request: ChatRequest):
+    """Endpoint de chat contextuel avec DeepSeek."""
+    try:
+        # On prépare un résumé textuel clair au lieu du JSON brut
+        ctx = request.context
+        human = ctx.get('human_impact', {})
+        topo = ctx.get('topography', {})
+        sat = ctx.get('satellite', {})
+        ai = ctx.get('ai_analysis', {})
+        
+        context_text = f"""RAPPORT D'INCIDENT MAP ACTION
+- Position : Latitude {ctx.get('latitude')}, Longitude {ctx.get('longitude')}
+- Localisation : {ctx.get('geocoding', {}).get('display_name', 'Inconnue')}
+- Ville/Village : {ctx.get('geocoding', {}).get('city', 'Inconnu')} | Région : {ctx.get('geocoding', {}).get('region', 'Inconnue')} | Pays : {ctx.get('geocoding', {}).get('country', 'Inconnu')}
+- Incident : {ai.get('macro_category')} - {ai.get('sub_category')}
+- Tags d'impact : {', '.join(ctx.get('impact_tags', []))}
+- Gravité Initiale: {ctx.get('base_severity')}/10 | Gravité Globale : {ctx.get('global_impact_score')}/10
+- Rayon d'impact : {ctx.get('impact_radius_meters')} mètres
+- Justification : {ctx.get('radius_explanation')}
+- Population exposée : {human.get('total_population_exposed')} personnes
+  (Hommes: {human.get('adult_men_exposed')}, Femmes: {human.get('adult_women_exposed')}, Enfants: {human.get('children_exposed')})
+- Météo : {topo.get('temperature_celsius')}°C, Vent {topo.get('wind_speed')}km/h, Pluie {topo.get('precipitation')}mm
+- Sol : Pente {topo.get('slope_percent')}%, Occupation: {sat.get('land_use')}
+- Infrastructures : {ctx.get('social_data')}
+- Risque potentiel : {ctx.get('potential_risk', {}).get('message') if ctx.get('potential_risk') else 'Aucun risque de propagation majeure détecté.'}
+"""
+        # On renvoie le générateur de texte encapsulé dans une StreamingResponse
+        return StreamingResponse(call_deepseek_chat(request.messages, context_text), media_type="text/event-stream")
+    except Exception as e:
+        logger.error(f"Erreur API Chat: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
