@@ -3,7 +3,10 @@ FROM python:3.10-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=10 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system dependencies in a single RUN command to leverage caching
 RUN apt-get update && \
@@ -26,10 +29,10 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --retries 10 --timeout 120 --resume-retries 10 -r requirements.txt
 
 # Install additional Python packages
-RUN pip install redis "uvicorn[standard]"
+RUN pip install --retries 10 --timeout 120 --resume-retries 10 redis "uvicorn[standard]"
 
 # Copy the rest of the application code
 COPY . .
