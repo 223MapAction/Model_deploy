@@ -4,6 +4,7 @@
 .cv_deploy.env
 openai_agents_sdk.md.env
 
+
 # Python
 __pycache__/
 *.pyc
@@ -29,3 +30,4 @@ coverage/
 .coverage
 # Clés de service
 gee-key.json
+gee-credentials.json
