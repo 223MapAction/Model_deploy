@@ -14,18 +14,21 @@ import os
 def initialize_earth_engine():
     """
     Initialize Earth Engine with service account credentials.
+    If credentials are not available, Earth Engine will be disabled.
     """
     try:
-        credentials = ee.ServiceAccountCredentials(
-            email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
-            key_file=os.environ['GEE_SERVICE_ACCOUNT_KEY_FILE']
-        )
-        ee.Initialize(credentials)
-        logging.info("Earth Engine initialized successfully.")
+        if 'GEE_SERVICE_ACCOUNT_EMAIL' in os.environ and 'GEE_SERVICE_ACCOUNT_KEY_FILE' in os.environ:
+            credentials = ee.ServiceAccountCredentials(
+                email=os.environ['GEE_SERVICE_ACCOUNT_EMAIL'],
+                key_file=os.environ['GEE_SERVICE_ACCOUNT_KEY_FILE']
+            )
+            ee.Initialize(credentials)
+            logging.info("Earth Engine initialized successfully.")
+        else:
+            logging.warning("Google Earth Engine credentials not found. Earth Engine features will be disabled.")
     except Exception as e:
-        logging.error(f"Failed to initialize Earth Engine: {str(e)}")
-        raise
-    
+        logging.warning(f"Failed to initialize Earth Engine: {str(e)}. Earth Engine features will be disabled.")
+
 initialize_earth_engine()
 
 # Set up logging

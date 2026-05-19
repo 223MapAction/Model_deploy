@@ -9,7 +9,7 @@ services:
             - ~/cv_model:/app/cv_model
             - ./app:/app/app
             - ./local_uploads:/app/local_uploads # Add this line
-            - ./gee-credentials.json:/app/gee-credentials.json
+            - ./gee-key.json:/app/gee-key.json
         ports:
             - "8001:8001"
         env_file:
@@ -51,8 +51,8 @@ services:
             - ~/celery_store1:/celery-data
             - ~/cv_model:/app/cv_model
             - ./app:/app/app
-            - ./local_uploads:/app/local_uploads # Add this line
-            - ./gee-credentials.json:/app/gee-credentials.json
+            - ./local_uploads:/app/local_uploads
+            - ./gee-key.json:/app/gee-key.json
         user: "${UID}:${GID}"
 
 volumes:
