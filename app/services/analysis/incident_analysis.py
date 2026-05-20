@@ -61,8 +61,6 @@ def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
     ndvi_timeseries = ndvi_collection.getRegion(point, scale=10).getInfo()
     ndwi_timeseries = ndwi_collection.getRegion(point, scale=10).getInfo()
 
-<<<<<<< HEAD
-=======
     # Check if timeseries has actual data (more than just header row)
     if len(ndvi_timeseries) <= 1 or len(ndwi_timeseries) <= 1:
         logger.warning(f"No timeseries data available for the specified point ({start_date} to {end_date})")
@@ -73,7 +71,6 @@ def analyze_vegetation_and_water(point, buffered_point, start_date, end_date):
                                       'NDWI': [0.0, 0.0, 0.0]})
         return empty_df[['Date', 'NDVI']], empty_df_ndwi[['Date', 'NDWI']]
 
->>>>>>> dev
     # Get mean values for the buffered area
     ndvi_mean = ndvi_collection.mean().reduceRegion(
         reducer=ee.Reducer.mean(),
@@ -123,24 +120,6 @@ def generate_ndvi_ndwi_plot(ndvi_data, ndwi_data):
     """
     Generate a plot of NDVI and NDWI time series.
     """
-<<<<<<< HEAD
-    plt.figure(figsize=(12, 6))
-    plt.plot(ndvi_data['Date'], ndvi_data['NDVI'], label='NDVI (végétation)', color='green', marker='o')
-    plt.plot(ndwi_data['Date'], ndwi_data['NDWI'], label='NDWI (eau)', color='blue', marker='o')
-
-    locator = mdates.MonthLocator(interval=3)
-    formatter = mdates.DateFormatter('%b %Y')
-    plt.gca().xaxis.set_major_locator(locator)
-    plt.gca().xaxis.set_major_formatter(formatter)
-
-    plt.xticks(rotation=45, ha='right')
-    plt.xlabel('Date')
-    plt.ylabel('Valeur de l\'indice')
-    plt.title('Séries temporelles du NDVI et du NDWI\nNDVI : Indice de végétation, NDWI : Indice d\'humidité')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-=======
     # Check if dataframes have data
     if ndvi_data.empty or ndwi_data.empty or len(ndvi_data) < 2:
         logger.warning("Insufficient data for NDVI/NDWI plot, generating placeholder plot")
@@ -165,7 +144,6 @@ def generate_ndvi_ndwi_plot(ndvi_data, ndwi_data):
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
->>>>>>> dev
 
     # Save plot to file
     filename = f"{uuid.uuid4()}.png"
@@ -179,24 +157,6 @@ def generate_ndvi_heatmap(ndvi_data):
     """
     Generate a heatmap of NDVI values.
     """
-<<<<<<< HEAD
-    ndvi_data['NumMois'] = ndvi_data['Date'].dt.month
-    mois_abbr_francais = {
-        1: 'Janv', 2: 'Févr', 3: 'Mars', 4: 'Avril', 5: 'Mai', 6: 'Juin',
-        7: 'Juil', 8: 'Août', 9: 'Sept', 10: 'Oct', 11: 'Nov', 12: 'Déc'
-    }
-    ndvi_data['Mois'] = ndvi_data['NumMois'].map(mois_abbr_francais)
-    ndvi_data['Jour'] = ndvi_data['Date'].dt.day
-
-    heatmap_data = ndvi_data.pivot_table(index='Jour', columns='Mois', values='NDVI', aggfunc='mean')
-
-    plt.figure(figsize=(12, 8))
-    sns.heatmap(heatmap_data, cmap='YlGn', annot=False, cbar=True)
-    plt.title('Carte thermique du NDVI (12 derniers mois)\nLe NDVI mesure la santé de la végétation')
-    plt.xlabel('Mois')
-    plt.ylabel('Jour du mois')
-    plt.tight_layout()
-=======
     # Check if dataframe has data
     if ndvi_data.empty or len(ndvi_data) < 2:
         logger.warning("Insufficient data for NDVI heatmap, generating placeholder plot")
@@ -222,7 +182,6 @@ def generate_ndvi_heatmap(ndvi_data):
         plt.xlabel('Mois')
         plt.ylabel('Jour du mois')
         plt.tight_layout()
->>>>>>> dev
 
     # Save plot to file
     filename = f"{uuid.uuid4()}.png"
@@ -236,28 +195,6 @@ def generate_landcover_plot(landcover_data):
     """
     Generate a pie chart of land cover distribution.
     """
-<<<<<<< HEAD
-    plt.figure(figsize=(8, 8))
-    wedges, texts, autotexts = plt.pie(
-        landcover_data.values(),
-        labels=None,
-        autopct='%1.1f%%',
-        startangle=140,
-        textprops={'fontsize': 10}
-    )
-    plt.title('Distribution de la couverture terrestre (zone tampon)\nRépartition des types de surfaces')
-
-    plt.legend(
-        wedges,
-        landcover_data.keys(),
-        title="Types de couverture terrestre",
-        loc="center left",
-        bbox_to_anchor=(1, 0.5),
-        fontsize=10
-    )
-
-    plt.tight_layout()
-=======
     # Check if landcover data is empty
     if not landcover_data or len(landcover_data) == 0:
         logger.warning("No landcover data available, generating placeholder plot")
@@ -286,7 +223,6 @@ def generate_landcover_plot(landcover_data):
         )
 
         plt.tight_layout()
->>>>>>> dev
 
     # Save plot to file
     filename = f"{uuid.uuid4()}.png"
