@@ -68,6 +68,22 @@ jobs:
     needs: cleanup
     runs-on: self-hosted
     steps:
+<<<<<<< HEAD
+=======
+      - name: Clean up orphaned files with permission issues
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # Remove plot files created by Docker containers
+          sudo rm -rf "${{ github.workspace }}/app/plots/*.png" 2>/dev/null || true
+          sudo rm -rf "${{ github.workspace }}/local_uploads" 2>/dev/null || true
+          sudo rm -f "${{ github.workspace }}/.cv_deploy.env" 2>/dev/null || true
+          sudo rm -f "${{ github.workspace }}/gee-credentials.json" 2>/dev/null || true
+
+          # Fix permissions on the workspace
+          sudo chown -R admin:admin "${{ github.workspace }}" 2>/dev/null || true
+
+>>>>>>> dev
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -121,6 +137,14 @@ jobs:
             echo "SERVER_URL=${{ secrets.SERVER_URL }}"
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
             echo "AWS_REGION=${{ secrets.AWS_REGION }}"
+<<<<<<< HEAD
+=======
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
+            echo "GEMINI_MODEL=${{ secrets.GEMINI_MODEL }}"
+            echo "DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}"
+            echo "DEEPSEEK_MODEL=${{ secrets.DEEPSEEK_MODEL }}"
+            echo "DEEPSEEK_API_URL=${{ secrets.DEEPSEEK_API_URL }}"
+>>>>>>> dev
           } >> .cv_deploy.env
 
           # sanity check (do not print secrets)
@@ -247,6 +271,14 @@ jobs:
             echo "SERVER_URL=${{ secrets.SERVER_URL }}"
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
             echo "AWS_REGION=${{ secrets.AWS_REGION }}"
+<<<<<<< HEAD
+=======
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}"
+            echo "GEMINI_MODEL=${{ secrets.GEMINI_MODEL }}"
+            echo "DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}"
+            echo "DEEPSEEK_MODEL=${{ secrets.DEEPSEEK_MODEL }}"
+            echo "DEEPSEEK_API_URL=${{ secrets.DEEPSEEK_API_URL }}"
+>>>>>>> dev
           } >> .cv_deploy.env
 
           test -s .cv_deploy.env

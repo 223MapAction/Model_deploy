@@ -1,0 +1,71 @@
+# version: "3"
+
+services:
+    fastapi-app:
+        container_name: cvdeploy
+        build:
+            context: .
+        volumes:
+            - ~/cv_model:/app/cv_model
+            - ./app:/app/app
+            - ./local_uploads:/app/local_uploads # Add this line
+            - ./gee-key.json:/app/gee-key.json
+        ports:
+            - "8001:8001"
+        env_file:
+            - .cv_deploy.env
+        networks:
+            micro-services-network:
+                ipv4_address: 172.25.0.10
+        restart: always
+        user: "${UID}:${GID}"
+
+    redis:
+        container_name: redis-server
+        image: "redis:latest"
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./redis_data:/data
+            - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+        command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+        networks:
+            micro-services-network:
+                ipv4_address: 172.25.0.7
+
+    worker:
+        container_name: celery_workers
+        build:
+            context: .
+            dockerfile: Dockerfile.Celery
+        command: celery -A app.services.celery.celery_config.celery_app worker --loglevel=info
+        env_file:
+            - .cv_deploy.env
+        depends_on:
+            - redis
+            - fastapi-app
+        networks:
+            micro-services-network:
+                ipv4_address: 172.25.0.8
+        volumes:
+            - ~/celery_store1:/celery-data
+            - ~/cv_model:/app/cv_model
+            - ./app:/app/app
+            - ./local_uploads:/app/local_uploads
+            - ./gee-key.json:/app/gee-key.json
+        user: "${UID}:${GID}"
+
+volumes:
+    sentinel_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${PWD}/sentinel_data
+
+networks:
+    micro-services-network:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: "172.25.0.0/24"
