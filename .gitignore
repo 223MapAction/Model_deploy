@@ -1,4 +1,10 @@
 .cv_deploy.env
+
+*.pth
+.env
+train_resnet50.py
+openai_agents_sdk.md
+
 .env
 .env.example
 openai_agents_sdk.md.env
@@ -26,3 +32,4 @@ coverage/
 
 gee-key.json
 gee-credentials.json
+
