@@ -50,10 +50,15 @@ class AnalyzeResponse(BaseModel):
     topography: SpatialData
     satellite: SatelliteData
     social_data: Dict[str, int]
+    indirect_social_data: Optional[Dict[str, int]] = None
     social_vulnerability_score: float
     is_social_probabilistic: bool
+    is_indirect_social_probabilistic: bool = False
     human_impact: HumanImpact
+    indirect_human_impact: Optional[HumanImpact] = None
     impact_radius_meters: float
+    indirect_vigilance_radius_meters: Optional[float] = None
+    indirect_vigilance_explanation: Optional[str] = None
     radius_explanation: str
     global_impact_score: float
     base_severity: int

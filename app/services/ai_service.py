@@ -2,10 +2,21 @@ import json
 import logging
 import requests
 import base64
+import time
+import re
 from app.config import settings
 from app.schemas import DeepSeekResponse
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_error_text(text: str) -> str:
+    """Masque les secrets potentiellement présents dans les messages d'erreur."""
+    if not text:
+        return ""
+    sanitized = re.sub(r"([?&]key=)[^&\s]+", r"\1***", text)
+    sanitized = re.sub(r"(AIza[0-9A-Za-z\-_]+)", "***", sanitized)
+    return sanitized
 
 def get_system_prompt() -> str:
     taxonomy_keys = {k: list(v.keys()) for k, v in settings.INCIDENT_TAXONOMY.items()}
@@ -76,35 +87,61 @@ def _call_gemini_api(image_base64: str, mime_type: str) -> DeepSeekResponse:
 
     api_url = f"{settings.GEMINI_API_URL}?key={settings.GEMINI_API_KEY}"
 
+    max_attempts = 3
+    base_delay_seconds = 1
+
     try:
-        response = requests.post(
-            api_url,
-            headers={"Content-Type": "application/json"},
-            json=payload,
-            timeout=60
-        )
-        response.raise_for_status()
-        result = response.json()
+        last_http_error = None
+        for attempt in range(1, max_attempts + 1):
+            response = requests.post(
+                api_url,
+                headers={"Content-Type": "application/json"},
+                json=payload,
+                timeout=60
+            )
 
-        content_str = result["candidates"][0]["content"]["parts"][0]["text"]
-        parsed_data = json.loads(content_str)
+            if response.status_code in (429, 503):
+                last_http_error = requests.exceptions.HTTPError(
+                    f"{response.status_code} Server Error: {response.reason}",
+                    response=response,
+                )
+                if attempt < max_attempts:
+                    delay = base_delay_seconds * (2 ** (attempt - 1))
+                    logger.warning(
+                        "Gemini indisponible (status=%s), retry %s/%s dans %ss",
+                        response.status_code,
+                        attempt,
+                        max_attempts,
+                        delay,
+                    )
+                    time.sleep(delay)
+                    continue
 
-        ai_response = DeepSeekResponse(**parsed_data)
-        logger.info(f"Analyse Gemini réussie: {ai_response.macro_category} > {ai_response.sub_category}")
-        return ai_response
+            response.raise_for_status()
+            result = response.json()
+
+            content_str = result["candidates"][0]["content"]["parts"][0]["text"]
+            parsed_data = json.loads(content_str)
+
+            ai_response = DeepSeekResponse(**parsed_data)
+            logger.info(f"Analyse Gemini réussie: {ai_response.macro_category} > {ai_response.sub_category}")
+            return ai_response
+
+        if last_http_error is not None:
+            raise last_http_error
 
     except requests.exceptions.RequestException as e:
         error_detail = ""
         if hasattr(e, 'response') and e.response is not None:
-            error_detail = f" - Body: {e.response.text}"
-        logger.error(f"Erreur lors de l'appel au Moteur Vision: {e}{error_detail}")
-        return _default_response(f"Erreur du Moteur Vision: {e}")
+            error_detail = f" - Body: {_sanitize_error_text(e.response.text)}"
+        logger.error(f"Erreur lors de l'appel au Moteur Vision: {_sanitize_error_text(str(e))}{error_detail}")
+        return _default_response("Le service d'analyse visuelle est temporairement indisponible.")
     except (json.JSONDecodeError, KeyError, IndexError) as e:
-        logger.error(f"Erreur de parsing du Moteur Vision: {e}")
-        return _default_response(f"Erreur de traitement Vision: {e}")
+        logger.error(f"Erreur de parsing du Moteur Vision: {_sanitize_error_text(str(e))}")
+        return _default_response("Le resultat du moteur visuel est invalide. Veuillez reessayer.")
     except Exception as e:
-        logger.error(f"Erreur inattendue dans l'analyse Vision: {e}")
-        return _default_response(f"Erreur inattendue: {e}")
+        logger.error(f"Erreur inattendue dans l'analyse Vision: {_sanitize_error_text(str(e))}")
+        return _default_response("Une erreur technique est survenue pendant l'analyse visuelle.")
 
 
 def analyze_image_with_gemini(image_url: str) -> DeepSeekResponse:
@@ -113,8 +150,8 @@ def analyze_image_with_gemini(image_url: str) -> DeepSeekResponse:
         image_base64 = _download_image_as_base64(image_url)
         mime_type = _detect_mime_type(image_url)
     except Exception as e:
-        logger.error(f"Impossible de télécharger l'image {image_url}: {e}")
-        return _default_response(f"Impossible de télécharger l'image: {e}")
+        logger.error(f"Impossible de telecharger l'image {image_url}: {_sanitize_error_text(str(e))}")
+        return _default_response("Impossible de recuperer l'image fournie.")
     return _call_gemini_api(image_base64, mime_type)
 
 
@@ -206,3 +243,4 @@ Réponds toujours en Français."""
     except Exception as e:
         logger.error(f"Erreur DeepSeek Chat: {e}")
         yield f"Désolé, je rencontre une difficulté technique pour répondre : {e}"
+

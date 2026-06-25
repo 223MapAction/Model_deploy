@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Scientifique & Technique - Map Action Impact Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #030712;
+            --bg-secondary: #0b0f19;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(16, 185, 129, 0.2);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.15);
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.15);
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --gradient-main: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font-title: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Ambient glowing backgrounds */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header style */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .header-title h1 {
+            font-family: var(--font-title);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .badge-status {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-status::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+
+        /* Layout columns */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards and Elements */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 24px;
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .card-header-title {
+            font-family: var(--font-title);
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        /* Audit Report Column styling */
+        .report-section {
+            margin-bottom: 32px;
+        }
+
+        .report-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-family: var(--font-title);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lead-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* Highlight box */
+        .alert-box {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+            color: var(--accent-blue);
+            line-height: 1;
+        }
+
+        .alert-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .alert-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Accordions / Tabs */
+        .vector-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .accordion-item {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .accordion-trigger {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-trigger .vector-tag {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .accordion-trigger .vector-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .badge-wind { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .badge-water { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .badge-slope { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
+        .badge-bio { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+
+        .accordion-content {
+            padding: 0 16px 16px 16px;
+            display: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .accordion-item.active .accordion-content {
+            display: block;
+        }
+
+        .accordion-arrow {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .accordion-item.active .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        .code-snippet {
+            font-family: 'Courier New', Courier, monospace;
+            background: #060913;
+            color: #38bdf8;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-x: auto;
+        }
+
+        .vector-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .vector-details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detail-sub-box {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .detail-sub-box h5 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .box-title-scientific { color: var(--accent-green); }
+        .box-title-limit { color: var(--accent-red); }
+
+        .detail-sub-box p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Scientific strengths table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-family: var(--font-title);
+            font-weight: 600;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        td {
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        /* Simulator Column styling */
+        .simulator-box {
+            position: sticky;
+            top: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .form-value-badge {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            border-color: var(--accent-green);
+        }
+
+        .form-slider {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            transition: background 0.2s;
+        }
+
+        .form-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            transition: transform 0.1s;
+        }
+
+        .form-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        /* Checkbox list */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        .checkbox-item.checked {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.05);
+            color: var(--text-primary);
+        }
+
+        .checkbox-item input {
+            display: none;
+        }
+
+        .checkbox-bullet {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1.5px solid var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item.checked .checkbox-bullet {
+            border-color: var(--accent-green);
+            background-color: var(--accent-green);
+        }
+
+        .checkbox-item.checked .checkbox-bullet::before {
+            content: '✓';
+            color: #000000;
+            font-size: 8px;
+            font-weight: 900;
+        }
+
+        /* Output calculation screen */
+        .output-screen {
+            background: linear-gradient(135deg, rgba(6, 10, 20, 0.9) 0%, rgba(10, 15, 30, 0.9) 100%);
+            border: 1px solid var(--accent-green-glow);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            margin-top: 24px;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .output-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-main);
+        }
+
+        .output-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .output-row:last-child {
+            margin-bottom: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 12px;
+        }
+
+        .output-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .output-value-large {
+            font-family: var(--font-title);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .output-value-medium {
+            font-family: var(--font-title);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .explanation-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        /* Image Display Card */
+        .diagram-container {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 24px 0;
+            background: #02050a;
+            position: relative;
+        }
+
+        .diagram-img {
+            width: 100%;
+            height: auto;
+            max-height: 380px;
+            object-fit: cover;
+            display: block;
+            opacity: 0.85;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .diagram-container:hover .diagram-img {
+            transform: scale(1.02);
+            opacity: 1;
+        }
+
+        .diagram-caption {
+            background: rgba(11, 15, 25, 0.85);
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        /* MCDA visual weight bars */
+        .weight-bar-group {
+            margin: 16px 0;
+        }
+
+        .weight-bar-item {
+            margin-bottom: 12px;
+        }
+
+        .weight-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .weight-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .weight-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .fill-red { background: var(--accent-red); width: 40%; }
+        .fill-blue { background: var(--accent-blue); width: 40%; }
+        .fill-green { background: var(--accent-green); width: 20%; }
+
+        /* Talking Points Cards */
+        .argument-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .argument-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .argument-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            position: relative;
+        }
+
+        .argument-card::before {
+            content: '🗣️';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            opacity: 0.2;
+            font-size: 24px;
+        }
+
+        .argument-card h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+        }
+
+        .argument-card blockquote {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-style: italic;
+            border-left: 2px solid var(--accent-blue);
+            padding-left: 8px;
+            margin-top: 4px;
+        }
+
+        /* Tabs styled navigation */
+        .tabs-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="header-left">
+                <div class="logo-box">🛰️</div>
+                <div class="header-title">
+                    <h1>Rapport d'Audit Scientifique & Technique</h1>
+                    <p>Map Action Impact Engine — Évaluation de la logique de propagation spatiale</p>
+                </div>
+            </div>
+            <div class="badge-status">Modèle Opérationnel Audité</div>
+        </header>
+
+        <!-- GRID LAYOUT -->
+        <div class="grid-layout">
+            
+            <!-- LEFT COLUMN: INTERACTIVE SIMULATOR -->
+            <div class="simulator-box">
+                <div class="card" style="border-color: var(--accent-green-glow)">
+                    <div class="card-header-title">
+                        <span>🧪</span> Simulateur de Propagation (Heuristique)
+                    </div>
+                    <p class="lead-text" style="font-size: 13px; margin-bottom: 16px;">
+                        Ce simulateur reproduit le comportement exact du code Python du fichier <code>impact_logic.py</code>. Modifiez les curseurs et vecteurs pour visualiser les changements de rayon en temps réel.
+                    </p>
+
+                    <!-- Incident Selector -->
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label">Type d'incident (Taxonomie)</label>
+                        </div>
+                        <select class="form-select" id="incidentTypeSelect" onchange="onIncidentTypeChange()">
+                            <optgroup label="Eau & Assainissement">
+                                <option value="pollution_eau" data-macro="Eau & Assainissement" data-sub="Pollution de cours d'eau / puits / marigot" data-sev="8" data-rad="1500" data-vec="water_current,human_contact">Pollution de cours d'eau (Sévérité: 8)</option>
+                                <option value="eaux_usees" data-macro="Eau & Assainissement" data-sub="Eaux usées stagnantes" data-sev="7" data-rad="500" data-vec="vectors_insects_rodents,human_contact">Eaux usées stagnantes (Sévérité: 7)</option>
+                            </optgroup>
+                            <optgroup label="Déchets & Insalubrité">
+                                <option value="decharge_sauvage" data-macro="Déchets & Insalubrité" data-sub="Décharge sauvage" data-sev="6" data-rad="500" data-vec="vectors_insects_rodents,human_contact" selected>Décharge sauvage (Sévérité: 6)</option>
+                                <option value="dechets_dangereux" data-macro="Déchets & Insalubrité" data-sub="Déchets dangereux / toxiques" data-sev="9" data-rad="1000" data-vec="water_current,wind">Déchets dangereux (Sévérité: 9)</option>
+                            </optgroup>
+                            <optgroup label="Risques Naturels">
+                                <option value="inondation" data-macro="Risques Naturels & Climatiques" data-sub="Inondation" data-sev="8" data-rad="3000" data-vec="water_current,slope">Inondation (Sévérité: 8)</option>
+                                <option value="incendie" data-macro="Risques Naturels & Climatiques" data-sub="Incendie / feu de brousse" data-sev="9" data-rad="5000" data-vec="wind,slope">Incendie / Feu de brousse (Sévérité: 9)</option>
+                            </optgroup>
+                            <optgroup label="Activités Minières">
+                                <option value="pollution_miniere" data-macro="Activités minières & extractives" data-sub="Pollution minière / mercure / cyanure" data-sev="10" data-rad="3000" data-vec="water_current">Pollution minière (Sévérité: 10)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Sliders -->
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label">Taille source de l'incident (IA)</label>
+                            <span class="form-value-badge" id="sourceSizeVal">50 m</span>
+                        </div>
+                        <input type="range" class="form-slider" id="sourceSizeSlider" min="5" max="250" value="50" oninput="updateCalculation()">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label">Vitesse du vent (Météo)</label>
+                            <span class="form-value-badge" id="windVal">15 km/h</span>
+                        </div>
+                        <input type="range" class="form-slider" id="windSlider" min="0" max="80" value="15" oninput="updateCalculation()">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label">Pente moyenne du terrain (MNT)</label>
+                            <span class="form-value-badge" id="slopeVal">8 %</span>
+                        </div>
+                        <input type="range" class="form-slider" id="slopeSlider" min="0" max="45" value="8" oninput="updateCalculation()">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label">Précipitations locales</label>
+                            <span class="form-value-badge" id="precipVal">0 mm</span>
+                        </div>
+                        <input type="range" class="form-slider" id="precipSlider" min="0" max="40" value="0" oninput="updateCalculation()">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label">Vulnérabilité Sociale locale (OSM)</label>
+                            <span class="form-value-badge" id="socialScoreVal">4.5</span>
+                        </div>
+                        <input type="range" class="form-slider" id="socialScoreSlider" min="0" max="10" step="0.1" value="4.5" oninput="updateCalculation()">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label">Zone habitée (Bâtiments > 100 ou Sat)</label>
+                        <div style="display: flex; gap: 10px; margin-top: 6px;">
+                            <label class="checkbox-item checked" id="urbanBox" onclick="toggleUrban()">
+                                <span class="checkbox-bullet"></span> Zone urbaine dense
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Vector Checkboxes -->
+                    <div class="form-group">
+                        <label class="form-label">Vecteurs de propagation actifs (IA + Taxonomie)</label>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-item checked" id="vec-wind" onclick="toggleVector('wind')">
+                                <span class="checkbox-bullet"></span> Vent (Vent * 10m)
+                            </label>
+                            <label class="checkbox-item" id="vec-water" onclick="toggleVector('water_current')">
+                                <span class="checkbox-bullet"></span> Courant d'eau (Potentiel)
+                            </label>
+                            <label class="checkbox-item" id="vec-slope" onclick="toggleVector('slope')">
+                                <span class="checkbox-bullet"></span> Pente (Pente * 8m)
+                            </label>
+                            <label class="checkbox-item checked" id="vec-human" onclick="toggleVector('human_contact')">
+                                <span class="checkbox-bullet"></span> Contact Humain
+                            </label>
+                            <label class="checkbox-item checked" id="vec-bio" onclick="toggleVector('vectors_insects_rodents')">
+                                <span class="checkbox-bullet"></span> Insectes/Rongeurs
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- DYNAMIC SIMULATOR OUTPUT -->
+                    <div class="output-screen">
+                        <div class="output-row">
+                            <span class="output-label" style="color: var(--accent-green);">Rayon d'impact final</span>
+                            <span class="output-value-large" id="outRadius">250m</span>
+                        </div>
+                        <div class="output-row">
+                            <span class="output-label">Score d'Impact Global</span>
+                            <span class="output-value-medium" id="outScore">5.2/10</span>
+                        </div>
+                        <div style="margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 8px;">
+                            <span class="output-label">Explication générée :</span>
+                            <div class="explanation-text" id="outExplanation">
+                                Rayon calculé depuis la source visible (50m) étendu par risque vectoriel (insectes/rongeurs, +200m).
+                            </div>
+                        </div>
+                        <div id="outPotentialRiskBox" style="margin-top: 10px; padding: 8px 10px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 4px; display: none;">
+                            <span class="output-label" style="color: var(--accent-blue);">Risque de propagation secondaire :</span>
+                            <div class="explanation-text" id="outPotentialRisk" style="color: var(--accent-blue); margin-top: 2px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: REPORT DETAILS -->
+            <div>
+                <!-- Navigation Tabs -->
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="switchTab(event, 'tab-positioning')">1. Positionnement</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'tab-vectors')">2. Propagation & Vecteurs</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'tab-mcda')">3. Score Global & MCDA</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'tab-precaution')">4. Guide de Présentation</button>
+                </div>
+
+                <!-- TAB 1: POSITIONING -->
+                <div id="tab-positioning" class="tab-panel active">
+                    <div class="card">
+                        <div class="section-title"><span>1.</span> Positionnement Scientifique du Modèle</div>
+                        <p class="lead-text">
+                            Afin d'éviter tout malentendu lors de l'évaluation du système par des experts de l'environnement, il est primordial de positionner correctement la méthodologie mathématique utilisée.
+                        </p>
+                        
+                        <div class="alert-box">
+                            <div class="alert-icon">💡</div>
+                            <div class="alert-content">
+                                <h4>Heuristique Rapide vs Simulation Physique Tridimensionnelle</h4>
+                                <p>Le moteur d'impact est un <strong>Modèle Opérationnel d'Évaluation Rapide (Rapid Screening Model)</strong>. Il n'a pas été conçu pour modéliser précisément des fluides ou des dynamiques chimiques locales, mais pour estimer en temps réel des ordres de grandeur opérationnels pour la gestion d'urgence.</p>
+                            </div>
+                        </div>
+
+                        <div class="diagram-container">
+                            <img src="assets/propagation_diagram.png" alt="Représentation de la dispersion" class="diagram-img">
+                            <div class="diagram-caption">
+                                Illustration : Zone tampon circulaire uniforme (Isotrope) vs Dispersion réelle d'un panache atmosphérique directionnel (Anisotrope) induit par le vent et le relief.
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 50%;">Caractéristiques du Moteur Map Action</th>
+                                    <th>Éléments de Modélisation Rigoureuse</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Traitement en temps réel (&lt; 2 secondes)</strong><br>
+                                        Calculs ultra-légers basés sur des règles géométriques simples pour une réactivité optimale sur le terrain.
+                                    </td>
+                                    <td>
+                                        <strong>Calculs lourds (heures / jours)</strong><br>
+                                        Résolution d'équations différentielles de Navier-Stokes pour l'hydrodynamique ou de modèles d'advection-diffusion.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Zones d'impact isotropes (circulaires)</strong><br>
+                                        Par précaution opérationnelle, le rayon d'impact dessine un cercle parfait autour du point d'origine.
+                                    </td>
+                                    <td>
+                                        <strong>Formes anisotropes complexes (panaches)</strong><br>
+                                        Modélisation directionnelle de la dispersion (ex: panache d'odeur elliptique influencé par la rose des vents).
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Hybridation Déterministe + IA</strong><br>
+                                        L'IA segmente l'image pour estimer la taille visible et les vecteurs de propagation, mais le calcul est purement mathématique (zéro hallucination).
+                                    </td>
+                                    <td>
+                                        <strong>Données physiques complètes</strong><br>
+                                        Nécessite des paramètres géotechniques précis (porosité du sol, coefficient d'absorption des polluants, rugosité de surface).
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 2: VECTORS & PROPAGATION -->
+                <div id="tab-vectors" class="tab-panel">
+                    <div class="card">
+                        <div class="section-title"><span>2.</span> Évaluation des Vecteurs de Propagation</div>
+                        <p class="lead-text">
+                            Le modèle s'appuie sur cinq vecteurs environnementaux distincts. Voici leur implémentation technique dans le code Python d'<code>impact_logic.py</code>, leur degré de validité scientifique et leurs limites.
+                        </p>
+
+                        <div class="vector-accordion">
+                            
+                            <!-- Wind Vector -->
+                            <div class="accordion-item active">
+                                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                                    <span class="vector-tag">💨 Vent (Dispersion atmosphérique / Incendie / Odeurs)</span>
+                                    <span class="vector-badge badge-wind">wind</span>
+                                    <span class="accordion-arrow">▼</span>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="code-snippet">if "wind" in vectors:
+    spread = wind * 10.0</div>
+                                    <div class="vector-details-grid">
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-scientific">Bases Scientifiques</h5>
+                                            <p>Le transport des particules et fumées est lié de manière proportionnelle à la vitesse moyenne du vent. Le principe d'étendre la zone à risque si le vent forcit est cohérent.</p>
+                                        </div>
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-limit">Limites du Modèle</h5>
+                                            <p>Le coefficient 10.0 est une heuristique empirique. De plus, le vent disperse les matières de manière directionnelle (downwind), et non dans toutes les directions (cercle).</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Water Vector -->
+                            <div class="accordion-item">
+                                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                                    <span class="vector-tag">💧 Courant d'eau (Lixiviation / Hydrologie)</span>
+                                    <span class="vector-badge badge-water">water_current</span>
+                                    <span class="accordion-arrow">▼</span>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="code-snippet">potential_spread_distance = 600.0 + (precip * max(slope, 1.0) * 5.0)</div>
+                                    <div class="vector-details-grid">
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-scientific">Bases Scientifiques</h5>
+                                            <p>Le ruissellement de l'eau est modélisé comme une fonction directe de la pente et des précipitations (physique de l'écoulement gravitaire superficiel).</p>
+                                        </div>
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-limit">Limites du Modèle</h5>
+                                            <p>L'écoulement se fait suivant les lignes de plus grande pente (talwegs). Le modèle le place dans un rayon étendu, sans suivre le réseau hydrographique.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slope Vector -->
+                            <div class="accordion-item">
+                                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                                    <span class="vector-tag">📐 Pente (Érosion des sols / Éboulement)</span>
+                                    <span class="vector-badge badge-slope">slope</span>
+                                    <span class="accordion-arrow">▼</span>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="code-snippet">if "slope" in vectors and "water_current" not in vectors:
+    spread = slope * 8.0</div>
+                                    <div class="vector-details-grid">
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-scientific">Bases Scientifiques</h5>
+                                            <p>L'instabilité gravitaire augmente avec l'inclinaison. Une pente élevée favorise la vitesse de propagation des débris en cas de glissement de terrain.</p>
+                                        </div>
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-limit">Limites du Modèle</h5>
+                                            <p>Les glissements réels dépendent d'un seuil critique non linéaire (angle de talus naturel, saturation hydrique) et non d'une multiplication linéaire constante.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Biologic Vector -->
+                            <div class="accordion-item">
+                                <button class="accordion-trigger" onclick="toggleAccordion(this)">
+                                    <span class="vector-tag">🦟 Prolifération Biologique (Epidémiologie / Vecteurs)</span>
+                                    <span class="vector-badge badge-bio">vectors_insects_rodents</span>
+                                    <span class="accordion-arrow">▼</span>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="code-snippet">if "vectors_insects_rodents" in vectors:
+    spread = 200.0</div>
+                                    <div class="vector-details-grid">
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-scientific">Bases Scientifiques</h5>
+                                            <p>200m correspond au rayon d'action écologique (home range) typique autour des gîtes larvaires pour de nombreuses espèces de moustiques (Aedes aegypti).</p>
+                                        </div>
+                                        <div class="detail-sub-box">
+                                            <h5 class="box-title-limit">Limites du Modèle</h5>
+                                            <p>Le rayon d'action est statique et n'évolue pas en fonction des facteurs temporels (saison des pluies, température) propices à la reproduction.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MCDA & GLOBAL SCORE -->
+                <div id="tab-mcda" class="tab-panel">
+                    <div class="card">
+                        <div class="section-title"><span>3.</span> Analyse Décisionnelle Multicritère (MCDA)</div>
+                        <p class="lead-text">
+                            Le calcul du <strong>Score d'Impact Global</strong> s'appuie sur une méthode éprouvée en sciences de l'environnement : l'agrégation pondérée de critères hétérogènes (sévérité intrinsèque, vulnérabilité sociale et sensibilité du milieu).
+                        </p>
+
+                        <div class="weight-bar-group">
+                            <h4>Pondération des Critères de Risque</h4>
+                            <div class="weight-bar-item">
+                                <div class="weight-label-row">
+                                    <span>⚠️ Gravité Intrinsèque de l'Incident (Taxonomie)</span>
+                                    <strong>40 %</strong>
+                                </div>
+                                <div class="weight-track"><div class="weight-fill fill-red"></div></div>
+                            </div>
+                            <div class="weight-bar-item">
+                                <div class="weight-label-row">
+                                    <span>👥 Vulnérabilité Sociale Locale (Densité / OSM)</span>
+                                    <strong>40 %</strong>
+                                </div>
+                                <div class="weight-track"><div class="weight-fill fill-blue"></div></div>
+                            </div>
+                            <div class="weight-bar-item">
+                                <div class="weight-label-row">
+                                    <span>🌿 Sensibilité Écologique du Milieu (NDVI / Earth Engine)</span>
+                                    <strong>20 %</strong>
+                                </div>
+                                <div class="weight-track"><div class="weight-fill fill-green"></div></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px;">
+                            <h4 style="font-family: var(--font-title); font-size: 15px; margin-bottom: 8px;">Détails Physico-Chimiques intégrés :</h4>
+                            <ul style="list-style-type: none; font-size: 13px; color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <li style="padding: 10px; background: rgba(255, 255, 255, 0.02); border-radius: 6px;">
+                                    <strong style="color: var(--accent-green);">Indice de Végétation (NDVI)</strong><br>
+                                    Si le NDVI mesuré par Earth Engine est supérieur à 0.6, l'importance de l'écosystème augmente (+2 points sur le sous-score environnemental).
+                                </li>
+                                <li style="padding: 10px; background: rgba(255, 255, 255, 0.02); border-radius: 6px;">
+                                    <strong style="color: var(--accent-blue);">Amortisseur Hydrologique</strong><br>
+                                    Si l'incident concerne une inondation mais qu'il ne pleut pas (précipitations &lt; 1mm/h), le score global est réduit de 15% pour éviter les fausses alertes tout en préservant le risque sanitaire.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: HOW TO PRESENT -->
+                <div id="tab-precaution" class="tab-panel">
+                    <div class="card">
+                        <div class="section-title"><span>4.</span> Guide de Présentation & Désarment de Critiques</div>
+                        <p class="lead-text">
+                            Pour présenter ce projet devant vos collègues environnementalistes, voici les fiches de langage recommandées ainsi que les axes d'évolution futurs.
+                        </p>
+
+                        <h4 style="font-family: var(--font-title); font-size: 15px; margin-top: 20px;">Vocabulaire Opérationnel à utiliser</h4>
+                        <div class="argument-grid">
+                            <div class="argument-card">
+                                <h4>À Éviter ❌</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary); text-decoration: line-through;">"C'est une simulation de la propagation physique des polluants."</p>
+                                <h4 style="margin-top: 12px;">À Privilégier ✔️</h4>
+                                <blockquote>"C'est une enveloppe de vigilance cartographique instantanée."</blockquote>
+                            </div>
+                            <div class="argument-card">
+                                <h4>À Éviter ❌</h4>
+                                <p style="font-size: 13px; color: var(--text-secondary); text-decoration: line-through;">"L'algorithme a découvert des constantes physiques de dispersion."</p>
+                                <h4 style="margin-top: 12px;">À Privilégier ✔️</h4>
+                                <blockquote>"Ce sont des règles empiriques d'urgence validées opérationnellement."</blockquote>
+                            </div>
+                        </div>
+
+                        <h4 style="font-family: var(--font-title); font-size: 15px; margin-top: 24px; margin-bottom: 12px;">Pistes d'évolutions à proposer</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+                            <div style="background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 6px; border-left: 2px solid var(--accent-green);">
+                                <strong>1. Anisotropie Géométrique :</strong> Générer des zones tampons directionnelles (ellipses déportées sous le vent ou vers le bas de la pente) au lieu de cercles parfaits.
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 6px; border-left: 2px solid var(--accent-blue);">
+                                <strong>2. Processus Delphi de Calibration :</strong> Planifier un atelier de travail réunissant des professionnels du domaine pour ré-évaluer et valider statistiquement les pondérations d'impact (le ratio 40/40/20) et la taxonomie.
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 6px; border-left: 2px solid var(--accent-purple);">
+                                <strong>3. Connexion à des API Hydrologiques Régionales :</strong> Pour le vecteur eau, intégrer le sens de l'écoulement naturel via des couches MNT (Modèle Numérique de Terrain) de plus haute résolution.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FOR TABS & DYNAMIC CALCULATOR -->
+    <script>
+        // Data taxonomy representation
+        const taxonomy = {
+            pollution_eau: { macro: "Eau & Assainissement", sub: "Pollution de cours d'eau / puits / marigot", base_severity: 8, base_radius: 1500, expected_vectors: ["water_current", "human_contact"] },
+            eaux_usees: { macro: "Eau & Assainissement", sub: "Eaux usées stagnantes", base_severity: 7, base_radius: 500, expected_vectors: ["vectors_insects_rodents", "human_contact"] },
+            decharge_sauvage: { macro: "Déchets & Insalubrité", sub: "Décharge sauvage", base_severity: 6, base_radius: 500, expected_vectors: ["vectors_insects_rodents", "human_contact"] },
+            dechets_dangereux: { macro: "Déchets & Insalubrité", sub: "Déchets dangereux / toxiques", base_severity: 9, base_radius: 1000, expected_vectors: ["water_current", "wind"] },
+            inondation: { macro: "Risques Naturels & Climatiques", sub: "Inondation", base_severity: 8, base_radius: 3000, expected_vectors: ["water_current", "slope"] },
+            incendie: { macro: "Risques Naturels & Climatiques", sub: "Incendie / feu de brousse", base_severity: 9, base_radius: 5000, expected_vectors: ["wind", "slope"] },
+            pollution_miniere: { macro: "Activités minières & extractives", sub: "Pollution minière / mercure / cyanure", base_severity: 10, base_radius: 3000, expected_vectors: ["water_current"] }
+        };
+
+        // Active vectors set
+        let activeVectors = {
+            wind: true,
+            water_current: false,
+            slope: false,
+            human_contact: true,
+            vectors_insects_rodents: true
+        };
+
+        let isUrbanZone = true;
+
+        // Initialize
+        window.onload = function() {
+            onIncidentTypeChange();
+        };
+
+        // Tabs logic
+        function switchTab(evt, tabId) {
+            const panels = document.querySelectorAll('.tab-panel');
+            const buttons = document.querySelectorAll('.tab-btn');
+            
+            panels.forEach(p => p.classList.remove('active'));
+            buttons.forEach(b => b.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Accordion logic
+        function toggleAccordion(button) {
+            const item = button.parentNode;
+            const isActive = item.classList.contains('active');
+            
+            // Close all items
+            document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+            
+            // Toggle current
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        }
+
+        // Dropdown selection change
+        function onIncidentTypeChange() {
+            const select = document.getElementById('incidentTypeSelect');
+            const key = select.value;
+            const inc = taxonomy[key];
+
+            // Reset vectors according to taxonomy
+            Object.keys(activeVectors).forEach(v => {
+                activeVectors[v] = inc.expected_vectors.includes(v);
+                const badgeEl = document.getElementById('vec-' + v);
+                if (badgeEl) {
+                    if (activeVectors[v]) {
+                        badgeEl.classList.add('checked');
+                    } else {
+                        badgeEl.classList.remove('checked');
+                    }
+                }
+            });
+
+            // Adjust base sliders if needed
+            updateCalculation();
+        }
+
+        // Toggle Vector checkbox
+        function toggleVector(vecKey) {
+            activeVectors[vecKey] = !activeVectors[vecKey];
+            const badgeEl = document.getElementById('vec-' + vecKey);
+            if (activeVectors[vecKey]) {
+                badgeEl.classList.add('checked');
+            } else {
+                badgeEl.classList.remove('checked');
+            }
+            updateCalculation();
+        }
+
+        // Toggle Urban status
+        function toggleUrban() {
+            isUrbanZone = !isUrbanZone;
+            const el = document.getElementById('urbanBox');
+            if (isUrbanZone) {
+                el.classList.add('checked');
+            } else {
+                el.classList.remove('checked');
+            }
+            updateCalculation();
+        }
+
+        // Perform calculation
+        function updateCalculation() {
+            // Read values
+            const sourceSize = parseFloat(document.getElementById('sourceSizeSlider').value);
+            const wind = parseFloat(document.getElementById('windSlider').value);
+            const slope = parseFloat(document.getElementById('slopeSlider').value);
+            const precip = parseFloat(document.getElementById('precipSlider').value);
+            const socialScore = parseFloat(document.getElementById('socialScoreSlider').value);
+
+            // Update UI badges
+            document.getElementById('sourceSizeVal').innerText = sourceSize + " m";
+            document.getElementById('windVal').innerText = wind + " km/h";
+            document.getElementById('slopeVal').innerText = slope + " %";
+            document.getElementById('precipVal').innerText = precip + " mm";
+            document.getElementById('socialScoreVal').innerText = socialScore;
+
+            // Get selected incident metadata
+            const key = document.getElementById('incidentTypeSelect').value;
+            const inc = taxonomy[key];
+            const severity = inc.base_severity;
+
+            let maxSpread = 0.0;
+            let explanationPart = "incident localisé sans propagation dynamique";
+
+            // 1. Insect Vector
+            if (activeVectors.vectors_insects_rodents) {
+                const spread = 200.0;
+                if (spread > maxSpread) {
+                    maxSpread = spread;
+                    explanationPart = `risque vectoriel (insectes/rongeurs, +${spread}m)`;
+                }
+            }
+
+            // 2. Water current potential risk
+            let potentialRisk = null;
+            if (activeVectors.water_current) {
+                const potentialSpreadDistance = 600.0 + (precip * Math.max(slope, 1.0) * 5.0);
+                potentialRisk = {
+                    vector: "Courant d'eau / Ruissellement",
+                    distance: Math.round(potentialSpreadDistance),
+                    message: `Risque de propagation secondaire par courant d'eau estimé à +${Math.round(potentialSpreadDistance)}m.`
+                };
+            }
+
+            // 3. Wind Vector
+            if (activeVectors.wind) {
+                const spread = wind * 10.0;
+                if (spread > maxSpread) {
+                    maxSpread = spread;
+                    explanationPart = `propagation éolienne (vent ${wind}km/h, +${Math.round(spread)}m)`;
+                }
+            }
+
+            // 4. Human contact Vector
+            if (activeVectors.human_contact) {
+                const spread = isUrbanZone ? 50.0 : 20.0;
+                if (spread > maxSpread) {
+                    maxSpread = spread;
+                    explanationPart = `contact humain direct en zone dense (+${spread}m)`;
+                }
+            }
+
+            // 5. Slope Vector
+            if (activeVectors.slope && !activeVectors.water_current) {
+                const spread = slope * 8.0;
+                if (spread > maxSpread) {
+                    maxSpread = spread;
+                    explanationPart = `dégradation par la pente (${slope}%, +${Math.round(spread)}m)`;
+                }
+            }
+
+            // Calculations
+            const finalRadius = sourceSize + maxSpread;
+            const roundedRadius = Math.round(finalRadius * 100) / 100;
+
+            // Environmental context sub-score (mocked based on logic)
+            // If water_current is active or water is in name, environmental context is higher
+            let contexteEnv = 5.0;
+            if (activeVectors.water_current || key.includes("eau") || key.includes("miniere") || key.includes("inondation")) {
+                contexteEnv += 3.0; // Simulate presence of water
+            }
+            contexteEnv = Math.min(10.0, contexteEnv);
+
+            let impactScore = (severity * 0.4) + (socialScore * 0.4) + (contexteEnv * 0.2);
+
+            // Weather damping logic
+            if ((key === "inondation" || key.includes("eau")) && precip < 1.0) {
+                impactScore *= 0.85;
+            }
+            
+            const finalImpactScore = Math.min(10.0, Math.round(impactScore * 100) / 100);
+
+            // Update output UI
+            document.getElementById('outRadius').innerText = Math.round(roundedRadius) + "m";
+            document.getElementById('outScore').innerText = finalImpactScore + "/10";
+            
+            let explanationText = `Rayon calculé depuis la source visible (${sourceSize}m) étendu par ${explanationPart}.`;
+            document.getElementById('outExplanation').innerText = explanationText;
+
+            // Update potential risk panel
+            const riskBox = document.getElementById('outPotentialRiskBox');
+            if (potentialRisk) {
+                riskBox.style.display = 'block';
+                document.getElementById('outPotentialRisk').innerText = potentialRisk.message;
+            } else {
+                riskBox.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

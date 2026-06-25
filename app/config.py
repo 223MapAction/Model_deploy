@@ -6,7 +6,7 @@ load_dotenv(override=True)
 class Settings:
     # Gemini (Vision - Primary)
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "your_gemini_api_key")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-preview-04-17")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 
     @property
     def GEMINI_API_URL(self):
