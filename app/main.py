@@ -4,7 +4,7 @@ import time
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
-from typing import Optional
+from typing import Optional, Dict
 
 from fastapi.staticfiles import StaticFiles
 import os
@@ -47,6 +47,23 @@ app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 def read_root():
     return {"message": "Welcome to Map Action Impact Engine"}
 
+def _subtract_human_impact(total: Dict[str, int], direct: Dict[str, int]) -> Dict[str, int]:
+    """Retourne la population de l'anneau indirect sans double compter le rayon direct."""
+    keys = [
+        "total_population_exposed",
+        "adult_men_exposed",
+        "adult_women_exposed",
+        "children_exposed",
+        "maternities_count",
+        "nurseries_count",
+    ]
+    return {key: max(0, total.get(key, 0) - direct.get(key, 0)) for key in keys}
+
+def _subtract_structure_counts(total: Dict[str, int], direct: Dict[str, int]) -> Dict[str, int]:
+    """Retourne les structures de l'anneau indirect sans double compter le rayon direct."""
+    keys = set(total) | set(direct)
+    return {key: max(0, total.get(key, 0) - direct.get(key, 0)) for key in keys}
+
 async def _run_analysis(ai_data, latitude: float, longitude: float, incident_id: str = None) -> AnalyzeResponse:
     """Logique d'analyse partagée entre les endpoints URL et Upload."""
     
@@ -79,18 +96,50 @@ async def _run_analysis(ai_data, latitude: float, longitude: float, incident_id:
 
     # 3. Phase 3 : Calcul des scores sociaux et humains
     osm_micro_counts = filter_osm_by_radius(osm_macro_result, latitude, longitude, final_radius)
-    social_data = calculate_social_vulnerability(osm_micro_counts, land_use=sat_result.get("land_use", "Inconnu"))
+    social_data = calculate_social_vulnerability(
+        osm_micro_counts,
+        land_use=sat_result.get("land_use", "Inconnu"),
+        radius_meters=final_radius,
+    )
     social_score = social_data["score"]
     is_probabilistic = social_data["is_probabilistic"]
     estimated_buildings = social_data.get("estimated_buildings", 0)
     human_impact_data = calculate_human_impact(osm_micro_counts, estimated_buildings=estimated_buildings)
 
-    # 4. Phase 4 : Calcul du risque potentiel (Si détecté)
+    # 4. Phase 4 : Calcul de la population indirectement concernée par vigilance sanitaire
+    indirect_vigilance_data = radius_data.get("indirect_vigilance")
+    indirect_human_impact_data = None
+    indirect_social_counts = None
+    is_indirect_probabilistic = False
+    indirect_radius = None
+    indirect_exp = None
+    if indirect_vigilance_data:
+        indirect_radius = indirect_vigilance_data["potential_radius"]
+        indirect_exp = indirect_vigilance_data["message"]
+        osm_indirect_counts = filter_osm_by_radius(osm_macro_result, latitude, longitude, indirect_radius)
+        social_indirect = calculate_social_vulnerability(
+            osm_indirect_counts,
+            land_use=sat_result.get("land_use", "Inconnu"),
+            radius_meters=indirect_radius,
+        )
+        is_indirect_probabilistic = social_indirect["is_probabilistic"]
+        human_indirect_total = calculate_human_impact(
+            osm_indirect_counts,
+            estimated_buildings=social_indirect.get("estimated_buildings"),
+        )
+        indirect_human_impact_data = _subtract_human_impact(human_indirect_total, human_impact_data)
+        indirect_social_counts = _subtract_structure_counts(osm_indirect_counts, osm_micro_counts)
+
+    # 5. Phase 5 : Calcul du risque potentiel (Si détecté)
     potential_risk_data = radius_data.get("potential_risk")
     if potential_risk_data:
         pot_radius = potential_risk_data["potential_radius"]
         osm_pot_counts = filter_osm_by_radius(osm_macro_result, latitude, longitude, pot_radius)
-        social_pot = calculate_social_vulnerability(osm_pot_counts, land_use=sat_result.get("land_use", "Inconnu"))
+        social_pot = calculate_social_vulnerability(
+            osm_pot_counts,
+            land_use=sat_result.get("land_use", "Inconnu"),
+            radius_meters=pot_radius,
+        )
         human_pot = calculate_human_impact(osm_pot_counts, estimated_buildings=social_pot.get("estimated_buildings"))
         
         potential_risk_data["stats"] = {
@@ -98,7 +147,7 @@ async def _run_analysis(ai_data, latitude: float, longitude: float, incident_id:
             "infrastructures": sum(v for k,v in osm_pot_counts.items() if k != "residential_buildings")
         }
 
-    # 5. Phase 5 : Calcul du score d'impact global et réponse
+    # 6. Phase 6 : Calcul du score d'impact global et réponse
     impact_data = calculate_global_impact(
         ai_data=ai_data,
         sat_data=sat_result,
@@ -114,17 +163,22 @@ async def _run_analysis(ai_data, latitude: float, longitude: float, incident_id:
         topography=SpatialData(**spatial_data),
         satellite=SatelliteData(**sat_result),
         social_data=osm_micro_counts,
+        indirect_social_data=indirect_social_counts,
         social_vulnerability_score=social_score,
         is_social_probabilistic=is_probabilistic,
+        is_indirect_social_probabilistic=is_indirect_probabilistic,
         human_impact=HumanImpact(**human_impact_data),
+        indirect_human_impact=HumanImpact(**indirect_human_impact_data) if indirect_human_impact_data else None,
         impact_radius_meters=final_radius,
+        indirect_vigilance_radius_meters=indirect_radius,
+        indirect_vigilance_explanation=indirect_exp,
         radius_explanation=radius_exp,
         global_impact_score=impact_data["impact_score"],
         base_severity=settings.INCIDENT_TAXONOMY.get(ai_data.macro_category, {}).get(ai_data.sub_category, {}).get("base_severity", 5),
         impact_tags=settings.INCIDENT_TAXONOMY.get(ai_data.macro_category, {}).get(ai_data.sub_category, {}).get("impact_tags", []),
         geocoding=geo_context,
         potential_risk=potential_risk_data,
-        recommendation=f"Intervention recommandée dans un rayon de {final_radius}m. Score de gravité: {impact_data['impact_score']}/10."
+        recommendation=f"Intervention directe recommandée dans un rayon de {final_radius}m. Score de gravité: {impact_data['impact_score']}/10."
     )
 
 @app.post("/analyze", response_model=AnalyzeResponse)
@@ -166,6 +220,7 @@ async def chat_with_assistant(request: ChatRequest):
         # On prépare un résumé textuel clair au lieu du JSON brut
         ctx = request.context
         human = ctx.get('human_impact', {})
+        indirect_human = ctx.get('indirect_human_impact') or {}
         topo = ctx.get('topography', {})
         sat = ctx.get('satellite', {})
         ai = ctx.get('ai_analysis', {})
@@ -177,13 +232,16 @@ async def chat_with_assistant(request: ChatRequest):
 - Incident : {ai.get('macro_category')} - {ai.get('sub_category')}
 - Tags d'impact : {', '.join(ctx.get('impact_tags', []))}
 - Gravité Initiale: {ctx.get('base_severity')}/10 | Gravité Globale : {ctx.get('global_impact_score')}/10
-- Rayon d'impact : {ctx.get('impact_radius_meters')} mètres
+- Rayon d'impact direct : {ctx.get('impact_radius_meters')} mètres
 - Justification : {ctx.get('radius_explanation')}
-- Population exposée : {human.get('total_population_exposed')} personnes
+- Population directement exposée : {human.get('total_population_exposed')} personnes
   (Hommes: {human.get('adult_men_exposed')}, Femmes: {human.get('adult_women_exposed')}, Enfants: {human.get('children_exposed')})
+- Rayon de vigilance indirecte : {ctx.get('indirect_vigilance_radius_meters') or 'Non applicable'} mètres
+- Population indirectement concernée : {indirect_human.get('total_population_exposed', 0)} personnes
 - Météo : {topo.get('temperature_celsius')}°C, Vent {topo.get('wind_speed')}km/h, Pluie {topo.get('precipitation')}mm
 - Sol : Pente {topo.get('slope_percent')}%, Occupation: {sat.get('land_use')}
-- Infrastructures : {ctx.get('social_data')}
+- Structures directement exposées : {ctx.get('social_data')}
+- Structures indirectement concernées : {ctx.get('indirect_social_data') or {}}
 - Risque potentiel : {ctx.get('potential_risk', {}).get('message') if ctx.get('potential_risk') else 'Aucun risque de propagation majeure détecté.'}
 """
         # On renvoie le générateur de texte encapsulé dans une StreamingResponse
@@ -649,29 +707,29 @@ DASHBOARD_HTML = """
                         </div>
                     </div>
 
-                    <!-- 3 Pillars -->
+                    <!-- Impact sections -->
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
-                        <!-- Pillar 1: Social -->
+                        <!-- Populations -->
                         <div class="card" style="margin-bottom: 0;">
                             <div class="detail-section">
-                                <h3><span>👥</span> Pilier Social</h3>
+                                <h3><span>👥</span> Populations</h3>
                                 <div id="socialPillarGrid"></div>
                             </div>
                         </div>
 
-                        <!-- Pillar 2: Environnemental -->
+                        <!-- Milieu -->
                         <div class="card" style="margin-bottom: 0;">
                             <div class="detail-section">
-                                <h3><span>🌿</span> Pilier Environnemental</h3>
+                                <h3><span>🌿</span> Milieu</h3>
                                 <div id="envPillarGrid"></div>
                             </div>
                         </div>
 
-                        <!-- Pillar 3: Économique -->
+                        <!-- Infrastructures -->
                         <div class="card" style="margin-bottom: 0;">
                             <div class="detail-section">
                                 <h3 style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                                    <span>💼 Pilier Économique</span>
+                                    <span>🏘️ Infrastructures</span>
                                 </h3>
                                 <div id="ecoPillarGrid"></div>
                             </div>
@@ -784,9 +842,16 @@ DASHBOARD_HTML = """
                 <div class="metric">
                     <div class="metric-icon">📐</div>
                     <div class="metric-value">${Math.round(d.impact_radius_meters)}m</div>
-                    <div class="metric-label">Rayon d'Impact</div>
+                    <div class="metric-label">Rayon Direct</div>
                     <div style="font-size:10px; color:var(--text-muted); margin-top:4px; line-height:1.2;">${d.radius_explanation}</div>
                 </div>
+                ${d.indirect_vigilance_radius_meters ? `
+                <div class="metric">
+                    <div class="metric-icon">🛡️</div>
+                    <div class="metric-value">${Math.round(d.indirect_vigilance_radius_meters)}m</div>
+                    <div class="metric-label">Rayon de Vigilance</div>
+                    <div style="font-size:10px; color:var(--text-muted); margin-top:4px; line-height:1.2;">${d.indirect_vigilance_explanation}</div>
+                </div>` : ''}
                 <div class="metric">
                     <div class="metric-icon">🔥</div>
                     <div class="metric-value ${getSeverityClass(d.base_severity)}">${d.base_severity}/10</div>
@@ -836,15 +901,25 @@ DASHBOARD_HTML = """
             document.getElementById('spreadTags').innerHTML = d.ai_analysis.spread_vectors.map(v => `<span class="tag">${v}</span>`).join('');
             document.getElementById('impactTags').innerHTML = d.impact_tags.map(v => `<span class="tag" style="background: rgba(16,185,129,0.1); color: var(--accent-green); border-color: rgba(16,185,129,0.2);">${v}</span>`).join('');
 
-            // Pillar 1: Social
+            // Populations
+            const indirectImpact = d.indirect_human_impact || {
+                total_population_exposed: 0,
+                adult_women_exposed: 0,
+                adult_men_exposed: 0,
+                children_exposed: 0
+            };
             document.getElementById('socialPillarGrid').innerHTML = `
-                <div class="detail-item"><div class="detail-item-label">Personnes Exposées</div><div class="detail-item-value ${getSeverityClass(d.human_impact.total_population_exposed / 100)}">${d.human_impact.total_population_exposed.toLocaleString()}</div></div>
-                <div class="detail-item"><div class="detail-item-label">Femmes Adultes</div><div class="detail-item-value" style="color: var(--accent-purple)">${d.human_impact.adult_women_exposed.toLocaleString()}</div></div>
-                <div class="detail-item"><div class="detail-item-label">Hommes Adultes</div><div class="detail-item-value" style="color: var(--accent-blue)">${d.human_impact.adult_men_exposed.toLocaleString()}</div></div>
-                <div class="detail-item"><div class="detail-item-label">Enfants (<15 ans)</div><div class="detail-item-value" style="color: var(--accent-orange)">${d.human_impact.children_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Population directement exposée</div><div class="detail-item-value ${getSeverityClass(d.human_impact.total_population_exposed / 100)}">${d.human_impact.total_population_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Population indirectement concernée</div><div class="detail-item-value" style="color: var(--accent-orange)">${indirectImpact.total_population_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Femmes adultes exposées</div><div class="detail-item-value" style="color: var(--accent-purple)">${d.human_impact.adult_women_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Hommes adultes exposés</div><div class="detail-item-value" style="color: var(--accent-blue)">${d.human_impact.adult_men_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Enfants exposés (<15 ans)</div><div class="detail-item-value" style="color: var(--accent-orange)">${d.human_impact.children_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Femmes indirectement concernées</div><div class="detail-item-value" style="color: var(--accent-purple)">${indirectImpact.adult_women_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Hommes indirectement concernés</div><div class="detail-item-value" style="color: var(--accent-blue)">${indirectImpact.adult_men_exposed.toLocaleString()}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Enfants indirectement concernés</div><div class="detail-item-value" style="color: var(--accent-orange)">${indirectImpact.children_exposed.toLocaleString()}</div></div>
             `;
 
-            // Pillar 2: Environnemental
+            // Milieu
             document.getElementById('envPillarGrid').innerHTML = `
                 <div class="detail-item"><div class="detail-item-label">Température</div><div class="detail-item-value">${d.topography.temperature_celsius}°C</div></div>
                 <div class="detail-item"><div class="detail-item-label">Précipitations</div><div class="detail-item-value">${d.topography.precipitation} mm</div></div>
@@ -855,7 +930,7 @@ DASHBOARD_HTML = """
                 <div class="detail-item"><div class="detail-item-label">Occupation du Sol</div><div class="detail-item-value">${d.satellite.land_use}</div></div>
             `;
 
-            // Pillar 3: Économique (Infrastructures)
+            // Infrastructures
             const ecoLabels = {
                 health_centers: "Centres de santé",
                 maternities: "Maternités",
@@ -866,26 +941,42 @@ DASHBOARD_HTML = """
                 main_roads_bridges: "Routes / Ponts",
                 residential_buildings: "Bâtiments"
             };
-            
-            document.getElementById('ecoPillarGrid').innerHTML = Object.entries(d.social_data)
-                .filter(([k,v]) => v > 0)
-                .map(([k,v]) => {
-                    const isEstimated = d.is_social_probabilistic && ["health_centers", "schools", "markets", "water_points"].includes(k);
+
+            function renderStructureItems(counts, emptyText, isProbabilistic) {
+                return Object.entries(counts || {})
+                    .filter(([k,v]) => v > 0)
+                    .map(([k,v]) => {
+                    const isEstimated = isProbabilistic && ["health_centers", "schools", "markets", "water_points"].includes(k);
                     const label = ecoLabels[k] || k;
                     const badge = isEstimated ? '<span style="font-size:9px; background:rgba(245,158,11,0.2); color:var(--accent-orange); padding:1px 4px; border-radius:3px; margin-left:4px;">ESTIMÉ</span>' : '';
                     return `<div class="detail-item">
                         <div class="detail-item-label">${label}${badge}</div>
                         <div class="detail-item-value">${v}</div>
                     </div>`;
-                }).join('') || '<div style="color:var(--text-muted);font-size:13px">Aucune infrastructure dans ce rayon</div>';
+                    }).join('') || `<div style="color:var(--text-muted);font-size:13px">${emptyText}</div>`;
+            }
+
+            const directStructuresTotal = Object.values(d.social_data || {}).reduce((sum, value) => sum + value, 0);
+            const indirectStructures = d.indirect_social_data || {};
+            const indirectStructuresTotal = Object.values(indirectStructures).reduce((sum, value) => sum + value, 0);
+            document.getElementById('ecoPillarGrid').innerHTML = `
+                <div style="font-size:11px; color:var(--accent-green); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:4px 0 8px;">Structures directement exposées</div>
+                ${renderStructureItems(d.social_data, 'Aucune infrastructure dans le rayon direct', d.is_social_probabilistic)}
+                <div style="font-size:11px; color:var(--accent-orange); font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:14px 0 8px;">Structures indirectement concernées</div>
+                ${renderStructureItems(indirectStructures, 'Aucune infrastructure dans la zone de vigilance', d.is_indirect_social_probabilistic)}
+            `;
 
             // Recommendation
             document.getElementById('recommendation').innerHTML = `
                 <div style="margin-bottom:12px">⚡ ${d.recommendation}</div>
                 <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(245,158,11,0.2)">
-                    <div><span style="font-size:18px">👩</span> <strong>${d.human_impact.adult_women_exposed.toLocaleString()}</strong> femmes adultes</div>
-                    <div><span style="font-size:18px">👨</span> <strong>${d.human_impact.adult_men_exposed.toLocaleString()}</strong> hommes adultes</div>
-                    <div><span style="font-size:18px">👦</span> <strong>${d.human_impact.children_exposed.toLocaleString()}</strong> enfants (<15 ans)</div>
+                    <div><span style="font-size:18px">👥</span> <strong>${d.human_impact.total_population_exposed.toLocaleString()}</strong> directement exposés</div>
+                    <div><span style="font-size:18px">🛡️</span> <strong>${indirectImpact.total_population_exposed.toLocaleString()}</strong> indirectement concernés</div>
+                    <div><span style="font-size:18px">🏥</span> <strong>${directStructuresTotal.toLocaleString()}</strong> structures directement exposées</div>
+                    <div><span style="font-size:18px">🏘️</span> <strong>${indirectStructuresTotal.toLocaleString()}</strong> structures indirectement concernées</div>
+                    <div><span style="font-size:18px">👩</span> <strong>${d.human_impact.adult_women_exposed.toLocaleString()}</strong> femmes adultes exposées</div>
+                    <div><span style="font-size:18px">👨</span> <strong>${d.human_impact.adult_men_exposed.toLocaleString()}</strong> hommes adultes exposés</div>
+                    <div><span style="font-size:18px">👦</span> <strong>${d.human_impact.children_exposed.toLocaleString()}</strong> enfants exposés (<15 ans)</div>
                     ${d.human_impact.maternities_count > 0 ? `<div><span style="font-size:18px">🤱</span> <strong>${d.human_impact.maternities_count}</strong> maternité(s) exposée(s)</div>` : ''}
                     ${d.human_impact.nurseries_count > 0 ? `<div><span style="font-size:18px">👶</span> <strong>${d.human_impact.nurseries_count}</strong> crèche(s) exposée(s)</div>` : ''}
                 </div>

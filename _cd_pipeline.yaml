@@ -1,4 +1,4 @@
-version: "3"
+
 
 services:
     nginx:
@@ -25,7 +25,7 @@ services:
             - ~/cv_model:/app/cv_model
             - ./app:/app/app
             - ./local_uploads:/app/local_uploads # Add this line
-            - ./gee-credentials.json:/app/gee-credentials.json
+            - ./gee-key.json:/app/gee-key.json
         expose:
             - "8001"
         env_file:
@@ -68,7 +68,7 @@ services:
             - ~/cv_model:/app/cv_model
             - ./app:/app/app
             - ./local_uploads:/app/local_uploads # Add this line
-            - ./gee-credentials.json:/app/gee-credentials.json
+            - ./gee-key.json:/app/gee-key.json
         user: "${UID}:${GID}"
 
 volumes:

@@ -2,7 +2,7 @@ import logging
 import requests
 import ee
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -233,7 +233,23 @@ def filter_osm_by_radius(osm_data: Dict[str, Any], origin_lat: float, origin_lon
     logger.info(f"Résultats filtrés : {counts['residential_buildings']} bâtiments trouvés dans {final_radius}m")
     return counts
 
-def calculate_social_vulnerability(osm_data: dict, land_use: str = "Inconnu") -> Dict[str, Any]:
+URBAN_BUILDING_DENSITY_PER_KM2 = 1200
+
+
+def estimate_urban_buildings_from_radius(radius_meters: float) -> int:
+    """Estime les bâtiments urbains à partir de la surface analysée."""
+    if radius_meters <= 0:
+        return 0
+
+    area_km2 = math.pi * (radius_meters / 1000) ** 2
+    return max(1, int(round(area_km2 * URBAN_BUILDING_DENSITY_PER_KM2)))
+
+
+def calculate_social_vulnerability(
+    osm_data: dict,
+    land_use: str = "Inconnu",
+    radius_meters: Optional[float] = None,
+) -> Dict[str, Any]:
     """
     Calcule le score de vulnérabilité sociale sur 10.
     Utilise une approche probabiliste si les données OSM sont vides en zone dense ou urbaine.
@@ -245,12 +261,17 @@ def calculate_social_vulnerability(osm_data: dict, land_use: str = "Inconnu") ->
     
     # Correction : Si le satellite dit "Urbain" mais OSM est pauvre (< 5 bâtiments)
     if buildings < 5 and land_use == "Urbain / Bâti":
-        # On injecte une densité par défaut pour réveiller les compteurs
-        # On passe à 150 bâtiments pour garantir un impact chiffré visible
-        buildings = 150 
+        # On estime une densité urbaine à partir de la surface du rayon analysé.
+        # Sans rayon fourni, on garde l'ancien équivalent 200m pour compatibilité.
+        estimation_radius = radius_meters if radius_meters is not None else 200
+        buildings = max(buildings, estimate_urban_buildings_from_radius(estimation_radius))
         osm_data['residential_buildings'] = buildings
         is_probabilistic = True
-        logger.info(f"OSM vide en zone Urbaine. Injection de 150 bâtiments (estimation satellite).")
+        logger.info(
+            "OSM vide en zone Urbaine. Estimation satellite de %s bâtiments sur un rayon de %sm.",
+            buildings,
+            estimation_radius,
+        )
     
     # 1. Infrastructures Avérées (OSM)
     health = osm_data.get('health_centers', 0)
