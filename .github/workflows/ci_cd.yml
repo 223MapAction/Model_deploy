@@ -252,7 +252,8 @@ jobs:
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}"
             echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}"
             echo "GEE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GEE_SERVICE_ACCOUNT_EMAIL }}"
-            echo "GEE_SERVICE_ACCOUNT_KEY_FILE=/app/gee-credentials.json"
+            echo "GEE_SERVICE_ACCOUNT_FILE=/app/gee-key.json"
+            echo "GEE_PROJECT_ID=${{ secrets.GEE_PROJECT_ID }}"
             echo "SERVER_URL=${{ secrets.SERVER_URL }}"
             echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}"
             echo "AWS_REGION=${{ secrets.AWS_REGION }}"
@@ -270,7 +271,7 @@ jobs:
         run: |
           set -euxo pipefail
           # Create the credentials file from the secret
-          echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' > gee-credentials.json
+          echo '${{ secrets.GEE_SERVICE_ACCOUNT_KEY_CONTENT }}' > gee-key.json
           echo "GEE credentials file created for deployment"
 
       - name: Build and Deploy (Docker Compose)
